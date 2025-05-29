@@ -2,7 +2,7 @@
 import { ScheduledAuditsCalendar } from '@/components/custom/scheduled-audits-calendar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function ScheduledAuditsPage() {
   return (
@@ -15,10 +15,7 @@ export default function ScheduledAuditsPage() {
               Volver al Inicio
             </Link>
           </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Descargar Auditorías
-          </Button>
+          {/* The general download button has been removed from here */}
         </div>
         <ScheduledAuditsCalendar />
       </div>
