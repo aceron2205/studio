@@ -64,6 +64,7 @@ export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAudi
         <div className="flex items-center gap-1">
           {actions.map((act, index) => {
             const ActionIcon = act.icon;
+            const isIconOnly = act.buttonSize === 'icon' || act.buttonSize === 'icon-lg';
             return (
               <Button
                 key={`${act.label}-${index}-${audit.id}`}
@@ -73,8 +74,8 @@ export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAudi
                 aria-label={`${act.label} para ${audit.clientName}`}
               >
                 <ActionIcon size={act.iconSize} /> 
-                {act.buttonSize && act.buttonSize !== 'icon' && act.buttonSize !== 'icon-lg' && act.label && (
-                  act.label 
+                {!isIconOnly && act.label && (
+                  <span className="ml-2">{act.label}</span>
                 )}
               </Button>
             );
