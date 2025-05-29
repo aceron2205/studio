@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
+import { es } from "date-fns/locale/es"; // Import Spanish locale
 import { CalendarIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,12 +20,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label"; // Import Label
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator"; // Import Separator
 import { cn } from "@/lib/utils";
 
 const auditSearchSchema = z.object({
@@ -34,6 +37,13 @@ const auditSearchSchema = z.object({
 });
 
 type AuditSearchFormValues = z.infer<typeof auditSearchSchema>;
+
+const mockClients = [
+  { id: '1', name: 'Cliente Innovador SA', lastAudit: '2024-07-15', location: 'Parque Tecnológico Norte' },
+  { id: '2', name: 'Soluciones Globales Ltda.', lastAudit: '2024-06-20', location: 'Centro Empresarial Metropolitano' },
+  { id: '3', name: 'Consultores Asociados', lastAudit: '2024-07-01', location: 'Distrito Financiero Oeste' },
+  { id: '4', name: 'Manufacturas Alfa', lastAudit: '2024-05-10', location: 'Polígono Industrial Sur' },
+];
 
 export function AuditSearchFilter() {
   const form = useForm<AuditSearchFormValues>({
@@ -59,6 +69,18 @@ export function AuditSearchFilter() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-6">
+          <Label htmlFor="generalSearchInput" className="text-sm font-medium">Búsqueda Rápida</Label>
+          <Input
+            id="generalSearchInput"
+            placeholder="Nombre de cliente, fecha de auditoría, etc..."
+            className="mt-1"
+          />
+        </div>
+
+        <Separator className="my-6" />
+
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Filtros Específicos</h3>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -104,7 +126,7 @@ export function AuditSearchFilter() {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "PPP", { locale: es })
                           ) : (
                             <span>Seleccione una fecha</span>
                           )}
@@ -121,6 +143,7 @@ export function AuditSearchFilter() {
                           date < new Date(new Date().setDate(new Date().getDate() -1)) // Disable past dates
                         }
                         initialFocus
+                        locale={es} // Set locale for Calendar
                       />
                     </PopoverContent>
                   </Popover>
@@ -128,12 +151,32 @@ export function AuditSearchFilter() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full mt-2"> {/* Added mt-2 for spacing */}
               <SearchIcon className="mr-2 h-4 w-4" />
-              Filtrar
+              Aplicar Filtros Específicos
             </Button>
           </form>
         </Form>
+
+        <div className="mt-10 pt-6 border-t">
+          <h3 className="text-xl font-semibold mb-6 text-primary">Clientes Registrados</h3>
+          {mockClients.length > 0 ? (
+            <ul className="space-y-4">
+              {mockClients.map((client) => (
+                <li key={client.id} className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
+                  <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Última Auditoría: {format(new Date(client.lastAudit), "PPP", { locale: es })}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Ubicación: {client.location}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground text-center">No se encontraron clientes.</p>
+          )}
+        </div>
+
       </CardContent>
     </Card>
   );
