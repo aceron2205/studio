@@ -1,7 +1,7 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Search, Archive, RefreshCw, Download, CalendarDays, Edit3 } from 'lucide-react';
+import { Search, Archive, RefreshCw, Download, CalendarDays, Edit3, FilePlus2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -13,6 +13,7 @@ export default function HomePage() {
     { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
+    { title: 'Inicia auditoría', icon: FilePlus2, href: '#', description: 'Comenzar una nueva auditoría' },
   ];
 
   return (
@@ -22,9 +23,9 @@ export default function HomePage() {
         
         <main className="mt-4">
           <div className="grid grid-cols-2 gap-5"> {/* Changed gap to gap-5 */}
-            {menuItems.map((item) => (
+            {menuItems.map((item, index) => (
               <MenuCard
-                key={item.title}
+                key={item.title + index} // Added index to key for safety if titles aren't unique
                 title={item.title}
                 icon={item.icon}
                 href={item.href}
