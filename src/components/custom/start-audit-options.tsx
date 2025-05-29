@@ -63,9 +63,7 @@ export function StartAuditOptions() {
       </CardHeader>
       <CardContent className="space-y-8">
         <div>
-          <h3 className="text-xl font-semibold mb-4 text-card-foreground">
-            Auditorías Programadas Pendientes
-          </h3>
+          {/* Heading "Auditorías Programadas Pendientes" removed from here */}
           {mockPendingAudits.length > 0 ? (
             <div className="space-y-4">
               {mockPendingAudits.map((audit) => (
