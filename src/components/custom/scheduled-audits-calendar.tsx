@@ -37,7 +37,7 @@ export function ScheduledAuditsCalendar() {
           <div className="space-y-6">
             {mockScheduledAudits.map((audit) => (
               <div key={audit.id} className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-2"> {/* Changed items-start to items-center */}
+                <div className="flex justify-between items-center mb-2">
                   <div>
                     <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
                     <Badge variant={audit.status === 'Programada' ? 'secondary' : 'default'} className="mt-1">
@@ -49,9 +49,9 @@ export function ScheduledAuditsCalendar() {
                     size="icon" 
                     onClick={() => handleDownloadAudit(audit.id)}
                     aria-label={`Descargar auditoría de ${audit.clientName}`}
-                    className="text-primary hover:text-primary/80"
+                    className="text-primary hover:text-primary/80 flex items-center justify-center" // Explicitly added flex centering
                   >
-                    <Download className="w-6 h-6" /> {/* Increased icon size */}
+                    <Download className="w-6 h-6" />
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -73,3 +73,4 @@ export function ScheduledAuditsCalendar() {
     </Card>
   );
 }
+
