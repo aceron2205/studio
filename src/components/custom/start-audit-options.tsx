@@ -54,13 +54,13 @@ export function StartAuditOptions() {
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="flex flex-row items-start gap-3"> {/* Changed from text-center to flex row */}
+      <CardHeader className="flex flex-row items-start gap-3">
         <Link href="/" passHref>
-          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0 mt-1"> {/* mt-1 for visual alignment with title */}
+          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0 mt-1">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div className="flex-grow"> {/* Wrapper for title and description to allow them to take remaining space */}
+        <div className="flex-grow text-center"> {/* Added text-center here */}
           <CardTitle className="text-2xl font-semibold text-primary">
             Iniciar Auditoría
           </CardTitle>
@@ -71,7 +71,6 @@ export function StartAuditOptions() {
       </CardHeader>
       <CardContent className="space-y-8">
         <div>
-          {/* Removed "Auditorías Programadas Pendientes" heading */}
           {mockPendingAudits.length > 0 ? (
             <div className="space-y-4">
               {mockPendingAudits.map((audit) => (
