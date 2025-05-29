@@ -9,7 +9,7 @@ export default function HomePage() {
   const userName = "Usuario"; // Placeholder, replace with actual user data logic
 
   const menuItems = [
-    { title: 'Gestión de Clientes', icon: Users, href: '#', description: 'Administrar clientes' },
+    { title: 'Auditorías', icon: CalendarDays, href: '#', description: 'Gestionar auditorías' },
     { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
