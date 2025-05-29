@@ -2,12 +2,10 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale/es";
-import { CalendarCheck, MapPin, Download } from "lucide-react"; 
+import { es } from "date-fns/locale/es"; // For passing locale
+import { CalendarCheck } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button"; 
+import { ScheduledAuditListItem } from "./scheduled-audit-list-item"; // Import the new list item component
 
 const mockScheduledAudits = [
   { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
@@ -36,32 +34,12 @@ export function ScheduledAuditsCalendar() {
         {mockScheduledAudits.length > 0 ? (
           <div className="space-y-6">
             {mockScheduledAudits.map((audit) => (
-              <div key={audit.id} className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
-                    <Badge variant={audit.status === 'Programada' ? 'secondary' : 'default'} className="mt-1">
-                      {audit.status}
-                    </Badge>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => handleDownloadAudit(audit.id)}
-                    aria-label={`Descargar auditoría de ${audit.clientName}`}
-                    className="text-primary hover:text-primary/80 flex items-center justify-center" // Explicitly added flex centering
-                  >
-                    <Download className="w-6 h-6" />
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Fecha: {format(new Date(audit.date), "PPP", { locale: es })} a las {audit.time}
-                </p>
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                  <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                  <span>{audit.location}</span>
-                </div>
-              </div>
+              <ScheduledAuditListItem 
+                key={audit.id} 
+                audit={audit} 
+                locale={es} 
+                onDownload={handleDownloadAudit} 
+              />
             ))}
           </div>
         ) : (
@@ -73,4 +51,3 @@ export function ScheduledAuditsCalendar() {
     </Card>
   );
 }
-
