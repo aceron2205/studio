@@ -1,17 +1,17 @@
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Users, Search, Archive, RefreshCw, ArrowRight } from 'lucide-react';
+import { Users, Search, Archive, RefreshCw, ArrowRight, Download, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function HomePage() {
-  const userName = "User"; // Placeholder, replace with actual user data logic
+  const userName = "Usuario"; // Placeholder, replace with actual user data logic
 
   const menuItems = [
-    { title: 'Gestion de Clientes', icon: Users, href: '#', description: 'Manage customers' },
-    { title: 'Buscador', icon: Search, href: '#', description: 'Find information' },
-    { title: 'Inventario', icon: Archive, href: '#', description: 'Check stock' },
-    { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Update data' },
+    { title: 'Gestión de Clientes', icon: Users, href: '#', description: 'Administrar clientes' },
+    { title: 'Buscador', icon: Search, href: '#', description: 'Encontrar información' },
+    { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
+    { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
   ];
 
   return (
@@ -34,18 +34,18 @@ export default function HomePage() {
         </main>
 
         <section aria-labelledby="quick-actions-title" className="mt-10">
-          <h2 id="quick-actions-title" className="text-xl font-semibold text-center mb-4 text-primary">Quick Actions</h2>
+          <h2 id="quick-actions-title" className="text-xl font-semibold text-center mb-4 text-primary">Acciones Rápidas</h2>
           <div className="space-y-3">
             <Button variant="outline" className="w-full justify-between" asChild>
               <Link href="#">
-                Add New Client
-                <ArrowRight className="w-4 h-4" />
+                Descargar Auditorías
+                <Download className="w-4 h-4" />
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-between" asChild>
               <Link href="#">
-                View Recent Reports
-                <ArrowRight className="w-4 h-4" />
+                Calendario de Auditorías
+                <CalendarDays className="w-4 h-4" />
               </Link>
             </Button>
           </div>
@@ -53,7 +53,7 @@ export default function HomePage() {
         
         <footer className="text-center py-10 mt-6">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} MobileFlow. All rights reserved.
+            &copy; {new Date().getFullYear()} MobileFlow. Todos los derechos reservados.
           </p>
         </footer>
       </div>
