@@ -1,7 +1,7 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Users, Search, Archive, RefreshCw, Download, CalendarDays, Edit3 } from 'lucide-react';
+import { Search, Archive, RefreshCw, Download, CalendarDays, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -9,7 +9,7 @@ export default function HomePage() {
   const userName = "Usuario"; // Placeholder, replace with actual user data logic
 
   const menuItems = [
-    { title: 'Auditorías', icon: CalendarDays, href: '#', description: 'Gestionar auditorías' },
+    { title: 'Auditorías', icon: CalendarDays, href: '/scheduled-audits', description: 'Gestionar auditorías' },
     { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
