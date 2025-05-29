@@ -1,7 +1,7 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Users, Search, Archive, RefreshCw, Download, CalendarDays } from 'lucide-react';
+import { Users, Search, Archive, RefreshCw, Download, CalendarDays, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -45,8 +45,8 @@ export default function HomePage() {
             </Button>
             <Button variant="outline" className="w-full justify-between" asChild>
               <Link href="#">
-                Calendario de Auditorías
-                <CalendarDays className="w-4 h-4" />
+                Editar auditoría
+                <Edit3 className="w-4 h-4" />
               </Link>
             </Button>
           </div>
