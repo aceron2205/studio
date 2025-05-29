@@ -4,7 +4,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es"; // Import Spanish locale
-import { SearchIcon, FilterIcon } from "lucide-react"; // Added FilterIcon
+import { SearchIcon, ListFilter } from "lucide-react"; // Changed FilterIcon to ListFilter
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,14 +34,14 @@ export function AuditSearchFilter() {
         <div className="mb-6">
           <Label htmlFor="generalSearchInput" className="text-sm font-medium">Búsqueda Rápida</Label>
           <div className="relative mt-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FilterIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-            </div>
             <Input
               id="generalSearchInput"
               placeholder="Nombre de cliente, fecha, ubicación..."
-              className="pl-10" // Padding left for the icon
+              className="pr-10" // Padding right for the icon
             />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <ListFilter className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            </div>
           </div>
         </div>
 
