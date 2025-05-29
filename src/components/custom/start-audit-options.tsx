@@ -3,10 +3,10 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
-import { PlayCircle, FilePlus2, Play, Download } from "lucide-react"; // Added Download
+import { PlayCircle, FilePlus2, Play, Download } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScheduledAuditListItem, type AuditAction } from "./scheduled-audit-list-item"; // Import AuditAction
+import { ScheduledAuditListItem, type AuditAction } from "./scheduled-audit-list-item"; 
 import { Separator } from "@/components/ui/separator";
 
 // Mock data - in a real app, this would come from a data source
@@ -35,17 +35,19 @@ export function StartAuditOptions() {
   const getAuditActions = (auditId: string): AuditAction[] => [
     {
       icon: Play,
-      label: "Iniciar esta auditoría", // aria-label
+      label: "Iniciar esta auditoría", 
       onClick: () => handleStartScheduledAudit(auditId),
       variant: 'ghost', 
-      buttonSize: 'icon', // Changed to icon-only
+      buttonSize: 'icon-lg', 
+      iconSize: 28, // h-7 w-7
     },
     {
       icon: Download,
-      label: "Descargar auditoría", // aria-label
+      label: "Descargar auditoría", 
       onClick: () => handleDownloadAudit(auditId),
       variant: 'ghost',
-      buttonSize: 'icon', // New download icon button
+      buttonSize: 'icon-lg', 
+      iconSize: 28, // h-7 w-7
     }
   ];
 
@@ -72,7 +74,7 @@ export function StartAuditOptions() {
                   key={audit.id}
                   audit={audit}
                   locale={es}
-                  actions={getAuditActions(audit.id)} // Pass array of actions
+                  actions={getAuditActions(audit.id)} 
                 />
               ))}
             </div>

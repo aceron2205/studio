@@ -18,18 +18,19 @@ interface Audit {
   status: string;
 }
 
-export interface AuditAction { // Exporting for use in other components
+export interface AuditAction {
   icon: LucideIcon;
-  label: string; // For aria-label and button text if not icon-only
+  label: string; 
   onClick: (auditId: string) => void;
   variant?: ButtonProps['variant'];
   buttonSize?: ButtonProps['size'];
+  iconSize?: number; // Optional: specify icon size in pixels
 }
 
 interface ScheduledAuditListItemProps {
   audit: Audit;
   locale: Locale;
-  actions: AuditAction[]; // Changed from single action to array of actions
+  actions: AuditAction[];
 }
 
 export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAuditListItemProps) {
@@ -37,6 +38,7 @@ export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAudi
 
   useEffect(() => {
     const dateParts = audit.date.split('-').map(Number);
+    // Ensure month is 0-indexed for Date constructor
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     
     setFormattedFullDate(`${format(localDate, "PPP", { locale })} a las ${audit.time}`);
@@ -70,9 +72,9 @@ export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAudi
                 onClick={() => act.onClick(audit.id)}
                 aria-label={`${act.label} para ${audit.clientName}`}
               >
-                <ActionIcon />
-                {act.buttonSize && act.buttonSize !== 'icon' && act.label && (
-                  act.label // Text is shown if size is not 'icon' and label is provided
+                <ActionIcon size={act.iconSize} /> 
+                {act.buttonSize && act.buttonSize !== 'icon' && act.buttonSize !== 'icon-lg' && act.label && (
+                  act.label 
                 )}
               </Button>
             );
