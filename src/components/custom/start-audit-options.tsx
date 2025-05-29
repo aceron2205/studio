@@ -54,20 +54,26 @@ export function StartAuditOptions() {
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="flex flex-row items-start gap-3">
-        <Link href="/" passHref>
-          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0 mt-1">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div className="flex-grow text-center"> {/* Added text-center here */}
+      <CardHeader className="relative p-6"> {/* Añadido p-6 y relative */}
+        <div className="w-full text-center"> {/* Contenedor para centrar el texto */}
           <CardTitle className="text-2xl font-semibold text-primary">
             Iniciar Auditoría
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="mt-1">
             Selecciona una auditoría programada o crea una nueva.
           </CardDescription>
         </div>
+        <Link href="/" passHref>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            aria-label="Volver al Inicio" 
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6" 
+            // Posicionamiento absoluto para la flecha
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
       </CardHeader>
       <CardContent className="space-y-8">
         <div>
@@ -111,3 +117,4 @@ export function StartAuditOptions() {
     </Card>
   );
 }
+    
