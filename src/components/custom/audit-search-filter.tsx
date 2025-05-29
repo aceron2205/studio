@@ -4,11 +4,13 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es"; // Import Spanish locale
-import { SearchIcon, ListFilter } from "lucide-react"; 
+import { SearchIcon, ListFilter, ArrowLeft } from "lucide-react"; 
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 const mockClients = [
@@ -24,7 +26,12 @@ export function AuditSearchFilter() {
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-lg">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center gap-3">
+        <Link href="/" passHref>
+          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
         <CardTitle className="text-2xl font-semibold text-primary flex items-center gap-2">
           <SearchIcon className="w-6 h-6" />
           Filtrar Auditorías
@@ -71,4 +78,3 @@ export function AuditSearchFilter() {
     </Card>
   );
 }
-

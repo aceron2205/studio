@@ -3,9 +3,10 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
-import { FilePlus2, Play, Download } from "lucide-react"; 
+import { FilePlus2, Play, Download, ArrowLeft } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { ScheduledAuditListItem, type AuditAction } from "./scheduled-audit-list-item"; 
 import { Separator } from "@/components/ui/separator";
 
@@ -53,16 +54,24 @@ export function StartAuditOptions() {
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-semibold text-primary">
-          Iniciar Auditoría
-        </CardTitle>
-        <CardDescription>
-          Selecciona una auditoría programada o crea una nueva.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start gap-3"> {/* Changed from text-center to flex row */}
+        <Link href="/" passHref>
+          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0 mt-1"> {/* mt-1 for visual alignment with title */}
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="flex-grow"> {/* Wrapper for title and description to allow them to take remaining space */}
+          <CardTitle className="text-2xl font-semibold text-primary">
+            Iniciar Auditoría
+          </CardTitle>
+          <CardDescription>
+            Selecciona una auditoría programada o crea una nueva.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className="space-y-8">
         <div>
+          {/* Removed "Auditorías Programadas Pendientes" heading */}
           {mockPendingAudits.length > 0 ? (
             <div className="space-y-4">
               {mockPendingAudits.map((audit) => (
