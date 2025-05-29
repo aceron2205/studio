@@ -4,7 +4,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es"; // Import Spanish locale
-import { SearchIcon, ListFilter } from "lucide-react"; // Changed FilterIcon to ListFilter
+import { SearchIcon, ListFilter } from "lucide-react"; 
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 const mockClients = [
-  { id: '1', name: 'Cliente Innovador SA', lastAudit: '2024-07-15', location: 'Parque Tecnológico Norte' },
-  { id: '2', name: 'Soluciones Globales Ltda.', lastAudit: '2024-06-20', location: 'Centro Empresarial Metropolitano' },
-  { id: '3', name: 'Consultores Asociados', lastAudit: '2024-07-01', location: 'Distrito Financiero Oeste' },
-  { id: '4', name: 'Manufacturas Alfa', lastAudit: '2024-05-10', location: 'Polígono Industrial Sur' },
+  { id: '1', name: 'Cliente Innovador SA', scheduledAudit: '2024-08-15', location: 'Parque Tecnológico Norte', pendingExtinguishers: 5 },
+  { id: '2', name: 'Soluciones Globales Ltda.', scheduledAudit: '2024-09-20', location: 'Centro Empresarial Metropolitano', pendingExtinguishers: 2 },
+  { id: '3', name: 'Consultores Asociados', scheduledAudit: '2024-08-01', location: 'Distrito Financiero Oeste', pendingExtinguishers: 8 },
+  { id: '4', name: 'Manufacturas Alfa', scheduledAudit: '2024-10-10', location: 'Polígono Industrial Sur', pendingExtinguishers: 3 },
 ];
 
 export function AuditSearchFilter() {
@@ -55,9 +55,10 @@ export function AuditSearchFilter() {
                 <li key={client.id} className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
                   <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Última Auditoría: {format(new Date(client.lastAudit), "PPP", { locale: es })}
+                    Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: es })}
                   </p>
                   <p className="text-sm text-muted-foreground">Ubicación: {client.location}</p>
+                  <p className="text-sm text-muted-foreground">Extintores Pendientes: {client.pendingExtinguishers}</p>
                 </li>
               ))}
             </ul>
@@ -70,3 +71,4 @@ export function AuditSearchFilter() {
     </Card>
   );
 }
+
