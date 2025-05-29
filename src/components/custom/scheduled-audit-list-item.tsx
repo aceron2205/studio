@@ -39,13 +39,18 @@ export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledA
     <div className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1 pr-2">
-          <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-2 mb-1">
+            <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
+            <Badge 
+              variant={audit.status === 'Programada' ? 'secondary' : 'default'} 
+              className="mt-1 sm:mt-0 self-start sm:self-auto"
+            >
+              {audit.status}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
             {formattedFullDate ? `Fecha: ${formattedFullDate}` : 'Fecha: Cargando...'}
           </p>
-          <Badge variant={audit.status === 'Programada' ? 'secondary' : 'default'} className="mt-1">
-            {audit.status}
-          </Badge>
         </div>
         <Button
           variant="ghost"
@@ -65,3 +70,4 @@ export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledA
     </div>
   );
 }
+
