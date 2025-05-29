@@ -1,6 +1,7 @@
+
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Users, Search, Archive, RefreshCw, ArrowRight, Download, CalendarDays } from 'lucide-react';
+import { Users, Search, Archive, RefreshCw, Download, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -9,7 +10,7 @@ export default function HomePage() {
 
   const menuItems = [
     { title: 'Gestión de Clientes', icon: Users, href: '#', description: 'Administrar clientes' },
-    { title: 'Buscador', icon: Search, href: '#', description: 'Encontrar información' },
+    { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
   ];
