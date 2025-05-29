@@ -2,41 +2,14 @@
 "use client";
 
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es"; // Import Spanish locale
-import { CalendarIcon, SearchIcon } from "lucide-react";
+import { SearchIcon, FilterIcon } from "lucide-react"; // Added FilterIcon
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Import Label
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator"; // Import Separator
-import { cn } from "@/lib/utils";
-
-const auditSearchSchema = z.object({
-  clientName: z.string().optional(),
-  location: z.string().optional(),
-  scheduledDate: z.date().optional(),
-});
-
-type AuditSearchFormValues = z.infer<typeof auditSearchSchema>;
+import { Separator } from "@/components/ui/separator";
 
 const mockClients = [
   { id: '1', name: 'Cliente Innovador SA', lastAudit: '2024-07-15', location: 'Parque Tecnológico Norte' },
@@ -46,19 +19,8 @@ const mockClients = [
 ];
 
 export function AuditSearchFilter() {
-  const form = useForm<AuditSearchFormValues>({
-    resolver: zodResolver(auditSearchSchema),
-    defaultValues: {
-      clientName: "",
-      location: "",
-    },
-  });
-
-  function onSubmit(data: AuditSearchFormValues) {
-    // Placeholder for search logic
-    console.log("Search filters applied:", data);
-    // Here you would typically call an API or filter data based on these values
-  }
+  // Search logic would be handled here, e.g., with state and useEffect
+  // For now, the input is just a UI element.
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-lg">
@@ -71,94 +33,21 @@ export function AuditSearchFilter() {
       <CardContent>
         <div className="mb-6">
           <Label htmlFor="generalSearchInput" className="text-sm font-medium">Búsqueda Rápida</Label>
-          <Input
-            id="generalSearchInput"
-            placeholder="Nombre de cliente, fecha de auditoría, etc..."
-            className="mt-1"
-          />
+          <div className="relative mt-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FilterIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <Input
+              id="generalSearchInput"
+              placeholder="Nombre de cliente, fecha, ubicación..."
+              className="pl-10" // Padding left for the icon
+            />
+          </div>
         </div>
 
         <Separator className="my-6" />
 
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Filtros Específicos</h3>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="clientName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre de Cliente</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Acme Corp" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ubicación</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Ciudad Principal, Sucursal Centro" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="scheduledDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Fecha Programada de Auditoría</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: es })
-                          ) : (
-                            <span>Seleccione una fecha</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date < new Date(new Date().setDate(new Date().getDate() -1)) // Disable past dates
-                        }
-                        initialFocus
-                        locale={es} // Set locale for Calendar
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full mt-2"> {/* Added mt-2 for spacing */}
-              <SearchIcon className="mr-2 h-4 w-4" />
-              Aplicar Filtros Específicos
-            </Button>
-          </form>
-        </Form>
-
-        <div className="mt-10 pt-6 border-t">
+        <div className="mt-6"> {/* Adjusted margin slightly */}
           <h3 className="text-xl font-semibold mb-6 text-primary">Clientes Registrados</h3>
           {mockClients.length > 0 ? (
             <ul className="space-y-4">
