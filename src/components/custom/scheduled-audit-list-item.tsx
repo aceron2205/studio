@@ -4,9 +4,10 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { format, type Locale } from "date-fns";
-import { MapPin, Download } from "lucide-react";
+import type { LucideIcon } from 'lucide-react';
+import { MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 
 interface Audit {
   id: string;
@@ -17,34 +18,41 @@ interface Audit {
   status: string;
 }
 
+interface AuditAction {
+  icon: LucideIcon;
+  label: string;
+  onClick: (auditId: string) => void;
+  variant?: ButtonProps['variant'];
+  buttonSize?: ButtonProps['size'];
+}
+
 interface ScheduledAuditListItemProps {
   audit: Audit;
   locale: Locale;
-  onDownload: (auditId: string) => void;
+  action: AuditAction;
 }
 
-export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledAuditListItemProps) {
+export function ScheduledAuditListItem({ audit, locale, action }: ScheduledAuditListItemProps) {
   const [formattedFullDate, setFormattedFullDate] = useState<string | null>(null);
 
   useEffect(() => {
-    // Parse date string 'YYYY-MM-DD' as local date components
-    // new Date(year, monthIndex, day) treats components as local time
     const dateParts = audit.date.split('-').map(Number);
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     
     setFormattedFullDate(`${format(localDate, "PPP", { locale })} a las ${audit.time}`);
   }, [audit.date, audit.time, locale]);
 
+  const ActionIcon = action.icon;
+
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1 pr-2">
-          {/* Container for client name and status badge with responsive layout */}
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-2 mb-1">
             <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
             <Badge 
               variant={audit.status === 'Programada' ? 'secondary' : 'default'} 
-              className="mt-1 sm:mt-0 self-start sm:self-baseline" // Ensures badge aligns with text baseline on sm+ screens
+              className="mt-1 sm:mt-0 self-start sm:self-baseline"
             >
               {audit.status}
             </Badge>
@@ -54,13 +62,13 @@ export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledA
           </p>
         </div>
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDownload(audit.id)}
-          aria-label={`Descargar auditoría de ${audit.clientName}`}
+          variant={action.variant || "ghost"}
+          size={action.buttonSize || "icon"}
+          onClick={() => action.onClick(audit.id)}
+          aria-label={`${action.label} para ${audit.clientName}`}
           className="text-primary hover:text-primary/80 flex items-center justify-center h-10 w-10 flex-shrink-0"
         >
-          <Download className="w-6 h-6" />
+          <ActionIcon className="w-5 h-5" /> {/* Adjusted icon size slightly for balance */}
         </Button>
       </div>
       
@@ -71,3 +79,4 @@ export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledA
     </div>
   );
 }
+

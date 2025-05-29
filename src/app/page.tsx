@@ -13,7 +13,7 @@ export default function HomePage() {
     { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
-    { title: 'Inicia auditoría', icon: FilePlus2, href: '#', description: 'Comenzar una nueva auditoría' },
+    { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
   ];
 
   return (

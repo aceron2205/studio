@@ -3,9 +3,9 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es"; // For passing locale
-import { CalendarCheck } from "lucide-react"; 
+import { CalendarCheck, Download } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScheduledAuditListItem } from "./scheduled-audit-list-item"; // Import the new list item component
+import { ScheduledAuditListItem } from "./scheduled-audit-list-item";
 
 const mockScheduledAudits = [
   { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
@@ -16,7 +16,6 @@ const mockScheduledAudits = [
 ];
 
 export function ScheduledAuditsCalendar() {
-  // Placeholder function for download action
   const handleDownloadAudit = (auditId: string) => {
     console.log(`Downloading audit ${auditId}`);
     // Implement actual download logic here
@@ -38,7 +37,13 @@ export function ScheduledAuditsCalendar() {
                 key={audit.id} 
                 audit={audit} 
                 locale={es} 
-                onDownload={handleDownloadAudit} 
+                action={{
+                  icon: Download,
+                  label: "Descargar auditoría",
+                  onClick: handleDownloadAudit,
+                  variant: 'ghost',
+                  buttonSize: 'icon',
+                }}
               />
             ))}
           </div>
@@ -51,3 +56,4 @@ export function ScheduledAuditsCalendar() {
     </Card>
   );
 }
+
