@@ -4,10 +4,10 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { CalendarCheck, MapPin, Download } from "lucide-react"; // Added Download icon
+import { CalendarCheck, MapPin, Download } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button"; // Added Button for the icon
+import { Button } from "@/components/ui/button"; 
 
 const mockScheduledAudits = [
   { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
@@ -37,7 +37,7 @@ export function ScheduledAuditsCalendar() {
           <div className="space-y-6">
             {mockScheduledAudits.map((audit) => (
               <div key={audit.id} className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-center mb-2"> {/* Changed items-start to items-center */}
                   <div>
                     <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
                     <Badge variant={audit.status === 'Programada' ? 'secondary' : 'default'} className="mt-1">
@@ -51,7 +51,7 @@ export function ScheduledAuditsCalendar() {
                     aria-label={`Descargar auditoría de ${audit.clientName}`}
                     className="text-primary hover:text-primary/80"
                   >
-                    <Download className="w-5 h-5" />
+                    <Download className="w-6 h-6" /> {/* Increased icon size */}
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
