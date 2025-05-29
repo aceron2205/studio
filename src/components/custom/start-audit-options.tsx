@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
-import { PlayCircle, FilePlus2, Play, Download } from "lucide-react"; 
+import { FilePlus2, Play, Download } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScheduledAuditListItem, type AuditAction } from "./scheduled-audit-list-item"; 
@@ -55,7 +55,6 @@ export function StartAuditOptions() {
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl font-semibold text-primary flex items-center gap-2">
-          <PlayCircle className="w-7 h-7" />
           Iniciar Auditoría
         </CardTitle>
         <CardDescription>
