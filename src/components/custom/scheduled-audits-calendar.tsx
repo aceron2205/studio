@@ -39,10 +39,10 @@ export function ScheduledAuditsCalendar() {
                 locale={es} 
                 action={{
                   icon: Download,
-                  label: "Descargar auditoría",
+                  label: "Descargar", // Changed label for button text
                   onClick: handleDownloadAudit,
-                  variant: 'ghost',
-                  buttonSize: 'icon',
+                  variant: 'outline', // Changed variant for a more button-like appearance
+                  buttonSize: 'default', // Changed to 'default' to show text
                 }}
               />
             ))}
@@ -56,4 +56,3 @@ export function ScheduledAuditsCalendar() {
     </Card>
   );
 }
-

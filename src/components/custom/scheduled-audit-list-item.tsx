@@ -66,9 +66,11 @@ export function ScheduledAuditListItem({ audit, locale, action }: ScheduledAudit
           size={action.buttonSize || "icon"}
           onClick={() => action.onClick(audit.id)}
           aria-label={`${action.label} para ${audit.clientName}`}
-          className="text-primary hover:text-primary/80 flex items-center justify-center h-10 w-10 flex-shrink-0"
         >
-          <ActionIcon className="w-5 h-5" /> {/* Adjusted icon size slightly for balance */}
+          <ActionIcon className="h-4 w-4" />
+          {(action.buttonSize && action.buttonSize !== 'icon' && action.label) && (
+            <span>{action.label}</span>
+          )}
         </Button>
       </div>
       
@@ -79,4 +81,3 @@ export function ScheduledAuditListItem({ audit, locale, action }: ScheduledAudit
     </div>
   );
 }
-
