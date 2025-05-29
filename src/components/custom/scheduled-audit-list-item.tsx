@@ -40,6 +40,9 @@ export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledA
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1 pr-2">
           <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formattedFullDate ? `Fecha: ${formattedFullDate}` : 'Fecha: Cargando...'}
+          </p>
           <Badge variant={audit.status === 'Programada' ? 'secondary' : 'default'} className="mt-1">
             {audit.status}
           </Badge>
@@ -54,9 +57,7 @@ export function ScheduledAuditListItem({ audit, locale, onDownload }: ScheduledA
           <Download className="w-6 h-6" />
         </Button>
       </div>
-      <p className="text-sm text-muted-foreground mt-1">
-        {formattedFullDate ? `Fecha: ${formattedFullDate}` : 'Fecha: Cargando...'}
-      </p>
+      
       <div className="flex items-center text-sm text-muted-foreground mt-1">
         <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
         <span>{audit.location}</span>
