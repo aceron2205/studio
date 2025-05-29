@@ -6,6 +6,7 @@ import { es } from "date-fns/locale/es"; // For passing locale
 import { CalendarCheck, Download } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScheduledAuditListItem } from "./scheduled-audit-list-item";
+import type { AuditAction } from "./scheduled-audit-list-item"; // Import AuditAction type
 
 const mockScheduledAudits = [
   { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
@@ -19,6 +20,14 @@ export function ScheduledAuditsCalendar() {
   const handleDownloadAudit = (auditId: string) => {
     console.log(`Downloading audit ${auditId}`);
     // Implement actual download logic here
+  };
+
+  const downloadAction: AuditAction = {
+    icon: Download,
+    label: "Descargar", 
+    onClick: handleDownloadAudit,
+    variant: 'outline', 
+    buttonSize: 'default', 
   };
 
   return (
@@ -37,13 +46,7 @@ export function ScheduledAuditsCalendar() {
                 key={audit.id} 
                 audit={audit} 
                 locale={es} 
-                action={{
-                  icon: Download,
-                  label: "Descargar", // Changed label for button text
-                  onClick: handleDownloadAudit,
-                  variant: 'outline', // Changed variant for a more button-like appearance
-                  buttonSize: 'default', // Changed to 'default' to show text
-                }}
+                actions={[downloadAction]} // Pass actions as an array
               />
             ))}
           </div>

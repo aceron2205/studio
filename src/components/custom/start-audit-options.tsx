@@ -3,10 +3,10 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
-import { PlayCircle, FilePlus2, Play } from "lucide-react";
+import { PlayCircle, FilePlus2, Play, Download } from "lucide-react"; // Added Download
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScheduledAuditListItem } from "./scheduled-audit-list-item";
+import { ScheduledAuditListItem, type AuditAction } from "./scheduled-audit-list-item"; // Import AuditAction
 import { Separator } from "@/components/ui/separator";
 
 // Mock data - in a real app, this would come from a data source
@@ -22,10 +22,32 @@ export function StartAuditOptions() {
     // Navigate to audit screen or perform start action
   };
 
+  const handleDownloadAudit = (auditId: string) => {
+    console.log(`Downloading audit for start: ${auditId}`);
+    // Implement actual download logic here if different from other download
+  };
+
   const handleStartNewAudit = () => {
     console.log("Starting new unscheduled audit");
     // Navigate to new audit creation screen
   };
+
+  const getAuditActions = (auditId: string): AuditAction[] => [
+    {
+      icon: Play,
+      label: "Iniciar esta auditoría", // aria-label
+      onClick: () => handleStartScheduledAudit(auditId),
+      variant: 'ghost', 
+      buttonSize: 'icon', // Changed to icon-only
+    },
+    {
+      icon: Download,
+      label: "Descargar auditoría", // aria-label
+      onClick: () => handleDownloadAudit(auditId),
+      variant: 'ghost',
+      buttonSize: 'icon', // New download icon button
+    }
+  ];
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
@@ -50,13 +72,7 @@ export function StartAuditOptions() {
                   key={audit.id}
                   audit={audit}
                   locale={es}
-                  action={{
-                    icon: Play,
-                    label: "Iniciar esta auditoría",
-                    onClick: handleStartScheduledAudit,
-                    variant: 'outline', // Differentiate from download buttons
-                    buttonSize: 'default', // Make button a bit larger with text
-                  }}
+                  actions={getAuditActions(audit.id)} // Pass array of actions
                 />
               ))}
             </div>

@@ -18,9 +18,9 @@ interface Audit {
   status: string;
 }
 
-interface AuditAction {
+export interface AuditAction { // Exporting for use in other components
   icon: LucideIcon;
-  label: string;
+  label: string; // For aria-label and button text if not icon-only
   onClick: (auditId: string) => void;
   variant?: ButtonProps['variant'];
   buttonSize?: ButtonProps['size'];
@@ -29,10 +29,10 @@ interface AuditAction {
 interface ScheduledAuditListItemProps {
   audit: Audit;
   locale: Locale;
-  action: AuditAction;
+  actions: AuditAction[]; // Changed from single action to array of actions
 }
 
-export function ScheduledAuditListItem({ audit, locale, action }: ScheduledAuditListItemProps) {
+export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAuditListItemProps) {
   const [formattedFullDate, setFormattedFullDate] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,8 +41,6 @@ export function ScheduledAuditListItem({ audit, locale, action }: ScheduledAudit
     
     setFormattedFullDate(`${format(localDate, "PPP", { locale })} a las ${audit.time}`);
   }, [audit.date, audit.time, locale]);
-
-  const ActionIcon = action.icon;
 
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
@@ -61,17 +59,25 @@ export function ScheduledAuditListItem({ audit, locale, action }: ScheduledAudit
             {formattedFullDate ? `Fecha: ${formattedFullDate}` : 'Fecha: Cargando...'}
           </p>
         </div>
-        <Button
-          variant={action.variant || "ghost"}
-          size={action.buttonSize || "icon"}
-          onClick={() => action.onClick(audit.id)}
-          aria-label={`${action.label} para ${audit.clientName}`}
-        >
-          <ActionIcon className="h-4 w-4" />
-          {(action.buttonSize && action.buttonSize !== 'icon' && action.label) && (
-            <span>{action.label}</span>
-          )}
-        </Button>
+        <div className="flex items-center gap-1">
+          {actions.map((act, index) => {
+            const ActionIcon = act.icon;
+            return (
+              <Button
+                key={`${act.label}-${index}-${audit.id}`}
+                variant={act.variant || "ghost"}
+                size={act.buttonSize || "icon"}
+                onClick={() => act.onClick(audit.id)}
+                aria-label={`${act.label} para ${audit.clientName}`}
+              >
+                <ActionIcon />
+                {act.buttonSize && act.buttonSize !== 'icon' && act.label && (
+                  act.label // Text is shown if size is not 'icon' and label is provided
+                )}
+              </Button>
+            );
+          })}
+        </div>
       </div>
       
       <div className="flex items-center text-sm text-muted-foreground mt-1">
