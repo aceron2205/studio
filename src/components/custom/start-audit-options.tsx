@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
+import { format, isSameDay } from "date-fns";
 import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp, Menu as MenuIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Calendar } from "@/components/ui/calendar";
 
 // Mock data - in a real app, this would come from a data source
 const mockPendingAudits = [
@@ -25,6 +27,8 @@ const mockPendingAudits = [
   { id: '3', clientName: 'Oficinas Corporativas Sigma', date: '2024-09-15', time: '09:00 AM', location: 'Edificio Alfa, Piso 10', status: 'Pendiente' },
   { id: '4', clientName: 'Taller Mecánico "El Rápido"', date: '2024-09-18', time: '11:00 AM', location: 'Zona Industrial Este, Lote 7B', status: 'Programada' },
   { id: '5', clientName: 'Colegio "Nueva Era"', date: '2024-09-22', time: '01:00 PM', location: 'Campus Principal, Sector Educativo', status: 'Pendiente' },
+  // Add an audit for the current month to make calendar testing easier
+  { id: '6', clientName: 'Cliente de Prueba Mes Actual', date: new Date().toISOString().split('T')[0], time: '11:00 AM', location: 'Ubicación de Prueba', status: 'Programada' },
 ];
 
 const INITIAL_AUDITS_TO_SHOW = 2;
@@ -35,6 +39,8 @@ export function StartAuditOptions() {
   const [visibleAuditsCount, setVisibleAuditsCount] = React.useState(INITIAL_AUDITS_TO_SHOW);
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("list");
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
+
 
   const handleStartScheduledAudit = (auditId: string) => {
     console.log(`Starting scheduled audit: ${auditId}`);
@@ -80,6 +86,14 @@ export function StartAuditOptions() {
     }
     setIsExpanded(!isExpanded);
   };
+
+  const auditsForSelectedDay = selectedDate
+    ? mockPendingAudits.filter(audit => {
+        const [year, month, day] = audit.date.split('-').map(Number);
+        const auditDate = new Date(year, month - 1, day);
+        return isSameDay(auditDate, selectedDate);
+      })
+    : [];
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
@@ -131,7 +145,7 @@ export function StartAuditOptions() {
               <div className="space-y-4">
                 {displayedAudits.map((audit) => (
                   <ScheduledAuditListItem
-                    key={audit.id}
+                    key={`list-${audit.id}`}
                     audit={audit}
                     locale={es}
                     actions={getAuditActions(audit.id)}
@@ -143,21 +157,60 @@ export function StartAuditOptions() {
                 No hay auditorías programadas pendientes.
               </p>
             )}
-            {mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && (
+            {mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && displayedAudits.length < mockPendingAudits.length && (
               <div className="mt-4 text-center">
                 <Button variant="outline" onClick={toggleExpand} className="w-full sm:w-auto">
-                  {isExpanded ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
-                  {isExpanded ? "Ver menos" : "Ver más auditorías"}
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Ver más auditorías
                 </Button>
               </div>
+            )}
+            {isExpanded && displayedAudits.length === mockPendingAudits.length && mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && (
+                 <div className="mt-4 text-center">
+                    <Button variant="outline" onClick={toggleExpand} className="w-full sm:w-auto">
+                        <ChevronUp className="mr-2 h-4 w-4" />
+                        Ver menos auditorías
+                    </Button>
+                 </div>
             )}
           </div>
         )}
 
         {viewMode === "calendar" && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Vista de calendario (aún no implementada).</p>
-            {/* Placeholder for actual calendar component */}
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border shadow"
+                locale={es}
+                ISOWeek
+              />
+            </div>
+            {selectedDate && (
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-center text-primary">
+                  Auditorías para el {format(selectedDate, "PPP", { locale: es })}
+                </h4>
+                {auditsForSelectedDay.length > 0 ? (
+                  <div className="space-y-4">
+                    {auditsForSelectedDay.map((audit) => (
+                      <ScheduledAuditListItem
+                        key={`cal-${audit.id}`}
+                        audit={audit}
+                        locale={es}
+                        actions={getAuditActions(audit.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">
+                    No hay auditorías programadas para esta fecha.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
