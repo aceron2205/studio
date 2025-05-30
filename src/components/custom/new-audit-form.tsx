@@ -14,13 +14,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+// Checkbox is no longer needed here
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 
 // Zod Schemas
 const ExtinguisherSchema = z.object({
@@ -28,16 +29,18 @@ const ExtinguisherSchema = z.object({
   capacidadLibras: z.string().min(1, "La capacidad es requerida"),
   modelo: z.string().min(1, "El modelo es requerido"),
   agenteExtintor: z.string().min(1, "El agente extintor es requerido"),
-  instrucciones: z.boolean().default(false),
-  calcomaniasPlacas: z.boolean().default(false),
-  selloSeguridad: z.boolean().default(false),
-  pinPasador: z.boolean().default(false),
-  pinturaBuenEstado: z.boolean().default(false),
-  cilindroMangueraBoquillas: z.boolean().default(false),
-  alturaAdecuada: z.boolean().default(false),
+  // Checklist items changed to string
+  instrucciones: z.string().optional(),
+  calcomaniasPlacas: z.string().optional(),
+  selloSeguridad: z.string().optional(),
+  pinPasador: z.string().optional(),
+  pinturaBuenEstado: z.string().optional(),
+  cilindroMangueraBoquillas: z.string().optional(),
+  alturaAdecuada: z.string().optional(),
   indicadorPresion: z.string().min(1, "El estado del indicador de presión es requerido"),
-  accesoLibre: z.boolean().default(false),
+  accesoLibre: z.string().optional(),
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
+  observacionesGenerales: z.string().optional(), // New field for general observations
 });
 
 export type ExtinguisherFormData = z.infer<typeof ExtinguisherSchema>;
@@ -60,12 +63,10 @@ export function NewAuditForm() {
     defaultValues: {
       clientName: "",
       address: "",
-      // date: new Date(), // Set in useEffect to avoid hydration mismatch
       extinguishers: [],
     },
   });
 
-  // Set default date on client-side to avoid hydration issues
   React.useEffect(() => {
     form.setValue("date", new Date());
   }, [form]);
@@ -80,10 +81,8 @@ export function NewAuditForm() {
     toast({
       title: "Formulario Enviado",
       description: "Los datos del nuevo plano/auditoría han sido registrados.",
-      variant: "default", // Explicitly set variant
+      variant: "default",
     });
-    // Consider navigation or form reset here
-    // router.push("/create-plan"); 
   }
 
   const addNewExtinguisher = () => {
@@ -92,28 +91,31 @@ export function NewAuditForm() {
       capacidadLibras: "",
       modelo: "",
       agenteExtintor: "",
-      instrucciones: false,
-      calcomaniasPlacas: false,
-      selloSeguridad: false,
-      pinPasador: false,
-      pinturaBuenEstado: false,
-      cilindroMangueraBoquillas: false,
-      alturaAdecuada: false,
+      // Default checklist items to empty strings
+      instrucciones: "",
+      calcomaniasPlacas: "",
+      selloSeguridad: "",
+      pinPasador: "",
+      pinturaBuenEstado: "",
+      cilindroMangueraBoquillas: "",
+      alturaAdecuada: "",
       indicadorPresion: "",
-      accesoLibre: false,
+      accesoLibre: "",
       cargaExtintores: "",
+      observacionesGenerales: "",
     });
   };
 
-  const booleanChecklistItems = [
-    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista" },
-    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado" },
-    { name: "selloSeguridad" as const, label: "Sello de seguridad intacto" },
-    { name: "pinPasador" as const, label: "Pin o pasador de seguridad presente y sin obstrucciones" },
-    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado" },
-    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas en óptimas condiciones" },
-    { name: "alturaAdecuada" as const, label: "Altura de instalación adecuada" },
-    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
+  // Renamed and updated for text inputs
+  const textChecklistItems = [
+    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista", placeholder: "Ej: OK, Falta, Ilegible" },
+    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado", placeholder: "Ej: OK, Desgastada" },
+    { name: "selloSeguridad" as const, label: "Sello de seguridad", placeholder: "Ej: Intacto, Roto, Ausente" },
+    { name: "pinPasador" as const, label: "Pin o pasador de seguridad", placeholder: "Ej: Presente, Obstruido, Falta" },
+    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado", placeholder: "Ej: OK, Oxidado, Rayado" },
+    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas", placeholder: "Ej: Óptimo, Fisuras, Desgastado" },
+    { name: "alturaAdecuada" as const, label: "Altura de instalación", placeholder: "Ej: Adecuada, Muy alta, Muy baja" },
+    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones", placeholder: "Ej: Libre, Obstruido parcialmente" },
   ];
 
 
@@ -342,32 +344,42 @@ export function NewAuditForm() {
                        
                       <div className="pt-2">
                         <FormLabel className="text-md font-semibold mb-2 block">Lista de Verificación:</FormLabel>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                          {booleanChecklistItems.map(checkItem => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                          {textChecklistItems.map(checkItem => (
                             <FormField
                               key={checkItem.name}
                               control={form.control}
                               name={`extinguishers.${index}.${checkItem.name}`}
                               render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-background hover:bg-muted/50 transition-colors">
+                                <FormItem>
+                                  <FormLabel>{checkItem.label}</FormLabel>
                                   <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                      id={`${field.name}-${index}`}
-                                    />
+                                    <Input placeholder={checkItem.placeholder} {...field} />
                                   </FormControl>
-                                  <div className="space-y-1 leading-none">
-                                    <FormLabel htmlFor={`${field.name}-${index}`} className="cursor-pointer font-normal text-sm">
-                                      {checkItem.label}
-                                    </FormLabel>
-                                  </div>
+                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
                           ))}
                         </div>
                       </div>
+                      <FormField
+                        control={form.control}
+                        name={`extinguishers.${index}.observacionesGenerales`}
+                        render={({ field }) => (
+                          <FormItem className="pt-2">
+                            <FormLabel>Observaciones Generales del Extinguidor</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Anotaciones adicionales sobre este extinguidor..."
+                                className="resize-y min-h-[60px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </CardContent>
                   </Card>
                 ))}
@@ -396,3 +408,6 @@ export function NewAuditForm() {
     </Card>
   );
 }
+
+
+    
