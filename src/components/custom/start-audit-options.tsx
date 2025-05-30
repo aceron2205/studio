@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
-import { FilePlus2, Play, Download, ArrowLeft } from "lucide-react"; 
+import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -15,9 +15,16 @@ const mockPendingAudits = [
   { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
   { id: '2', clientName: 'Restaurante Delicias Marinas', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
   { id: '3', clientName: 'Oficinas Corporativas Sigma', date: '2024-09-15', time: '09:00 AM', location: 'Edificio Alfa, Piso 10', status: 'Pendiente' },
+  { id: '4', clientName: 'Taller Mecánico "El Rápido"', date: '2024-09-18', time: '11:00 AM', location: 'Zona Industrial Este, Lote 7B', status: 'Programada' },
+  { id: '5', clientName: 'Colegio "Nueva Era"', date: '2024-09-22', time: '01:00 PM', location: 'Campus Principal, Sector Educativo', status: 'Pendiente' },
 ];
 
+const INITIAL_AUDITS_TO_SHOW = 2;
+
 export function StartAuditOptions() {
+  const [visibleAuditsCount, setVisibleAuditsCount] = React.useState(INITIAL_AUDITS_TO_SHOW);
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
   const handleStartScheduledAudit = (auditId: string) => {
     console.log(`Starting scheduled audit: ${auditId}`);
     // Navigate to audit screen or perform start action
@@ -52,10 +59,31 @@ export function StartAuditOptions() {
     }
   ];
 
+  const displayedAudits = mockPendingAudits.slice(0, visibleAuditsCount);
+
+  const toggleExpand = () => {
+    if (isExpanded) {
+      setVisibleAuditsCount(INITIAL_AUDITS_TO_SHOW);
+    } else {
+      setVisibleAuditsCount(mockPendingAudits.length);
+    }
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="relative p-6"> {/* Añadido p-6 y relative */}
-        <div className="w-full text-center"> {/* Contenedor para centrar el texto */}
+      <CardHeader className="relative p-6 text-center">
+        <Link href="/" passHref>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            aria-label="Volver al Inicio" 
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="w-full"> 
           <CardTitle className="text-2xl font-semibold text-primary">
             Iniciar Auditoría
           </CardTitle>
@@ -63,23 +91,12 @@ export function StartAuditOptions() {
             Selecciona una auditoría programada o crea una nueva.
           </CardDescription>
         </div>
-        <Link href="/" passHref>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            aria-label="Volver al Inicio" 
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6" 
-            // Posicionamiento absoluto para la flecha
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
       </CardHeader>
       <CardContent className="space-y-8">
         <div>
           {mockPendingAudits.length > 0 ? (
             <div className="space-y-4">
-              {mockPendingAudits.map((audit) => (
+              {displayedAudits.map((audit) => (
                 <ScheduledAuditListItem
                   key={audit.id}
                   audit={audit}
@@ -92,6 +109,14 @@ export function StartAuditOptions() {
             <p className="text-muted-foreground text-center py-4">
               No hay auditorías programadas pendientes.
             </p>
+          )}
+          {mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" onClick={toggleExpand} className="w-full sm:w-auto">
+                {isExpanded ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
+                {isExpanded ? "Ver menos" : "Ver más auditorías"}
+              </Button>
+            </div>
           )}
         </div>
 
