@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import { Image } from "next/image"; // Corrected import
+import { Image } from "next/image"; // Ensuring named import
 import { useRouter } from "next/navigation"; 
 
 // Mock data for existing plans
@@ -23,7 +23,7 @@ export function PlanCreator() {
 
   const handleCreateNewPlan = () => {
     console.log("Iniciando creación de nuevo plano/auditoría...");
-    router.push('/new-audit-form'); // Navigate to the new detailed form page
+    router.push('/new-audit-form'); 
   };
 
   const handleEditPlan = (planId: string) => {
