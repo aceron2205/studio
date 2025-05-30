@@ -220,8 +220,8 @@ export function StartAuditOptions() {
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersStyles={{
                   scheduled: {
-                    color: 'hsl(var(--accent))', // Use accent color for text
-                    fontWeight: '600', // Make it semi-bold
+                    color: 'hsl(var(--destructive))', // Use destructive (red) color for text
+                    fontWeight: 'bold',             // Make it bold
                   }
                 }}
               />
