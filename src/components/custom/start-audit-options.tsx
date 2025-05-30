@@ -20,16 +20,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 
+const today = new Date();
+const currentYear = today.getFullYear();
+const currentMonth = today.getMonth(); // 0-indexed
+
 // Mock data - in a real app, this would come from a data source
 const mockPendingAudits = [
-  { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
-  { id: '2', clientName: 'Restaurante Delicias Marinas', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
-  { id: '3', clientName: 'Oficinas Corporativas Sigma', date: '2024-09-15', time: '09:00 AM', location: 'Edificio Alfa, Piso 10', status: 'Pendiente' },
-  { id: '4', clientName: 'Taller Mecánico "El Rápido"', date: '2024-09-18', time: '11:00 AM', location: 'Zona Industrial Este, Lote 7B', status: 'Programada' },
-  { id: '5', clientName: 'Colegio "Nueva Era"', date: '2024-09-22', time: '01:00 PM', location: 'Campus Principal, Sector Educativo', status: 'Pendiente' },
-  // Add an audit for the current month to make calendar testing easier
-  { id: '6', clientName: 'Cliente de Prueba Mes Actual', date: new Date().toISOString().split('T')[0], time: '11:00 AM', location: 'Ubicación de Prueba', status: 'Programada' },
+  // Audits for the current month to ensure at least three distinct days are highlighted
+  { id: 'current-day-5', clientName: 'Auditoría Día 5 del Mes', date: new Date(currentYear, currentMonth, 5).toISOString().split('T')[0], time: '09:00 AM', location: 'Locación A - Mes Actual', status: 'Programada' },
+  { id: 'current-day-15', clientName: 'Auditoría Día 15 del Mes', date: new Date(currentYear, currentMonth, 15).toISOString().split('T')[0], time: '11:00 AM', location: 'Locación B - Mes Actual', status: 'Pendiente' },
+  { id: 'current-day-25', clientName: 'Auditoría Día 25 del Mes', date: new Date(currentYear, currentMonth, 25).toISOString().split('T')[0], time: '01:00 PM', location: 'Locación C - Mes Actual', status: 'Programada' },
+  // Ensure today is also included, the Set for scheduledDays will handle de-duplication
+  { id: 'current-today', clientName: 'Auditoría de Hoy', date: today.toISOString().split('T')[0], time: '03:00 PM', location: 'Locación Hoy - Mes Actual', status: 'Programada'},
+
+  // Some audits in a different fixed month for navigation testing
+  { id: 'sep-audit-1', clientName: 'Empresa Constructora Sol (Sept.)', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
+  { id: 'sep-audit-2', clientName: 'Restaurante Delicias Marinas (Sept.)', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
 ];
+
 
 // In a real application, mockPendingAudits would be fetched from a database.
 // Example:
@@ -100,12 +108,14 @@ export function StartAuditOptions() {
 
   const scheduledDays = React.useMemo(() => {
     // In a real app, you would process the audits fetched from the database here.
-    return mockPendingAudits.map(audit => {
-      const [year, month, day] = audit.date.split('-').map(Number);
+    // This creates a Set of unique Date objects for scheduled days.
+    const uniqueDates = new Set<string>();
+    mockPendingAudits.forEach(audit => uniqueDates.add(audit.date));
+    
+    return Array.from(uniqueDates).map(dateStr => {
+      const [year, month, day] = dateStr.split('-').map(Number);
       return new Date(year, month - 1, day); // month is 0-indexed
-    }).filter((date, index, self) => // Ensure unique dates
-      index === self.findIndex(d => d.getTime() === date.getTime())
-    );
+    });
   }, []); // If mockPendingAudits were state from a DB, it would be a dependency: [auditsFromDb]
 
   const auditsForSelectedDay = selectedDate
@@ -266,3 +276,4 @@ export function StartAuditOptions() {
   );
 }
 
+    
