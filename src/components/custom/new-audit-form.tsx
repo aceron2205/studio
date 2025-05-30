@@ -48,7 +48,7 @@ const NewPlanFormSchema = z.object({
   clientName: z.string().min(1, "El nombre del cliente es requerido"),
   address: z.string().min(1, "La dirección es requerida"),
   date: z.date({
-    required_error: "La fecha es requerida.",
+    required_error: "La fecha es requerida."
   }),
   extinguishers: z.array(ExtinguisherSchema).min(1, "Debe agregar al menos un extinguidor."),
 });
@@ -279,19 +279,19 @@ export function NewAuditForm() {
                     <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:border-b">
                       <div className="flex flex-row items-center justify-between w-full">
                         <span className="text-lg font-semibold text-primary">Extinguidor #{index + 1}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-full"
+                        <div
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent accordion toggle
                             remove(index);
                           }}
                           aria-label={`Eliminar extinguidor ${index + 1}`}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); remove(index);}}}
+                          className="p-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                         >
                           <Trash2 className="h-5 w-5" />
-                        </Button>
+                        </div>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-0">
@@ -458,5 +458,3 @@ export function NewAuditForm() {
     </Card>
   );
 }
-
-    
