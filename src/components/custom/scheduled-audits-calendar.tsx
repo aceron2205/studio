@@ -3,12 +3,13 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es"; // For passing locale
-import { CalendarCheck, Download, ArrowLeft, CalendarIcon } from "lucide-react"; 
+import { CalendarCheck, ArrowLeft } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ScheduledAuditListItem } from "./scheduled-audit-list-item";
 import type { AuditAction } from "./scheduled-audit-list-item"; // Import AuditAction type
+import { Download } from "lucide-react"; // Keep Download for the action
 
 const mockScheduledAudits = [
   { id: '1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
@@ -34,21 +35,17 @@ export function ScheduledAuditsCalendar() {
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link href="/" passHref>
-            <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <CardTitle className="text-2xl font-semibold text-primary flex items-center gap-2">
-            <CalendarCheck className="w-6 h-6" />
-            Auditorías Programadas
-          </CardTitle>
-        </div>
-        <Button variant="outline" size="icon" aria-label="Vista Calendario">
-          <CalendarIcon className="h-5 w-5" />
-        </Button>
+      <CardHeader className="flex flex-row items-center gap-3"> {/* Removed justify-between */}
+        <Link href="/" passHref>
+          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <CardTitle className="text-2xl font-semibold text-primary flex items-center gap-2">
+          <CalendarCheck className="w-6 h-6" />
+          Auditorías Programadas
+        </CardTitle>
+        {/* CalendarIcon button removed from here */}
       </CardHeader>
       <CardContent>
         {mockScheduledAudits.length > 0 ? (
@@ -71,4 +68,3 @@ export function ScheduledAuditsCalendar() {
     </Card>
   );
 }
-

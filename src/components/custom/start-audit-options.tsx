@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { es } from "date-fns/locale/es";
-import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"; 
+import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon } from "lucide-react"; 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -72,7 +72,7 @@ export function StartAuditOptions() {
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="relative p-6 text-center">
+      <CardHeader className="relative p-6"> {/* Removed text-center from here for more control */}
         <Link href="/" passHref>
           <Button 
             variant="ghost" 
@@ -83,7 +83,7 @@ export function StartAuditOptions() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div className="w-full"> 
+        <div className="w-full text-center"> {/* This div ensures the title/desc can be centered */}
           <CardTitle className="text-2xl font-semibold text-primary">
             Iniciar Auditoría
           </CardTitle>
@@ -91,8 +91,16 @@ export function StartAuditOptions() {
             Selecciona una auditoría programada o crea una nueva.
           </CardDescription>
         </div>
+        <Button
+            variant="outline"
+            size="icon"
+            aria-label="Vista Calendario"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 sm:right-6"
+        >
+            <CalendarIcon className="h-5 w-5" />
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-8">
+      <CardContent className="space-y-8 pt-6"> {/* Added pt-6 to CardContent as CardHeader no longer provides bottom padding for it implicitly */}
         <div>
           {mockPendingAudits.length > 0 ? (
             <div className="space-y-4">
