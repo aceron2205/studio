@@ -13,7 +13,7 @@ export default function HomePage() {
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
     { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
-    { title: 'Crear Plano de Ubicaciones de Extintores', icon: Map, href: '#', description: 'Diseñar la ubicación de extintores' },
+    { title: 'Crear plano', icon: Map, href: '#', description: 'Diseñar la ubicación de extintores' },
   ];
 
   return (
