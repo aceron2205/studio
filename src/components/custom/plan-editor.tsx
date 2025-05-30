@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, PlusCircle, Save, MapPin, Trash2 } from "lucide-react";
+import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3 } from "lucide-react"; // Added Edit3
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -58,6 +58,13 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     console.log(`Extinguidor ${extinguisherId} eliminado`);
   };
 
+  const handleGeneralEdit = () => {
+    console.log("Botón Editar general presionado. Implementar lógica.");
+    // This function's purpose is currently undefined by the request.
+    // It might be used to toggle an edit mode for all items,
+    // or edit plan-level properties not yet present. For now, it's a placeholder.
+  };
+
 
   return (
     <Card className="w-full shadow-lg">
@@ -91,10 +98,16 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           <h3 className="text-xl font-semibold text-card-foreground">
             Extintores en este Plano
           </h3>
-          <Button onClick={handleAddExtinguisher} size="sm">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Agregar Extinguidor
-          </Button>
+          <div className="flex space-x-2"> {/* Wrapper for buttons */}
+            <Button onClick={handleAddExtinguisher} size="sm">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Agregar
+            </Button>
+            <Button onClick={handleGeneralEdit} size="sm" variant="outline">
+              <Edit3 className="mr-2 h-4 w-4" />
+              Editar
+            </Button>
+          </div>
         </div>
 
         {extinguishers.length > 0 ? (
