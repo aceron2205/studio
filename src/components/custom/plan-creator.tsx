@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import { Image } from "next/image"; // Corrected: Named import
-import { useRouter } from "next/navigation"; 
+// Note: 'next/image' is not imported here as we are starting from zero for the visual part.
+// If you re-add images, ensure you use: import { Image } from "next/image";
+import { useRouter } from "next/navigation";
 
-// Mock data for existing plans
+// Mock data for existing plans - kept for now, can be removed/re-evaluated
 const mockExistingPlans = [
   { id: 'plan-1', name: 'Plano Edificio Central - Planta Baja', lastModified: '2024-07-15', thumbnailUrl: 'https://placehold.co/150x100.png' },
   { id: 'plan-2', name: 'Almacén Principal - Zona de Carga', lastModified: '2024-07-10', thumbnailUrl: 'https://placehold.co/150x100.png' },
@@ -18,19 +19,19 @@ const mockExistingPlans = [
 ];
 
 export function PlanCreator() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [existingPlans, setExistingPlans] = React.useState(mockExistingPlans);
 
   const handleCreateNewPlan = () => {
     console.log("Iniciando creación de nuevo plano/auditoría...");
-    router.push('/new-audit-form'); 
+    router.push('/new-audit-form');
   };
 
   const handleEditPlan = (planId: string) => {
     console.log(`Editando plano: ${planId}`);
     const plan = existingPlans.find(p => p.id === planId);
     if (plan) {
-      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(plan.name)}`); 
+      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(plan.name)}`);
     } else {
       router.push(`/edit-plan/${planId}`);
     }
@@ -88,14 +89,12 @@ export function PlanCreator() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {existingPlans.map((plan) => (
                 <Card key={plan.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="relative w-full h-32 sm:h-36">
-                    <Image
-                      src={plan.thumbnailUrl}
-                      alt={`Previsualización de ${plan.name}`}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      data-ai-hint="map blueprint"
-                    />
+                  {/* Placeholder for image - re-add <Image> component here if needed */}
+                  <div 
+                    className="relative w-full h-32 sm:h-36 bg-muted flex items-center justify-center"
+                    data-ai-hint="map blueprint"
+                  >
+                    <span className="text-sm text-muted-foreground">Previsualización</span>
                   </div>
                   <CardContent className="p-4 space-y-2">
                     <h4 className="font-semibold text-md text-card-foreground truncate" title={plan.name}>
