@@ -63,14 +63,14 @@ const checklistOptions = [
 ];
 
 const checklistFormItems = [
-    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista", placeholder: "Ej: C, NC, NA, P" },
-    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado", placeholder: "Ej: C, NC, NA, P" },
-    { name: "selloSeguridad" as const, label: "Sello de seguridad", placeholder: "Ej: C, NC, NA, P" },
-    { name: "pinPasador" as const, label: "Pin o pasador de seguridad", placeholder: "Ej: C, NC, NA, P" },
-    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado", placeholder: "Ej: C, NC, NA, P" },
-    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas", placeholder: "Ej: C, NC, NA, P" },
-    { name: "alturaAdecuada" as const, label: "Altura de instalación", placeholder: "Ej: C, NC, NA, P" },
-    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones", placeholder: "Ej: C, NC, NA, P" },
+    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista" },
+    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado" },
+    { name: "selloSeguridad" as const, label: "Sello de seguridad" },
+    { name: "pinPasador" as const, label: "Pin o pasador de seguridad" },
+    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado" },
+    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas" },
+    { name: "alturaAdecuada" as const, label: "Altura de instalación" },
+    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
 ];
 
 export function NewAuditForm() {
@@ -95,6 +95,19 @@ export function NewAuditForm() {
     name: "extinguishers",
   });
 
+  const prevFieldsLengthRef = React.useRef(fields.length);
+
+  React.useEffect(() => {
+    if (fields.length > prevFieldsLengthRef.current) {
+      // A new item was added
+      const newItemId = fields[fields.length - 1]?.id;
+      if (newItemId) {
+        setOpenAccordionItem(newItemId);
+      }
+    }
+    prevFieldsLengthRef.current = fields.length;
+  }, [fields, setOpenAccordionItem]);
+
   function onSubmit(data: NewPlanFormData) {
     console.log("Form data submitted:", data);
     toast({
@@ -105,7 +118,6 @@ export function NewAuditForm() {
   }
 
   const addNewExtinguisher = () => {
-    const newExtinguisherId = `ext-${Date.now()}-${fields.length}`; // Create a unique ID
     append({
       ubicacion: "",
       capacidadLibras: "",
@@ -123,11 +135,6 @@ export function NewAuditForm() {
       cargaExtintores: "",
       observacionesGenerales: "",
     });
-    // This won't work directly as append is async and item.id is from useFieldArray
-    // We'd need to find the new item in `fields` after update or generate predictable ID
-    // For now, let's focus on the accordion structure. Can enhance later.
-    // A simple way, if fields get 'id' from useFieldArray:
-    // setOpenAccordionItem(fields[fields.length -1]?.id); // This is problematic due to timing
   };
 
 
@@ -256,17 +263,17 @@ export function NewAuditForm() {
                 </p>
               )}
 
-              <Accordion 
-                type="single" 
-                collapsible 
+              <Accordion
+                type="single"
+                collapsible
                 className="w-full space-y-3"
                 value={openAccordionItem}
                 onValueChange={setOpenAccordionItem}
               >
                 {fields.map((item, index) => (
-                  <AccordionItem 
-                    key={item.id} 
-                    value={item.id} 
+                  <AccordionItem
+                    key={item.id}
+                    value={item.id}
                     className="border rounded-lg shadow-sm bg-card overflow-hidden"
                   >
                     <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:border-b">
@@ -277,9 +284,9 @@ export function NewAuditForm() {
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-full"
-                          onClick={(e) => { 
+                          onClick={(e) => {
                             e.stopPropagation(); // Prevent accordion toggle
-                            remove(index); 
+                            remove(index);
                           }}
                           aria-label={`Eliminar extinguidor ${index + 1}`}
                         >
@@ -369,7 +376,7 @@ export function NewAuditForm() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="pt-2">
                           <FormLabel className="text-md font-semibold mb-2 block">Lista de Verificación:</FormLabel>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
