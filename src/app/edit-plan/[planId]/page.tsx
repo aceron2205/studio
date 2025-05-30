@@ -1,6 +1,7 @@
 
 "use client"; // Mark as client component to use hooks like useSearchParams
 
+import React from 'react';
 import { PlanEditor } from '@/components/custom/plan-editor';
 import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 
