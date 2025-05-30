@@ -2,10 +2,11 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3 } from "lucide-react"; // Added Edit3
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useRouter } from "next/navigation"; // Import useRouter
+import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+// Link is no longer needed for the back button itself
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "../ui/separator";
@@ -30,6 +31,7 @@ const mockExtinguishers: Extinguisher[] = [
 ];
 
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
+  const router = useRouter(); // Initialize router
   const [currentPlanName, setCurrentPlanName] = React.useState(initialPlanName);
   const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(
     planId === 'new' ? [] : mockExtinguishers // Load mock data if not a new plan
@@ -37,7 +39,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleAddExtinguisher = () => {
     console.log("Agregar nuevo extintor al plano:", planId);
-    // Logic to add a new extinguisher (e.g., open a modal or add a new row)
     const newExtinguisher: Extinguisher = {
       id: `ext-${Date.now()}`,
       type: 'Nuevo Extintor',
@@ -49,7 +50,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleSavePlan = () => {
     console.log("Guardando cambios del plano:", planId, "Nombre:", currentPlanName, "Extintores:", extinguishers);
-    // Logic to save plan details and extinguishers
     alert(`Plano "${currentPlanName}" guardado con ${extinguishers.length} extintores.`);
   };
   
@@ -60,25 +60,21 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleGeneralEdit = () => {
     console.log("Botón Editar general presionado. Implementar lógica.");
-    // This function's purpose is currently undefined by the request.
-    // It might be used to toggle an edit mode for all items,
-    // or edit plan-level properties not yet present. For now, it's a placeholder.
   };
 
 
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="relative p-6 border-b">
-        <Link href="/create-plan" passHref>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Volver a Crear Plan"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Volver" // Updated aria-label
+          onClick={() => router.back()} // Use router.back()
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <div className="w-full text-center">
           <CardTitle className="text-2xl font-semibold text-primary flex items-center justify-center gap-2">
             <MapPin className="h-6 w-6" />
@@ -98,7 +94,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           <h3 className="text-xl font-semibold text-card-foreground">
             Extintores en este Plano
           </h3>
-          <div className="flex space-x-2"> {/* Wrapper for buttons */}
+          <div className="flex space-x-2">
             <Button onClick={handleAddExtinguisher} size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
               Agregar
@@ -129,12 +125,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-                {/* Placeholder for map icon/interaction */}
-                {/* <div className="mt-2">
-                  <Button variant="outline" size="sm">
-                    <MapPin className="mr-2 h-3 w-3" /> Ver/Editar en Mapa
-                  </Button>
-                </div> */}
               </Card>
             ))}
           </div>
