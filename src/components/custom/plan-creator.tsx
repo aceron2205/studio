@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
+import { Image } from "next/image"; // Corrected import
 import { useRouter } from "next/navigation"; 
 
 // Mock data for existing plans
