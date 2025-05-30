@@ -14,22 +14,20 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-// Checkbox is no longer needed here
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea";
 
-// Zod Schemas
 const ExtinguisherSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
   capacidadLibras: z.string().min(1, "La capacidad es requerida"),
   modelo: z.string().min(1, "El modelo es requerido"),
   agenteExtintor: z.string().min(1, "El agente extintor es requerido"),
-  // Checklist items changed to string
   instrucciones: z.string().optional(),
   calcomaniasPlacas: z.string().optional(),
   selloSeguridad: z.string().optional(),
@@ -40,7 +38,7 @@ const ExtinguisherSchema = z.object({
   indicadorPresion: z.string().min(1, "El estado del indicador de presión es requerido"),
   accesoLibre: z.string().optional(),
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
-  observacionesGenerales: z.string().optional(), // New field for general observations
+  observacionesGenerales: z.string().optional(),
 });
 
 export type ExtinguisherFormData = z.infer<typeof ExtinguisherSchema>;
@@ -55,6 +53,24 @@ const NewPlanFormSchema = z.object({
 });
 
 export type NewPlanFormData = z.infer<typeof NewPlanFormSchema>;
+
+const checklistOptions = [
+  { value: "C", label: "Conforme" },
+  { value: "NC", label: "No Conforme" },
+  { value: "NA", label: "No Aplica" },
+  { value: "P", label: "Pendiente" },
+];
+
+const checklistFormItems = [
+    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista" },
+    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado" },
+    { name: "selloSeguridad" as const, label: "Sello de seguridad" },
+    { name: "pinPasador" as const, label: "Pin o pasador de seguridad" },
+    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado" },
+    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas" },
+    { name: "alturaAdecuada" as const, label: "Altura de instalación" },
+    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
+];
 
 export function NewAuditForm() {
   const router = useRouter();
@@ -91,7 +107,6 @@ export function NewAuditForm() {
       capacidadLibras: "",
       modelo: "",
       agenteExtintor: "",
-      // Default checklist items to empty strings
       instrucciones: "",
       calcomaniasPlacas: "",
       selloSeguridad: "",
@@ -105,19 +120,6 @@ export function NewAuditForm() {
       observacionesGenerales: "",
     });
   };
-
-  // Renamed and updated for text inputs
-  const textChecklistItems = [
-    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista", placeholder: "Ej: OK, Falta, Ilegible" },
-    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado", placeholder: "Ej: OK, Desgastada" },
-    { name: "selloSeguridad" as const, label: "Sello de seguridad", placeholder: "Ej: Intacto, Roto, Ausente" },
-    { name: "pinPasador" as const, label: "Pin o pasador de seguridad", placeholder: "Ej: Presente, Obstruido, Falta" },
-    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado", placeholder: "Ej: OK, Oxidado, Rayado" },
-    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas", placeholder: "Ej: Óptimo, Fisuras, Desgastado" },
-    { name: "alturaAdecuada" as const, label: "Altura de instalación", placeholder: "Ej: Adecuada, Muy alta, Muy baja" },
-    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones", placeholder: "Ej: Libre, Obstruido parcialmente" },
-  ];
-
 
   return (
     <Card className="w-full shadow-lg">
@@ -345,7 +347,7 @@ export function NewAuditForm() {
                       <div className="pt-2">
                         <FormLabel className="text-md font-semibold mb-2 block">Lista de Verificación:</FormLabel>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                          {textChecklistItems.map(checkItem => (
+                          {checklistFormItems.map(checkItem => (
                             <FormField
                               key={checkItem.name}
                               control={form.control}
@@ -353,9 +355,23 @@ export function NewAuditForm() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>{checkItem.label}</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder={checkItem.placeholder} {...field} />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value || ""}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar estado" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {checklistOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -408,6 +424,5 @@ export function NewAuditForm() {
     </Card>
   );
 }
-
 
     
