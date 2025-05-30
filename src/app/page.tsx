@@ -1,7 +1,7 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Search, Archive, RefreshCw, Download, Edit3, FilePlus2, Map } from 'lucide-react';
+import { Search, Archive, RefreshCw, Download, Edit3, FilePlus2, Map, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -13,7 +13,7 @@ export default function HomePage() {
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
     { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
-    { title: 'Crear plano', icon: Map, href: '#', description: 'Diseñar la ubicación de extintores' },
+    { title: 'Crear plano', icon: Map, href: '/create-plan', description: 'Diseñar la ubicación de extintores' },
   ];
 
   return (
