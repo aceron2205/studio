@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 // Mock data for existing plans
 const mockExistingPlans = [
@@ -17,16 +18,22 @@ const mockExistingPlans = [
 ];
 
 export function PlanCreator() {
+  const router = useRouter(); // Initialize useRouter
   const [existingPlans, setExistingPlans] = React.useState(mockExistingPlans);
 
   const handleCreateNewPlan = () => {
     console.log("Iniciando creación de nuevo plano...");
-    // Navigate to plan editor or open modal
+    router.push('/edit-plan/new'); // Navigate to editor for a new plan
   };
 
   const handleEditPlan = (planId: string) => {
     console.log(`Editando plano: ${planId}`);
-    // Navigate to plan editor with specific plan loaded
+    const plan = existingPlans.find(p => p.id === planId);
+    if (plan) {
+      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(plan.name)}`); // Navigate to editor for existing plan
+    } else {
+      router.push(`/edit-plan/${planId}`);
+    }
   };
 
   return (
