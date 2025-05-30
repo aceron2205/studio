@@ -4,7 +4,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck } from "lucide-react"; // Added FileCheck
+import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check } from "lucide-react"; // Added FileCheck and Check
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -19,7 +19,7 @@ interface AssignedPlan {
   id: string;
   name: string;
   lastModified: string;
-  thumbnailUrl: string; // Will be used for data-ai-hint if not for direct display yet
+  thumbnailUrl: string; 
   clientName?: string;
   location?: string;
 }
@@ -33,26 +33,28 @@ const mockAssignedPlans: AssignedPlan[] = [
 export function AssignedPlansViewer() {
   const router = useRouter();
   const [plans, setPlans] = React.useState<AssignedPlan[]>(mockAssignedPlans);
+  const [downloadedPlanIds, setDownloadedPlanIds] = React.useState<Set<string>>(new Set());
 
-  const handleDownload = (planId: string) => {
+  const handleDownload = (planId: string, planName: string) => {
     console.log(`Descargando plano: ${planId}`);
     toast({
       title: "Descarga Iniciada",
-      description: `La descarga del plano ${planId} ha comenzado.`,
+      description: `La descarga del plano ${planName} ha comenzado.`,
     });
+    setDownloadedPlanIds(prev => new Set(prev).add(planId));
     // Actual download logic would go here
   };
 
-  const handleAudit = (planId: string) => {
+  const handleAudit = (planId: string, planName: string) => {
     console.log(`Iniciando auditoría para el plano: ${planId}`);
     toast({
       title: "Auditoría Iniciada",
-      description: `Preparando auditoría para el plano ${planId}.`,
+      description: `Preparando auditoría para el plano ${planName}.`,
     });
     // Potentially navigate to an audit form: router.push(`/new-audit-form?planId=${planId}`);
   };
 
-  const handleEdit = (planId: string, planName: string) => {
+  const handleEdit = (planId: string, planName:string) => {
     console.log(`Editando plano: ${planId}`);
     router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
@@ -88,9 +90,8 @@ export function AssignedPlansViewer() {
               <Card key={plan.id} className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col">
                 <div
                   className="relative w-full h-40 bg-muted flex items-center justify-center text-muted-foreground"
-                  data-ai-hint="floor plan building" // Using thumbnailUrl for AI hint if not directly displayed
+                  data-ai-hint="floor plan building" 
                 >
-                  {/* Placeholder for visual representation. Could use next/image if URLs are valid images. */}
                   <span>Previsualización del Plano</span>
                 </div>
                 <div className="p-4 flex flex-col flex-grow">
@@ -106,11 +107,15 @@ export function AssignedPlansViewer() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleDownload(plan.id)}>
-                          <Download className="mr-2 h-4 w-4" />
-                          Descargar
+                        <DropdownMenuItem onClick={() => handleDownload(plan.id, plan.name)}>
+                          {downloadedPlanIds.has(plan.id) ? (
+                            <Check className="mr-2 h-4 w-4 text-green-600" />
+                          ) : (
+                            <Download className="mr-2 h-4 w-4" />
+                          )}
+                          Descargar {downloadedPlanIds.has(plan.id) ? '(Descargado)' : ''}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAudit(plan.id)}>
+                        <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
                           <FileCheck className="mr-2 h-4 w-4" />
                           Auditar
                         </DropdownMenuItem>
