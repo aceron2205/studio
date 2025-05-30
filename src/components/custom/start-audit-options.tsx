@@ -112,9 +112,14 @@ export function StartAuditOptions() {
     const uniqueDates = new Set<string>();
     mockPendingAudits.forEach(audit => uniqueDates.add(audit.date));
     
+    // console.log("Processing scheduledDays. Raw unique dates strings:", Array.from(uniqueDates));
+    
     return Array.from(uniqueDates).map(dateStr => {
       const [year, month, day] = dateStr.split('-').map(Number);
-      return new Date(year, month - 1, day); // month is 0-indexed
+      // Ensure month is 0-indexed for Date constructor
+      const dateObj = new Date(year, month - 1, day);
+      // console.log(`Converted ${dateStr} to Date:`, dateObj);
+      return dateObj;
     });
   }, []); // If mockPendingAudits were state from a DB, it would be a dependency: [auditsFromDb]
 
@@ -220,8 +225,10 @@ export function StartAuditOptions() {
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersStyles={{
                   scheduled: {
-                    color: 'hsl(var(--destructive))', // Use destructive (red) color for text
-                    fontWeight: 'bold',             // Make it bold
+                    color: 'hsl(var(--foreground))', // Keep text color as default/black
+                    border: '2px solid hsl(var(--primary))', // Use primary color for the circle border
+                    borderRadius: '50%',
+                    backgroundColor: 'transparent', // Ensure no conflicting background
                   }
                 }}
               />
@@ -275,5 +282,7 @@ export function StartAuditOptions() {
     </Card>
   );
 }
+
+    
 
     
