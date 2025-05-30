@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3, MoreVertical, FileCheck } from "lucide-react";
+import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3, FileCheck, ChevronDown } from "lucide-react"; // Changed MoreVertical to ChevronDown
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,8 +132,8 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="shrink-0 -mr-2 -mt-1 sm:mt-0"> {/* Adjust margin for better alignment */}
-                        <MoreVertical className="h-5 w-5" />
+                      <Button variant="ghost" size="icon" className="shrink-0 -mr-2 -mt-1 sm:mt-0">
+                        <ChevronDown className="h-5 w-5" /> 
                         <span className="sr-only">Más opciones para {ext.type}</span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -177,5 +177,3 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     </Card>
   );
 }
-
-    
