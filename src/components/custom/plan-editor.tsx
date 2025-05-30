@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3, FileCheck, ChevronDown } from "lucide-react"; // Changed MoreVertical to ChevronDown
+import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3, FileCheck, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,11 +72,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     // Logic for editing an extinguisher, e.g., open a modal or navigate
   };
 
-  const handleGeneralEdit = () => {
-    console.log("Botón Editar general presionado. Implementar lógica para editar detalles del plano, no de los extintores individuales.");
-  };
-
-
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="relative p-6 border-b">
@@ -112,11 +107,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           <div className="flex space-x-2">
             <Button onClick={handleAddExtinguisher} size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Agregar Extinguidor
-            </Button>
-            <Button onClick={handleGeneralEdit} size="sm" variant="outline" aria-label="Editar detalles generales del plano">
-              <Edit3 className="mr-2 h-4 w-4" />
-              Editar Plano
+              Agregar
             </Button>
           </div>
         </div>
@@ -161,7 +152,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           </div>
         ) : (
           <p className="text-muted-foreground text-center py-4">
-            Aún no hay extintores agregados a este plano. Haga clic en "Agregar Extinguidor".
+            Aún no hay extintores agregados a este plano. Haga clic en "Agregar".
           </p>
         )}
         
