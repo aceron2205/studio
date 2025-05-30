@@ -31,6 +31,18 @@ const mockPendingAudits = [
   { id: '6', clientName: 'Cliente de Prueba Mes Actual', date: new Date().toISOString().split('T')[0], time: '11:00 AM', location: 'Ubicación de Prueba', status: 'Programada' },
 ];
 
+// In a real application, mockPendingAudits would be fetched from a database.
+// Example:
+// const [auditsFromDb, setAuditsFromDb] = React.useState([]);
+// React.useEffect(() => {
+//   async function fetchAudits() {
+//     // const data = await yourDatabaseService.getPendingAudits();
+//     // setAuditsFromDb(data);
+//   }
+//   fetchAudits();
+// }, []);
+// Then use auditsFromDb instead of mockPendingAudits.
+
 const INITIAL_AUDITS_TO_SHOW = 2;
 
 type ViewMode = "list" | "calendar";
@@ -40,7 +52,6 @@ export function StartAuditOptions() {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("list");
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-
 
   const handleStartScheduledAudit = (auditId: string) => {
     console.log(`Starting scheduled audit: ${auditId}`);
@@ -86,6 +97,16 @@ export function StartAuditOptions() {
     }
     setIsExpanded(!isExpanded);
   };
+
+  const scheduledDays = React.useMemo(() => {
+    // In a real app, you would process the audits fetched from the database here.
+    return mockPendingAudits.map(audit => {
+      const [year, month, day] = audit.date.split('-').map(Number);
+      return new Date(year, month - 1, day); // month is 0-indexed
+    }).filter((date, index, self) => // Ensure unique dates
+      index === self.findIndex(d => d.getTime() === date.getTime())
+    );
+  }, []); // If mockPendingAudits were state from a DB, it would be a dependency: [auditsFromDb]
 
   const auditsForSelectedDay = selectedDate
     ? mockPendingAudits.filter(audit => {
@@ -186,6 +207,13 @@ export function StartAuditOptions() {
                 className="rounded-md border shadow"
                 locale={es}
                 ISOWeek
+                modifiers={{ scheduled: scheduledDays }}
+                modifiersStyles={{
+                  scheduled: {
+                    color: 'hsl(var(--accent))', // Use accent color for text
+                    fontWeight: '600', // Make it semi-bold
+                  }
+                }}
               />
             </div>
             {selectedDate && (
@@ -237,3 +265,4 @@ export function StartAuditOptions() {
     </Card>
   );
 }
+
