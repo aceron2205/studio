@@ -161,7 +161,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         <div className="text-center">
           <Button onClick={handleSavePlan} size="lg">
             <Save className="mr-2 h-5 w-5" />
-            Guardar Cambios del Plano
+            Guardar
           </Button>
         </div>
       </CardContent>
