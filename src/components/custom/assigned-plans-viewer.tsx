@@ -4,7 +4,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check } from "lucide-react"; // Added FileCheck and Check
+import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -87,52 +87,69 @@ export function AssignedPlansViewer() {
         {plans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {plans.map((plan) => (
-              <Card key={plan.id} className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col">
-                <div
-                  className="relative w-full h-40 bg-muted flex items-center justify-center text-muted-foreground"
-                  data-ai-hint="floor plan building" 
-                >
-                  <span>Previsualización del Plano</span>
-                </div>
-                <div className="p-4 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-semibold text-md text-card-foreground truncate flex-grow pr-2" title={plan.name}>
-                      {plan.name}
-                    </h4>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="shrink-0">
-                          <MoreVertical className="h-5 w-5" />
-                          <span className="sr-only">Más opciones para {plan.name}</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleDownload(plan.id, plan.name)}>
-                          {downloadedPlanIds.has(plan.id) ? (
-                            <Check className="mr-2 h-4 w-4 text-green-600" />
-                          ) : (
-                            <Download className="mr-2 h-4 w-4" />
-                          )}
-                          Descargar {downloadedPlanIds.has(plan.id) ? '(Descargado)' : ''}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
-                          <FileCheck className="mr-2 h-4 w-4" />
-                          Auditar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(plan.id, plan.name)}>
-                          <Edit3 className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              <Link
+                key={plan.id}
+                href={`/edit-plan/${plan.id}?name=${encodeURIComponent(plan.name)}`}
+                className="block h-full group rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                aria-label={`Ver detalles del plano ${plan.name}`}
+              >
+                <Card className="overflow-hidden shadow-sm group-hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col h-full">
+                  <div
+                    className="relative w-full h-40 bg-muted flex items-center justify-center text-muted-foreground"
+                    data-ai-hint="floor plan building" 
+                  >
+                    <span>Previsualización del Plano</span>
                   </div>
-                  {plan.clientName && <p className="text-xs text-muted-foreground">Cliente: {plan.clientName}</p>}
-                  {plan.location && <p className="text-xs text-muted-foreground">Ubicación: {plan.location}</p>}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Última mod.: {plan.lastModified}
-                  </p>
-                </div>
-              </Card>
+                  <div className="p-4 flex flex-col flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold text-md text-card-foreground truncate flex-grow pr-2" title={plan.name}>
+                        {plan.name}
+                      </h4>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0"
+                            onClick={(e) => {
+                              e.preventDefault(); // Important to prevent Link navigation
+                              e.stopPropagation(); // Stop event from bubbling to Link
+                              // Dropdown will open due to Radix behavior
+                            }}
+                            aria-label={`Más opciones para ${plan.name}`}
+                          >
+                            <MoreVertical className="h-5 w-5" />
+                            <span className="sr-only">Más opciones para {plan.name}</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={() => handleDownload(plan.id, plan.name)}>
+                            {downloadedPlanIds.has(plan.id) ? (
+                              <Check className="mr-2 h-4 w-4 text-green-600" />
+                            ) : (
+                              <Download className="mr-2 h-4 w-4" />
+                            )}
+                            Descargar {downloadedPlanIds.has(plan.id) ? '(Descargado)' : ''}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
+                            <FileCheck className="mr-2 h-4 w-4" />
+                            Auditar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(plan.id, plan.name)}>
+                            <Edit3 className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    {plan.clientName && <p className="text-xs text-muted-foreground">Cliente: {plan.clientName}</p>}
+                    {plan.location && <p className="text-xs text-muted-foreground">Ubicación: {plan.location}</p>}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Última mod.: {plan.lastModified}
+                    </p>
+                  </div>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (
