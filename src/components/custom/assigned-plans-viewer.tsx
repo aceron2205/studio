@@ -116,7 +116,7 @@ export function AssignedPlansViewer() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(plan.id, plan.name)}>
                           <Edit3 className="mr-2 h-4 w-4" />
-                          Editar Visualmente
+                          Editar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
