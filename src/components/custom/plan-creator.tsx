@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation"; 
 
 // Mock data for existing plans
 const mockExistingPlans = [
@@ -18,19 +18,19 @@ const mockExistingPlans = [
 ];
 
 export function PlanCreator() {
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter(); 
   const [existingPlans, setExistingPlans] = React.useState(mockExistingPlans);
 
   const handleCreateNewPlan = () => {
-    console.log("Iniciando creación de nuevo plano...");
-    router.push('/edit-plan/new'); // Navigate to editor for a new plan
+    console.log("Iniciando creación de nuevo plano/auditoría...");
+    router.push('/new-audit-form'); // Navigate to the new detailed form page
   };
 
   const handleEditPlan = (planId: string) => {
     console.log(`Editando plano: ${planId}`);
     const plan = existingPlans.find(p => p.id === planId);
     if (plan) {
-      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(plan.name)}`); // Navigate to editor for existing plan
+      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(plan.name)}`); 
     } else {
       router.push(`/edit-plan/${planId}`);
     }
@@ -63,7 +63,7 @@ export function PlanCreator() {
       <CardContent className="space-y-8 p-6">
         <div>
           <h3 className="text-xl font-semibold mb-3 text-card-foreground">
-            Comenzar un Nuevo Diseño
+            Comenzar un Nuevo Diseño/Auditoría
           </h3>
           <Button
             onClick={handleCreateNewPlan}
@@ -71,10 +71,10 @@ export function PlanCreator() {
             size="lg"
           >
             <FilePlus2 className="mr-2 h-5 w-5" />
-            Crear Nuevo Plano
+            Crear Nuevo Plano / Auditoría
           </Button>
           <p className="text-sm text-muted-foreground mt-2">
-            Inicia el diseño de la distribución de extintores para una nueva área o edificio.
+            Inicia el registro detallado y la distribución de extintores para una nueva área o cliente.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export function PlanCreator() {
 
         <div>
           <h3 className="text-xl font-semibold mb-6 text-card-foreground">
-            Continuar Plano Existente
+            Continuar Plano Existente (Visual)
           </h3>
           {existingPlans.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -111,7 +111,7 @@ export function PlanCreator() {
                       onClick={() => handleEditPlan(plan.id)}
                     >
                       <Edit3 className="mr-2 h-4 w-4" />
-                      Editar Plano
+                      Editar Plano Visual
                     </Button>
                   </CardContent>
                 </Card>
@@ -119,7 +119,7 @@ export function PlanCreator() {
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-4">
-              No tienes planos guardados. ¡Crea uno nuevo para empezar!
+              No tienes planos visuales guardados.
             </p>
           )}
         </div>
