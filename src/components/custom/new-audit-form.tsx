@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const ExtinguisherSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
@@ -62,18 +63,20 @@ const checklistOptions = [
 ];
 
 const checklistFormItems = [
-    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista" },
-    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado" },
-    { name: "selloSeguridad" as const, label: "Sello de seguridad" },
-    { name: "pinPasador" as const, label: "Pin o pasador de seguridad" },
-    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado" },
-    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas" },
-    { name: "alturaAdecuada" as const, label: "Altura de instalación" },
-    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
+    { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista", placeholder: "Ej: C, NC, NA, P" },
+    { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado", placeholder: "Ej: C, NC, NA, P" },
+    { name: "selloSeguridad" as const, label: "Sello de seguridad", placeholder: "Ej: C, NC, NA, P" },
+    { name: "pinPasador" as const, label: "Pin o pasador de seguridad", placeholder: "Ej: C, NC, NA, P" },
+    { name: "pinturaBuenEstado" as const, label: "Pintura en buen estado", placeholder: "Ej: C, NC, NA, P" },
+    { name: "cilindroMangueraBoquillas" as const, label: "Cilindro, manguera y boquillas", placeholder: "Ej: C, NC, NA, P" },
+    { name: "alturaAdecuada" as const, label: "Altura de instalación", placeholder: "Ej: C, NC, NA, P" },
+    { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones", placeholder: "Ej: C, NC, NA, P" },
 ];
 
 export function NewAuditForm() {
   const router = useRouter();
+  const [openAccordionItem, setOpenAccordionItem] = React.useState<string | undefined>(undefined);
+
   const form = useForm<NewPlanFormData>({
     resolver: zodResolver(NewPlanFormSchema),
     defaultValues: {
@@ -102,6 +105,7 @@ export function NewAuditForm() {
   }
 
   const addNewExtinguisher = () => {
+    const newExtinguisherId = `ext-${Date.now()}-${fields.length}`; // Create a unique ID
     append({
       ubicacion: "",
       capacidadLibras: "",
@@ -119,7 +123,13 @@ export function NewAuditForm() {
       cargaExtintores: "",
       observacionesGenerales: "",
     });
+    // This won't work directly as append is async and item.id is from useFieldArray
+    // We'd need to find the new item in `fields` after update or generate predictable ID
+    // For now, let's focus on the accordion structure. Can enhance later.
+    // A simple way, if fields get 'id' from useFieldArray:
+    // setOpenAccordionItem(fields[fields.length -1]?.id); // This is problematic due to timing
   };
+
 
   return (
     <Card className="w-full shadow-lg">
@@ -246,160 +256,177 @@ export function NewAuditForm() {
                 </p>
               )}
 
-              <div className="space-y-6">
+              <Accordion 
+                type="single" 
+                collapsible 
+                className="w-full space-y-3"
+                value={openAccordionItem}
+                onValueChange={setOpenAccordionItem}
+              >
                 {fields.map((item, index) => (
-                  <Card key={item.id} className="bg-card shadow-md overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between p-4 bg-muted/50 border-b">
-                      <CardTitle className="text-lg text-primary">Extinguidor #{index + 1}</CardTitle>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive/80"
-                        onClick={() => remove(index)}
-                        aria-label={`Eliminar extinguidor ${index + 1}`}
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6 space-y-4">
-                      <FormField
-                        control={form.control}
-                        name={`extinguishers.${index}.ubicacion`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ubicación</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ej: Oficina principal, pasillo..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                        <FormField
-                          control={form.control}
-                          name={`extinguishers.${index}.capacidadLibras`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Capacidad (Libras)</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ej: 10 lbs" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`extinguishers.${index}.modelo`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Modelo</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ej: ABC-10" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                         <FormField
-                          control={form.control}
-                          name={`extinguishers.${index}.agenteExtintor`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Agente Extintor</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ej: PQS ABC, CO2, Agua" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`extinguishers.${index}.indicadorPresion`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Indicador de Presión</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ej: En verde, Baja, Alta, N/A" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`extinguishers.${index}.cargaExtintores`}
-                          render={({ field }) => (
-                            <FormItem className="md:col-span-2">
-                              <FormLabel>Estado de Carga / Próxima Recarga</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ej: Cargado (MM/AAAA), Vencido (MM/AAAA)" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                  <AccordionItem 
+                    key={item.id} 
+                    value={item.id} 
+                    className="border rounded-lg shadow-sm bg-card overflow-hidden"
+                  >
+                    <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:border-b">
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <span className="text-lg font-semibold text-primary">Extinguidor #{index + 1}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-full"
+                          onClick={(e) => { 
+                            e.stopPropagation(); // Prevent accordion toggle
+                            remove(index); 
+                          }}
+                          aria-label={`Eliminar extinguidor ${index + 1}`}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
                       </div>
-                       
-                      <div className="pt-2">
-                        <FormLabel className="text-md font-semibold mb-2 block">Lista de Verificación:</FormLabel>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                          {checklistFormItems.map(checkItem => (
-                            <FormField
-                              key={checkItem.name}
-                              control={form.control}
-                              name={`extinguishers.${index}.${checkItem.name}`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{checkItem.label}</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value || ""}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar estado" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {checklistOptions.map(option => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                          {option.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          ))}
+                    </AccordionTrigger>
+                    <AccordionContent className="p-0">
+                      <div className="p-4 md:p-6 space-y-4">
+                        <FormField
+                          control={form.control}
+                          name={`extinguishers.${index}.ubicacion`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ubicación</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ej: Oficina principal, pasillo..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                          <FormField
+                            control={form.control}
+                            name={`extinguishers.${index}.capacidadLibras`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Capacidad (Libras)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ej: 10 lbs" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`extinguishers.${index}.modelo`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Modelo</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ej: ABC-10" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`extinguishers.${index}.agenteExtintor`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Agente Extintor</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ej: PQS ABC, CO2, Agua" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`extinguishers.${index}.indicadorPresion`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Indicador de Presión</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ej: En verde, Baja, Alta, N/A" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`extinguishers.${index}.cargaExtintores`}
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>Estado de Carga / Próxima Recarga</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ej: Cargado (MM/AAAA), Vencido (MM/AAAA)" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name={`extinguishers.${index}.observacionesGenerales`}
-                        render={({ field }) => (
-                          <FormItem className="pt-2">
-                            <FormLabel>Observaciones Generales del Extinguidor</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Anotaciones adicionales sobre este extinguidor..."
-                                className="resize-y min-h-[60px]"
-                                {...field}
+                        
+                        <div className="pt-2">
+                          <FormLabel className="text-md font-semibold mb-2 block">Lista de Verificación:</FormLabel>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                            {checklistFormItems.map(checkItem => (
+                              <FormField
+                                key={checkItem.name}
+                                control={form.control}
+                                name={`extinguishers.${index}.${checkItem.name}`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{checkItem.label}</FormLabel>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value || ""}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Seleccionar estado" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {checklistOptions.map(option => (
+                                          <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
+                            ))}
+                          </div>
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name={`extinguishers.${index}.observacionesGenerales`}
+                          render={({ field }) => (
+                            <FormItem className="pt-2">
+                              <FormLabel>Observaciones Generales del Extinguidor</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Anotaciones adicionales sobre este extinguidor..."
+                                  className="resize-y min-h-[60px]"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
               {form.formState.errors.extinguishers && !form.formState.errors.extinguishers.root && (
                  <p className="text-sm font-medium text-destructive mt-2">
                     {form.formState.errors.extinguishers.message}
