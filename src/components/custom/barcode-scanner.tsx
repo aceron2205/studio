@@ -123,8 +123,15 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
         title: "Código Simulado Reconocido",
         description: `Mostrando formulario para extinguidor simulado. Item auditado: ${itemId}`,
       });
-      setCurrentExtinguisherData(mockExtinguisherFor123);
-      setCurrentExtinguisherId("sim-ext-123"); // Simulated ID for the form
+      // Si currentExtinguisherData ya tiene datos (porque se editó previamente y se "guardó"),
+      // y el ID es el mismo, podríamos decidir reutilizarlos o siempre cargar el mock.
+      // Por simplicidad, si el ID es el mismo y hay datos, los mantenemos, si no, cargamos el mock.
+      if (currentExtinguisherId === "sim-ext-123" && currentExtinguisherData) {
+         // Los datos ya están cargados y posiblemente editados, los reutilizamos.
+      } else {
+        setCurrentExtinguisherData(mockExtinguisherFor123);
+        setCurrentExtinguisherId("sim-ext-123"); 
+      }
       setViewMode('form');
     } else {
       console.log(`Código manual para item ID ${itemId}: ${data.code}`);
@@ -132,6 +139,9 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
         title: "Código Procesado (Manual)",
         description: `Item: ${itemId}, Código: ${data.code}. (Simulado, no acción)`,
       });
+      // Si se ingresa un código diferente, limpiamos los datos del extinguidor anterior
+      setCurrentExtinguisherData(null);
+      setCurrentExtinguisherId(null);
     }
     form.reset();
   }
@@ -142,17 +152,16 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
       description: `Información para ${currentExtinguisherId} guardada (simulado). Volviendo al escáner.`,
       variant: "default"
     });
+    setCurrentExtinguisherData(formData); // Mantener los datos actualizados
+    // currentExtinguisherId no cambia, ya que sigue siendo el mismo extinguidor
     setViewMode('scanner');
-    setCurrentExtinguisherData(null);
-    setCurrentExtinguisherId(null);
     form.reset(); // Reset manual code input
   };
 
   const handleReturnToScanner = () => {
     setViewMode('scanner');
-    setCurrentExtinguisherData(null);
-    setCurrentExtinguisherId(null);
-    if (isCameraOpen) { // Close camera if it was open
+    // No limpiamos currentExtinguisherData aquí, para que si se vuelve a escanear '123' se muestren los datos (posiblemente editados)
+    if (isCameraOpen) { 
         handleToggleCamera();
     }
   };
@@ -178,7 +187,7 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
           initialData={currentExtinguisherData}
           onSubmitSuccess={handleExtinguisherFormSubmitSuccess}
           extinguisherId={currentExtinguisherId}
-          isNew={false} // Assuming "123" always loads an existing (simulated) extinguisher
+          isNew={false} 
         />
       </div>
     );
