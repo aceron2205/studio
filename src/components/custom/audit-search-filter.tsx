@@ -5,12 +5,12 @@ import * as React from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es"; // Import Spanish locale
 import { SearchIcon, ListFilter, ArrowLeft } from "lucide-react"; 
+import Link from "next/link"; // Import Link
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 const mockClients = [
@@ -59,13 +59,19 @@ export function AuditSearchFilter() {
           {mockClients.length > 0 ? (
             <ul className="space-y-4">
               {mockClients.map((client) => (
-                <li key={client.id} className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
-                  <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: es })}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Ubicación: {client.location}</p>
-                  <p className="text-sm text-muted-foreground">Extintores Pendientes: {client.pendingExtinguishers}</p>
+                <li key={client.id}>
+                  <Link
+                    href={`/view-plans?clientId=${client.id}`}
+                    className="block p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label={`Ver planos para ${client.name}`}
+                  >
+                    <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: es })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Ubicación: {client.location}</p>
+                    <p className="text-sm text-muted-foreground">Extintores Pendientes: {client.pendingExtinguishers}</p>
+                  </Link>
                 </li>
               ))}
             </ul>
