@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Trash2 } from "lucide-react"; // Added Trash2
+import { Save, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Schema definition (similar to NewAuditForm's ExtinguisherSchema)
 const ExtinguisherSchema = z.object({
@@ -57,7 +68,7 @@ const checklistFormItems = [
 interface ExtinguisherEditorFormProps {
   initialData: Partial<ExtinguisherFormData>;
   onSubmitSuccess: (data: ExtinguisherFormData) => void; // Callback for successful submission
-  extinguisherId: string; // Kept extinguisherId prop for context if needed elsewhere, though not in title
+  extinguisherId: string; 
 }
 
 export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguisherId }: ExtinguisherEditorFormProps) {
@@ -92,16 +103,15 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     onSubmitSuccess(data); // Call the callback
   }
 
-  const handleDarDeBaja = () => {
-    // In a real app, this would trigger a confirmation dialog and then a delete operation
-    console.log(`Solicitando dar de baja extinguidor: ${extinguisherId}`);
+  const confirmDarDeBaja = () => {
+    // In a real app, this would trigger a delete operation
+    console.log(`Confirmado dar de baja extinguidor: ${extinguisherId}`);
     toast({
-      title: "Dar de Baja Solicitado",
-      description: `Se ha solicitado dar de baja el extinguidor ID: ${extinguisherId}. (Simulado)`,
+      title: "Extinguidor Dado de Baja",
+      description: `El extinguidor ID: ${extinguisherId} ha sido marcado para baja. (Simulado)`,
       variant: "destructive",
     });
     // Potentially navigate back or call a specific delete handler passed via props
-    // For now, it just logs and shows a toast.
   };
 
   return (
@@ -249,15 +259,32 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
             />
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-end pt-8 border-t space-y-2 sm:space-y-0 sm:space-x-3">
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={handleDarDeBaja}
-              className="w-full sm:w-auto"
-            >
-              <Trash2 className="mr-2 h-5 w-5" />
-              Dar de baja
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="mr-2 h-5 w-5" />
+                  Dar de baja
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción marcará el extinguidor para darlo de baja. No podrás deshacer esta acción fácilmente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmDarDeBaja}>
+                    Confirmar Baja
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button 
               type="submit" 
               size="lg" 
@@ -273,3 +300,5 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     </Card>
   );
 }
+
+    
