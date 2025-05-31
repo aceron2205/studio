@@ -61,9 +61,9 @@ export function AuditSearchFilter() {
               {mockClients.map((client) => (
                 <li key={client.id}>
                   <Link
-                    href={`/view-plans?clientId=${client.id}`}
+                    href={`/edit-plan/new?name=${encodeURIComponent(`Plano para ${client.name}`)}`}
                     className="block p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    aria-label={`Ver planos para ${client.name}`}
+                    aria-label={`Crear nuevo plano para ${client.name}`}
                   >
                     <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
