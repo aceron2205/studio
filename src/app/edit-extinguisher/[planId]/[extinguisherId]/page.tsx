@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { use } from 'react';
-import { useRouter, useSearchParams } from "next/navigation"; // Added useSearchParams
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,13 +24,11 @@ const mockPlanExtinguishers: Record<string, Array<{ id: string; type: string; ca
    'ext-1': [ { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción' } ],
    'ext-2': [ { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte' } ],
    'ext-3': [ { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera' } ],
-
-
 };
 
 
 interface EditExtinguisherPageProps {
-  params: Promise<{ // params is treated as a Promise
+  params: Promise<{ 
     planId: string;
     extinguisherId: string;
   }>;
@@ -38,45 +36,44 @@ interface EditExtinguisherPageProps {
 
 export default function EditExtinguisherPage({ params: paramsPromise }: EditExtinguisherPageProps) {
   const router = useRouter();
-  const searchParams = useSearchParams(); // For potential future use or if type was passed
+  const searchParams = useSearchParams(); 
 
-  const { planId, extinguisherId } = use(paramsPromise); // Unwrap the promise
+  const { planId, extinguisherId } = use(paramsPromise); 
+  const isNewExtinguisher = extinguisherId === "new";
 
-  // Simulate fetching extinguisher data
-  // In a real app, you'd fetch this from a DB using planId and extinguisherId
   const [initialExtinguisherData, setInitialExtinguisherData] = React.useState<Partial<ExtinguisherFormData> | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    // Simulate API call
+    if (isNewExtinguisher) {
+      setInitialExtinguisherData({}); // Empty data for a new extinguisher
+      setLoading(false);
+      return;
+    }
+
+    // Simulate API call for existing extinguisher
     setTimeout(() => {
-      const planExtinguishers = mockPlanExtinguishers[planId] || mockPlanExtinguishers[extinguisherId]; // Fallback for simple mock
+      const planExtinguishers = mockPlanExtinguishers[planId] || mockPlanExtinguishers[extinguisherId]; 
       const extinguisher = planExtinguishers?.find(ext => ext.id === extinguisherId);
 
       if (extinguisher) {
-        // Map PlanEditor's simple Extinguisher type to ExtinguisherFormData
         setInitialExtinguisherData({
           ubicacion: extinguisher.location_description,
           capacidadLibras: extinguisher.capacity,
-          // 'type' from PlanEditor's mock is a general description. We'll put it in agenteExtintor for now.
-          // 'modelo' would need to be fetched or was part of more detailed original data.
           agenteExtintor: extinguisher.type,
-          modelo: "Modelo Desconocido", // Placeholder
-          // Other fields will be empty or default as per ExtinguisherEditorForm's schema
+          modelo: "Modelo Desconocido", 
         });
       } else {
         setError(`Extinguidor con ID ${extinguisherId} no encontrado en el plano ${planId}.`);
       }
       setLoading(false);
     }, 500);
-  }, [planId, extinguisherId]);
+  }, [planId, extinguisherId, isNewExtinguisher]);
 
   const handleSubmitSuccess = (data: ExtinguisherFormData) => {
-    // Here you would typically send the updated data to your backend
-    console.log("Datos del extinguidor guardados (simulado):", data);
-    // Optionally navigate back or show further success messages
-    router.back(); // Navigate back after successful submission
+    console.log(isNewExtinguisher ? "Datos del nuevo extinguidor guardados (simulado):" : "Datos del extinguidor actualizados (simulado):", data);
+    router.back(); 
   };
 
   if (loading) {
@@ -98,7 +95,7 @@ export default function EditExtinguisherPage({ params: paramsPromise }: EditExti
     );
   }
 
-  if (!initialExtinguisherData) {
+  if (!initialExtinguisherData && !isNewExtinguisher) { // Allow new extinguisher to proceed with null/empty initialData
      return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background text-destructive p-4">
         <p>No se pudieron cargar los datos del extinguidor.</p>
@@ -125,9 +122,10 @@ export default function EditExtinguisherPage({ params: paramsPromise }: EditExti
           </Button>
         </div>
         <ExtinguisherEditorForm
-            initialData={initialExtinguisherData}
+            initialData={initialExtinguisherData || {}} // Ensure initialData is at least an empty object
             onSubmitSuccess={handleSubmitSuccess}
             extinguisherId={extinguisherId}
+            isNew={isNewExtinguisher}
         />
       </div>
       <Toaster />

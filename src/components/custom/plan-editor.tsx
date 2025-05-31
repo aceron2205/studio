@@ -61,18 +61,9 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
 
   const handleAddExtinguisher = () => {
-    console.log("Agregar nuevo extintor al plano:", planId);
-    const newExtinguisher: Extinguisher = {
-      id: `ext-${Date.now()}`,
-      type: 'Nuevo Extintor',
-      capacity: 'N/A',
-      location_description: 'Ubicación pendiente',
-    };
-    setExtinguishers(prev => [...prev, newExtinguisher]);
-    toast({
-        title: "Extinguidor Añadido",
-        description: "Se ha añadido un nuevo extinguidor al plano.",
-    });
+    console.log("Navegando para agregar nuevo extintor al plano:", planId);
+    // Navigate to the extinguisher editor page with a special ID for "new"
+    router.push(`/edit-extinguisher/${planId}/new`);
   };
 
   const handleSavePlan = () => {
@@ -175,7 +166,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                         </DropdownMenuItem>
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()} // Prevents menu from closing
+                            onSelect={(e) => e.preventDefault()} 
                             className="text-destructive focus:text-destructive focus:bg-destructive/10"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
@@ -205,7 +196,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           </div>
         ) : (
           <p className="text-muted-foreground text-center py-4">
-            Aún no hay extintores agregados a este plano. Haga clic en "Agregar".
+            Aún no hay extintores agregados a este plano. Haga clic en "Agregar" para registrar uno.
           </p>
         )}
         

@@ -26,7 +26,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-// Schema definition (similar to NewAuditForm's ExtinguisherSchema)
 const ExtinguisherSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
   capacidadLibras: z.string().min(1, "La capacidad es requerida"),
@@ -67,11 +66,12 @@ const checklistFormItems = [
 
 interface ExtinguisherEditorFormProps {
   initialData: Partial<ExtinguisherFormData>;
-  onSubmitSuccess: (data: ExtinguisherFormData) => void; // Callback for successful submission
+  onSubmitSuccess: (data: ExtinguisherFormData) => void; 
   extinguisherId: string; 
+  isNew?: boolean;
 }
 
-export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguisherId }: ExtinguisherEditorFormProps) {
+export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguisherId, isNew = false }: ExtinguisherEditorFormProps) {
   const form = useForm<ExtinguisherFormData>({
     resolver: zodResolver(ExtinguisherSchema),
     defaultValues: {
@@ -94,31 +94,29 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
   });
 
   function onSubmit(data: ExtinguisherFormData) {
-    console.log(`Extinguisher ${extinguisherId} data updated:`, data);
+    console.log(`Extinguisher data (ID: ${extinguisherId}, IsNew: ${isNew}):`, data);
     toast({
-      title: "Extinguidor Actualizado",
-      description: "Los datos del extinguidor han sido guardados.",
+      title: isNew ? "Extinguidor Creado" : "Extinguidor Actualizado",
+      description: isNew ? "El nuevo extinguidor ha sido registrado." : "Los datos del extinguidor han sido guardados.",
       variant: "default",
     });
-    onSubmitSuccess(data); // Call the callback
+    onSubmitSuccess(data); 
   }
 
   const confirmDarDeBaja = () => {
-    // In a real app, this would trigger a delete operation
     console.log(`Confirmado dar de baja extinguidor: ${extinguisherId}`);
     toast({
       title: "Extinguidor Dado de Baja",
       description: `El extinguidor ID: ${extinguisherId} ha sido marcado para baja. (Simulado)`,
       variant: "destructive",
     });
-    // Potentially navigate back or call a specific delete handler passed via props
   };
 
   return (
     <Card className="w-full shadow-lg">
       <CardHeader>
         <CardTitle className="text-xl text-center">
-          Editar Extinguidor
+          {isNew ? "Nuevo Extinguidor" : "Editar Extinguidor"}
         </CardTitle>
       </CardHeader>
       <Form {...form}>
@@ -259,32 +257,34 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
             />
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-end pt-8 border-t space-y-2 sm:space-y-0 sm:space-x-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  type="button" 
-                  variant="destructive" 
-                  className="w-full sm:w-auto"
-                >
-                  <Trash2 className="mr-2 h-5 w-5" />
-                  Dar de baja
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción marcará el extinguidor para darlo de baja. No podrás deshacer esta acción fácilmente.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={confirmDarDeBaja}>
-                    Confirmar Baja
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {!isNew && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    type="button" 
+                    variant="destructive" 
+                    className="w-full sm:w-auto"
+                  >
+                    <Trash2 className="mr-2 h-5 w-5" />
+                    Dar de baja
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción marcará el extinguidor para darlo de baja. No podrás deshacer esta acción fácilmente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmDarDeBaja}>
+                      Confirmar Baja
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button 
               type="submit" 
               size="lg" 
@@ -292,7 +292,9 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
               className="w-full sm:w-auto"
             >
               <Save className="mr-2 h-5 w-5" />
-              {form.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+              {form.formState.isSubmitting 
+                ? (isNew ? "Creando..." : "Guardando...") 
+                : (isNew ? "Crear Extinguidor" : "Guardar Cambios")}
             </Button>
           </CardFooter>
         </form>
@@ -300,5 +302,3 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     </Card>
   );
 }
-
-    
