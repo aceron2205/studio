@@ -4,11 +4,11 @@
 import * as React from "react";
 import { es } from "date-fns/locale/es";
 import { format, isSameDay } from "date-fns";
-import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp, Menu as MenuIcon } from "lucide-react";
+import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp, Menu as MenuIcon } from "lucide-react"; // Play and Download are no longer directly used here but kept for icons in dropdown
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ScheduledAuditListItem, type AuditAction } from "./scheduled-audit-list-item";
+import { ScheduledAuditListItem } from "./scheduled-audit-list-item";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -24,35 +24,16 @@ const today = new Date();
 const currentYear = today.getFullYear();
 const currentMonth = today.getMonth(); // 0-indexed
 
-// Mock data - in a real app, this would come from a data source
 const mockPendingAudits = [
-  // Audits for the current month to ensure at least three distinct days are highlighted
   { id: 'current-day-5', clientName: 'Auditoría Día 5 del Mes', date: new Date(currentYear, currentMonth, 5).toISOString().split('T')[0], time: '09:00 AM', location: 'Locación A - Mes Actual', status: 'Programada' },
   { id: 'current-day-15', clientName: 'Auditoría Día 15 del Mes', date: new Date(currentYear, currentMonth, 15).toISOString().split('T')[0], time: '11:00 AM', location: 'Locación B - Mes Actual', status: 'Pendiente' },
   { id: 'current-day-25', clientName: 'Auditoría Día 25 del Mes', date: new Date(currentYear, currentMonth, 25).toISOString().split('T')[0], time: '01:00 PM', location: 'Locación C - Mes Actual', status: 'Programada' },
-  // Ensure today is also included, the Set for scheduledDays will handle de-duplication
   { id: 'current-today', clientName: 'Auditoría de Hoy', date: today.toISOString().split('T')[0], time: '03:00 PM', location: 'Locación Hoy - Mes Actual', status: 'Programada'},
-
-  // Some audits in a different fixed month for navigation testing
   { id: 'sep-audit-1', clientName: 'Empresa Constructora Sol (Sept.)', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
   { id: 'sep-audit-2', clientName: 'Restaurante Delicias Marinas (Sept.)', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
 ];
 
-
-// In a real application, mockPendingAudits would be fetched from a database.
-// Example:
-// const [auditsFromDb, setAuditsFromDb] = React.useState([]);
-// React.useEffect(() => {
-//   async function fetchAudits() {
-//     // const data = await yourDatabaseService.getPendingAudits();
-//     // setAuditsFromDb(data);
-//   }
-//   fetchAudits();
-// }, []);
-// Then use auditsFromDb instead of mockPendingAudits.
-
 const INITIAL_AUDITS_TO_SHOW = 2;
-
 type ViewMode = "list" | "calendar";
 
 export function StartAuditOptions() {
@@ -63,37 +44,15 @@ export function StartAuditOptions() {
 
   const handleStartScheduledAudit = (auditId: string) => {
     console.log(`Starting scheduled audit: ${auditId}`);
-    // Navigate to audit screen or perform start action
   };
 
   const handleDownloadAudit = (auditId: string) => {
     console.log(`Downloading audit for start: ${auditId}`);
-    // Implement actual download logic here if different from other download
   };
 
   const handleStartNewAudit = () => {
     console.log("Starting new unscheduled audit");
-    // Navigate to new audit creation screen
   };
-
-  const getAuditActions = (auditId: string): AuditAction[] => [
-    {
-      icon: Play,
-      label: "Iniciar esta auditoría",
-      onClick: () => handleStartScheduledAudit(auditId),
-      variant: 'ghost',
-      buttonSize: 'icon-lg',
-      iconSize: 28, // h-7 w-7
-    },
-    {
-      icon: Download,
-      label: "Descargar auditoría",
-      onClick: () => handleDownloadAudit(auditId),
-      variant: 'ghost',
-      buttonSize: 'icon-lg',
-      iconSize: 28, // h-7 w-7
-    }
-  ];
 
   const displayedAudits = mockPendingAudits.slice(0, visibleAuditsCount);
 
@@ -107,21 +66,13 @@ export function StartAuditOptions() {
   };
 
   const scheduledDays = React.useMemo(() => {
-    // In a real app, you would process the audits fetched from the database here.
-    // This creates a Set of unique Date objects for scheduled days.
     const uniqueDates = new Set<string>();
     mockPendingAudits.forEach(audit => uniqueDates.add(audit.date));
-    
-    // console.log("Processing scheduledDays. Raw unique dates strings:", Array.from(uniqueDates));
-    
     return Array.from(uniqueDates).map(dateStr => {
       const [year, month, day] = dateStr.split('-').map(Number);
-      // Ensure month is 0-indexed for Date constructor
-      const dateObj = new Date(year, month - 1, day);
-      // console.log(`Converted ${dateStr} to Date:`, dateObj);
-      return dateObj;
+      return new Date(year, month - 1, day);
     });
-  }, []); // If mockPendingAudits were state from a DB, it would be a dependency: [auditsFromDb]
+  }, []);
 
   const auditsForSelectedDay = selectedDate
     ? mockPendingAudits.filter(audit => {
@@ -184,7 +135,8 @@ export function StartAuditOptions() {
                     key={`list-${audit.id}`}
                     audit={audit}
                     locale={es}
-                    actions={getAuditActions(audit.id)}
+                    onAudit={handleStartScheduledAudit}
+                    onDownload={handleDownloadAudit}
                   />
                 ))}
               </div>
@@ -225,10 +177,10 @@ export function StartAuditOptions() {
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersStyles={{
                   scheduled: {
-                    color: 'hsl(var(--foreground))', // Keep text color as default/black
-                    border: '2px solid hsl(var(--primary))', // Use primary color for the circle border
+                    color: 'hsl(var(--foreground))',
+                    border: '2px solid hsl(var(--primary))',
                     borderRadius: '50%',
-                    backgroundColor: 'transparent', // Ensure no conflicting background
+                    backgroundColor: 'transparent',
                   }
                 }}
               />
@@ -245,7 +197,8 @@ export function StartAuditOptions() {
                         key={`cal-${audit.id}`}
                         audit={audit}
                         locale={es}
-                        actions={getAuditActions(audit.id)}
+                        onAudit={handleStartScheduledAudit}
+                        onDownload={handleDownloadAudit}
                       />
                     ))}
                   </div>
@@ -258,7 +211,6 @@ export function StartAuditOptions() {
             )}
           </div>
         )}
-
 
         <Separator />
 
@@ -282,7 +234,3 @@ export function StartAuditOptions() {
     </Card>
   );
 }
-
-    
-
-    

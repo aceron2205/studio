@@ -4,10 +4,15 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { format, type Locale } from "date-fns";
-import type { LucideIcon } from 'lucide-react';
-import { MapPin } from "lucide-react";
+import { MapPin, Play, Download, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Audit {
   id: string;
@@ -18,29 +23,19 @@ interface Audit {
   status: string;
 }
 
-export interface AuditAction {
-  icon: LucideIcon;
-  label: string; 
-  onClick: (auditId: string) => void;
-  variant?: ButtonProps['variant'];
-  buttonSize?: ButtonProps['size'];
-  iconSize?: number; // Optional: specify icon size in pixels
-}
-
 interface ScheduledAuditListItemProps {
   audit: Audit;
   locale: Locale;
-  actions: AuditAction[];
+  onAudit: (auditId: string) => void;
+  onDownload: (auditId: string) => void;
 }
 
-export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAuditListItemProps) {
+export function ScheduledAuditListItem({ audit, locale, onAudit, onDownload }: ScheduledAuditListItemProps) {
   const [formattedFullDate, setFormattedFullDate] = useState<string | null>(null);
 
   useEffect(() => {
     const dateParts = audit.date.split('-').map(Number);
-    // Ensure month is 0-indexed for Date constructor
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-    
     setFormattedFullDate(`${format(localDate, "PPP", { locale })} a las ${audit.time}`);
   }, [audit.date, audit.time, locale]);
 
@@ -50,8 +45,8 @@ export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAudi
         <div className="flex-1 pr-2">
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-2 mb-1">
             <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
-            <Badge 
-              variant={audit.status === 'Programada' ? 'secondary' : 'default'} 
+            <Badge
+              variant={audit.status === 'Programada' ? 'secondary' : 'default'}
               className="mt-1 sm:mt-0 self-start sm:self-baseline"
             >
               {audit.status}
@@ -61,28 +56,26 @@ export function ScheduledAuditListItem({ audit, locale, actions }: ScheduledAudi
             {formattedFullDate ? `Fecha: ${formattedFullDate}` : 'Fecha: Cargando...'}
           </p>
         </div>
-        <div className="flex items-center gap-1">
-          {actions.map((act, index) => {
-            const ActionIcon = act.icon;
-            const isIconOnly = act.buttonSize === 'icon' || act.buttonSize === 'icon-lg';
-            return (
-              <Button
-                key={`${act.label}-${index}-${audit.id}`}
-                variant={act.variant || "ghost"}
-                size={act.buttonSize || "icon"}
-                onClick={() => act.onClick(audit.id)}
-                aria-label={`${act.label} para ${audit.clientName}`}
-              >
-                <ActionIcon size={act.iconSize} /> 
-                {!isIconOnly && act.label && (
-                  <span className="ml-2">{act.label}</span>
-                )}
-              </Button>
-            );
-          })}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="-mr-2 -mt-1 sm:mt-0">
+              <ChevronDown className="h-5 w-5" />
+              <span className="sr-only">Más opciones para {audit.clientName}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onAudit(audit.id)}>
+              <Play className="mr-2 h-4 w-4" />
+              Auditar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDownload(audit.id)}>
+              <Download className="mr-2 h-4 w-4" />
+              Descargar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      
+
       <div className="flex items-center text-sm text-muted-foreground mt-1">
         <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
         <span>{audit.location}</span>
