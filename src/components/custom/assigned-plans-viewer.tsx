@@ -4,7 +4,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check } from "lucide-react";
+import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -34,15 +34,41 @@ export function AssignedPlansViewer() {
   const router = useRouter();
   const [plans, setPlans] = React.useState<AssignedPlan[]>(mockAssignedPlans);
   const [downloadedPlanIds, setDownloadedPlanIds] = React.useState<Set<string>>(new Set());
+  const [downloadingPlanIds, setDownloadingPlanIds] = React.useState<Set<string>>(new Set());
 
   const handleDownload = (planId: string, planName: string) => {
-    console.log(`Descargando plano: ${planId}`);
+    if (downloadingPlanIds.has(planId)) {
+      // Ya se está descargando, no hacer nada
+      return;
+    }
+
+    setDownloadingPlanIds(prev => new Set(prev).add(planId));
+    // Si ya estaba marcado como descargado, lo quitamos para simular una nueva descarga
+    setDownloadedPlanIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(planId);
+      return newSet;
+    });
+
     toast({
       title: "Descarga Iniciada",
       description: `La descarga del plano ${planName} ha comenzado.`,
     });
-    setDownloadedPlanIds(prev => new Set(prev).add(planId));
-    // Actual download logic would go here
+
+    // Simular descarga
+    setTimeout(() => {
+      setDownloadingPlanIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(planId);
+        return newSet;
+      });
+      setDownloadedPlanIds(prev => new Set(prev).add(planId));
+      // Opcional: un toast de completado, aunque el cambio de ícono ya es feedback
+      // toast({
+      //   title: "Descarga Completada",
+      //   description: `El plano ${planName} ha sido descargado.`,
+      // });
+    }, 2000); // Simular 2 segundos de descarga
   };
 
   const handleAudit = (planId: string, planName: string) => {
@@ -112,9 +138,8 @@ export function AssignedPlansViewer() {
                             size="icon"
                             className="shrink-0"
                             onClick={(e) => {
-                              e.preventDefault(); // Important to prevent Link navigation
-                              e.stopPropagation(); // Stop event from bubbling to Link
-                              // Dropdown will open due to Radix behavior
+                              e.preventDefault(); 
+                              e.stopPropagation(); 
                             }}
                             aria-label={`Más opciones para ${plan.name}`}
                           >
@@ -123,13 +148,22 @@ export function AssignedPlansViewer() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem onClick={() => handleDownload(plan.id, plan.name)}>
-                            {downloadedPlanIds.has(plan.id) ? (
+                          <DropdownMenuItem 
+                            onClick={() => handleDownload(plan.id, plan.name)}
+                            disabled={downloadingPlanIds.has(plan.id)}
+                          >
+                            {downloadingPlanIds.has(plan.id) ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : downloadedPlanIds.has(plan.id) ? (
                               <Check className="mr-2 h-4 w-4 text-green-600" />
                             ) : (
                               <Download className="mr-2 h-4 w-4" />
                             )}
-                            Descargar {downloadedPlanIds.has(plan.id) ? '(Descargado)' : ''}
+                            {downloadingPlanIds.has(plan.id)
+                              ? 'Descargando...'
+                              : downloadedPlanIds.has(plan.id)
+                              ? 'Descargado'
+                              : 'Descargar'}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
                             <FileCheck className="mr-2 h-4 w-4" />
