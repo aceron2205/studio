@@ -7,7 +7,39 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarcodeScanner } from "@/components/custom/barcode-scanner";
-import { Toaster } from "@/components/ui/toaster"; // Ensure Toaster is here
+import { Toaster } from "@/components/ui/toaster"; 
+
+// Mock data: Represents plans and their associated extinguishers
+// In a real app, this would come from a database or API
+const mockPlansWithExtinguishers: Record<string, {
+  name: string; 
+  extinguishers: Array<{ id: string; type: string; capacity: string; location_description: string }>;
+}> = {
+  'plan-alpha': {
+    name: 'Plano General Fábrica A',
+    extinguishers: [
+      { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción' },
+      { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte' },
+    ],
+  },
+  'plan-beta': {
+    name: 'Oficinas Corporativas Central',
+    extinguishers: [
+      { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera' },
+    ],
+  },
+  'plan-gamma': {
+    name: 'Almacén Sur Extintores',
+    extinguishers: [
+      { id: 'ext-4', type: 'Polvo Químico Seco (ABC)', capacity: '20 lbs', location_description: 'Almacén principal' },
+      { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Zona de líquidos inflamables, cerca de puerta sur' },
+      { id: 'ext-6', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Taller de mantenimiento, junto a banco de trabajo' },
+    ],
+  }
+  // If itemId is an extinguisher ID like 'ext-1', it won't be found as a key here,
+  // so extinguishersForPlan will be an empty array, which is the desired behavior.
+};
+
 
 interface AuditScanPageProps {
   params: Promise<{ 
@@ -18,19 +50,13 @@ interface AuditScanPageProps {
 export default function AuditScanPage({ params: paramsPromise }: AuditScanPageProps) {
   const { itemId } = use(paramsPromise);
 
-  // The BarcodeScanner now handles its internal view (scanner or form)
-  // So, the main page structure can be simpler.
-  // The "Volver" button here might be redundant if BarcodeScanner handles its own "back to main menu" logic,
-  // or if the embedded form has a "back to scanner" button.
-  // For now, let's keep a general "Volver" button that takes the user to the main page.
+  // Get extinguishers for the current plan (itemId). If itemId is not a plan ID, this will be empty.
+  const extinguishersForCurrentPlan = mockPlansWithExtinguishers[itemId]?.extinguishers || [];
+  const currentPlanName = mockPlansWithExtinguishers[itemId]?.name || `Elemento ${itemId}`;
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
       <div className="w-full max-w-md">
-        {/* This top-level back button might be confusing if the BarcodeScanner shows a form.
-            Consider removing it if BarcodeScanner's internal navigation is sufficient.
-            For now, it goes back to the main page.
-        */}
         <div className="mb-6 relative flex items-center justify-center">
           <Link href="/" passHref>
             <Button
@@ -42,15 +68,13 @@ export default function AuditScanPage({ params: paramsPromise }: AuditScanPagePr
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          {/* The title "Auditar Elemento" might need to be dynamic based on BarcodeScanner's state,
-              or BarcodeScanner can render its own title when in form mode.
-              For simplicity, keeping it static for now.
-           */}
-          <h1 className="text-xl font-semibold text-primary">Auditar Elemento</h1>
+          <h1 className="text-xl font-semibold text-primary text-center px-12 truncate" title={`Auditar: ${currentPlanName}`}>
+            Auditar: {currentPlanName}
+          </h1>
         </div>
-        <BarcodeScanner itemId={itemId} />
+        <BarcodeScanner itemId={itemId} extinguishersForPlan={extinguishersForCurrentPlan} />
       </div>
-      <Toaster /> {/* Toaster for notifications from BarcodeScanner and ExtinguisherEditorForm */}
+      <Toaster /> 
     </div>
   );
 }

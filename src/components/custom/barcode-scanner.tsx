@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Camera, ScanLine, Send, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Camera, ScanLine, Send, AlertTriangle, ArrowLeft, List, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,8 +23,15 @@ const ManualCodeSchema = z.object({
 
 type ManualCodeFormDataInternal = z.infer<typeof ManualCodeSchema>;
 
+interface ExtinguisherDataFromPlan {
+  id: string;
+  type: string;
+  capacity: string;
+  location_description: string;
+}
 interface BarcodeScannerProps {
-  itemId: string; // Context item being audited
+  itemId: string; // Context item being audited (e.g., planId or extinguisherId)
+  extinguishersForPlan?: ExtinguisherDataFromPlan[];
 }
 
 const mockExtinguisherFor123: Partial<ExtinguisherFormData> = {
@@ -34,7 +41,6 @@ const mockExtinguisherFor123: Partial<ExtinguisherFormData> = {
   modelo: 'ABC-10-Scan',
   indicadorPresion: 'En Verde',
   cargaExtintores: 'Cargado (01/2024)',
-  // Basic checklist items
   instrucciones: "C",
   calcomaniasPlacas: "C",
   selloSeguridad: "C",
@@ -45,7 +51,7 @@ const mockExtinguisherFor123: Partial<ExtinguisherFormData> = {
   accesoLibre: "C",
 };
 
-export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
+export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeScannerProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isCameraOpen, setIsCameraOpen] = React.useState(false);
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | null>(null);
@@ -80,7 +86,8 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
           videoRef.current.srcObject = stream;
         }
         return stream;
-      } catch (error) {
+      } catch (error)
+      {
         console.error("Error accessing camera:", error);
         setHasCameraPermission(false);
         toast({
@@ -123,11 +130,8 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
         title: "Código Simulado Reconocido",
         description: `Mostrando formulario para extinguidor simulado. Item auditado: ${itemId}`,
       });
-      // Si currentExtinguisherData ya tiene datos (porque se editó previamente y se "guardó"),
-      // y el ID es el mismo, podríamos decidir reutilizarlos o siempre cargar el mock.
-      // Por simplicidad, si el ID es el mismo y hay datos, los mantenemos, si no, cargamos el mock.
       if (currentExtinguisherId === "sim-ext-123" && currentExtinguisherData) {
-         // Los datos ya están cargados y posiblemente editados, los reutilizamos.
+        // Data already loaded and possibly edited, reuse it.
       } else {
         setCurrentExtinguisherData(mockExtinguisherFor123);
         setCurrentExtinguisherId("sim-ext-123"); 
@@ -139,7 +143,6 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
         title: "Código Procesado (Manual)",
         description: `Item: ${itemId}, Código: ${data.code}. (Simulado, no acción)`,
       });
-      // Si se ingresa un código diferente, limpiamos los datos del extinguidor anterior
       setCurrentExtinguisherData(null);
       setCurrentExtinguisherId(null);
     }
@@ -152,15 +155,13 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
       description: `Información para ${currentExtinguisherId} guardada (simulado). Volviendo al escáner.`,
       variant: "default"
     });
-    setCurrentExtinguisherData(formData); // Mantener los datos actualizados
-    // currentExtinguisherId no cambia, ya que sigue siendo el mismo extinguidor
+    setCurrentExtinguisherData(formData); 
     setViewMode('scanner');
-    form.reset(); // Reset manual code input
+    form.reset(); 
   };
 
   const handleReturnToScanner = () => {
     setViewMode('scanner');
-    // No limpiamos currentExtinguisherData aquí, para que si se vuelve a escanear '123' se muestren los datos (posiblemente editados)
     if (isCameraOpen) { 
         handleToggleCamera();
     }
@@ -198,9 +199,9 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
       <CardHeader className="text-center">
         <CardTitle className="text-xl text-primary flex items-center justify-center gap-2">
           <ScanLine className="h-6 w-6" />
-          Escanear Código
+          Escanear/Registrar Extinguidor
         </CardTitle>
-        <CardDescription>Ingresa un código manualmente o usa la cámara para registrar/auditar un extinguidor.</CardDescription>
+        <CardDescription>Ingresa un código manualmente o usa la cámara. {extinguishersForPlan.length > 0 ? "Abajo puedes ver los extinguidores de este plano." : ""}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <Form {...form}>
@@ -210,7 +211,7 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ingresar código manualmente</FormLabel>
+                  <FormLabel>Ingresar código de extinguidor</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
                     <Input placeholder="Ej: 12345 (o '123' para simulación)" {...field} />
@@ -269,6 +270,35 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
             </Alert>
           )}
         </div>
+
+        {extinguishersForPlan && extinguishersForPlan.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                <List className="h-5 w-5" />
+                Extintores en este Plano ({extinguishersForPlan.length})
+              </h3>
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                {extinguishersForPlan.map((ext) => (
+                  <Card key={ext.id} className="p-3 bg-card shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>
+                          {ext.type} - {ext.capacity}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate" title={ext.location_description}>
+                          {ext.location_description}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
