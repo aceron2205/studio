@@ -13,8 +13,8 @@ export default function HomePage() {
 
   const menuItems = [
     // Fila Superior
-    { title: 'Planos Asignados', icon: ListChecks, href: '/view-plans', description: 'Visualizar y gestionar planos' },
     { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
+    { title: 'Planos Asignados', icon: ListChecks, href: '/view-plans', description: 'Visualizar y gestionar planos' },
     // Fila Central
     { title: 'Crear Diseño de Plano', icon: Map, href: '/create-plan', description: 'Diseñar o registrar auditoría' },
     { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
