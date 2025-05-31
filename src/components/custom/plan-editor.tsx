@@ -37,9 +37,30 @@ const mockExtinguishers: Extinguisher[] = [
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
   const router = useRouter(); 
   const [currentPlanName, setCurrentPlanName] = React.useState(initialPlanName);
-  const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(
-    planId === 'new' ? [] : mockExtinguishers 
-  );
+  const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(() => {
+    // If planId is one of the mock extinguisher IDs, it means we might be in a test scenario
+    // or a direct link to an extinguisher that isn't part of a larger known plan's mockExtinguishers.
+    // For this demo, we'll check if mockExtinguishers contains an item with this planId as its ID.
+    // This part of the logic might need refinement based on how 'new' plans are handled vs existing.
+    if (planId === 'new') return [];
+    
+    // A simple check if any mock extinguisher matches the planId, assuming planId could be an extinguisher id
+    const singleExtinguisherAsPlan = mockExtinguishers.find(ext => ext.id === planId);
+    if (singleExtinguisherAsPlan) {
+      // If planId directly matches an extinguisher ID, perhaps we're viewing that single extinguisher 'as a plan'
+      // This scenario is a bit ambiguous with current mock data structure.
+      // For now, let's return it as a single item array if found.
+      // Or, if your mockExtinguishers was keyed by planId, you'd do:
+      // return specificMockExtinguishersByPlanId[planId] || [];
+      return [singleExtinguisherAsPlan];
+    }
+    // Default to all mock extinguishers if planId doesn't match a specific single extinguisher ID logic
+    // or if you have a more complex mapping of planId to its extinguishers.
+    // For the provided mockExtinguishers, it's a flat list, so we might filter by some property if 'planId'
+    // was supposed to correspond to a property within the extinguishers, or just return all for 'non-new'.
+    return mockExtinguishers; // Or apply specific filtering logic if planId relates to a subset
+  });
+
 
   const handleAddExtinguisher = () => {
     console.log("Agregar nuevo extintor al plano:", planId);
@@ -53,7 +74,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
   };
 
   const handleSavePlan = () => {
-    console.log("Guardando cambios del plano:", planId, "Nombre:", currentPlanName, "Extintores:", extinguishers);
+    console.log("Guardando plano:", planId, "Nombre:", currentPlanName, "Extintores:", extinguishers);
     alert(`Plano "${currentPlanName}" guardado con ${extinguishers.length} extintores.`);
   };
   
@@ -64,12 +85,12 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleAuditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
     console.log(`Auditando extinguidor: ${extinguisherId} (${extinguisherType})`);
-    // Logic for auditing an extinguisher
+    // Future: router.push(`/audit-extinguisher/${planId}/${extinguisherId}`);
   };
 
   const handleEditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
-    console.log(`Editando extinguidor: ${extinguisherId} (${extinguisherType})`);
-    // Logic for editing an extinguisher, e.g., open a modal or navigate
+    console.log(`Editando extinguidor: ${extinguisherId} (${extinguisherType}) desde plan ${planId}`);
+    router.push(`/edit-extinguisher/${planId}/${extinguisherId}`);
   };
 
   return (
