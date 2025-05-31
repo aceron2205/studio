@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Camera, ScanLine, Send, AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -28,6 +29,7 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const router = useRouter(); // Instantiate router
   const [isCameraOpen, setIsCameraOpen] = React.useState(false);
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | null>(null);
   const [scannedCode, setScannedCode] = React.useState<string | null>(null); // For future actual scanning
@@ -96,12 +98,20 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
   };
   
   function onManualSubmit(data: ManualCodeFormData) {
-    console.log(`Código manual para item ID ${itemId}: ${data.code}`);
-    toast({
-      title: "Código Procesado (Manual)",
-      description: `Item: ${itemId}, Código: ${data.code}. (Simulado)`,
-    });
-    // Here you would typically do something with the code, e.g., API call
+    if (data.code === "123") {
+      toast({
+        title: "Código Simulado Reconocido",
+        description: `Redirigiendo a detalles del extinguidor (simulado para código 123). Contexto del item: ${itemId}`,
+      });
+      // Simulate finding extinguisher 'ext-1' associated with 'plan-alpha'
+      router.push(`/edit-extinguisher/plan-alpha/ext-1`);
+    } else {
+      console.log(`Código manual para item ID ${itemId}: ${data.code}`);
+      toast({
+        title: "Código Procesado (Manual)",
+        description: `Item: ${itemId}, Código: ${data.code}. (Simulado)`,
+      });
+    }
     form.reset();
   }
 
@@ -135,7 +145,7 @@ export function BarcodeScanner({ itemId }: BarcodeScannerProps) {
                   <FormLabel>Ingresar código manualmente</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
-                    <Input placeholder="Ej: 1234567890" {...field} />
+                    <Input placeholder="Ej: 1234567890 (o '123' para simulación)" {...field} />
                      <Button type="submit" size="icon" aria-label="Procesar código manual">
                         <Send className="h-5 w-5" />
                       </Button>
