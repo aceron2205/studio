@@ -62,7 +62,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleAddExtinguisher = () => {
     console.log("Navegando para agregar nuevo extintor al plano:", planId);
-    // Navigate to the extinguisher editor page with a special ID for "new"
     router.push(`/edit-extinguisher/${planId}/new`);
   };
 
@@ -85,12 +84,8 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
   };
 
   const handleAuditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
-    console.log(`Auditando extinguidor: ${extinguisherId} (${extinguisherType})`);
-    toast({
-        title: "Auditoría Iniciada (Simulada)",
-        description: `Iniciando auditoría para extinguidor ${extinguisherType}.`,
-    });
-    // Future: router.push(`/audit-extinguisher/${planId}/${extinguisherId}`);
+    console.log(`Navegando para auditar extinguidor: ${extinguisherId} (${extinguisherType})`);
+    router.push(`/audit-scan/${extinguisherId}`);
   };
 
   const handleEditExtinguisher = (extinguisherId: string, extinguisherType: string) => {

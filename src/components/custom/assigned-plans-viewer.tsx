@@ -65,17 +65,33 @@ export function AssignedPlansViewer() {
   };
 
   const handleAudit = (planId: string, planName: string) => {
-    console.log(`Iniciando auditoría para el plano: ${planId}`);
-    toast({
-      title: "Auditoría Iniciada",
-      description: `Preparando auditoría para el plano ${planName}.`,
-    });
+    console.log(`Navegando para auditar el plano: ${planId} - ${planName}`);
+    router.push(`/audit-scan/${planId}`);
   };
 
   const handleEdit = (planId: string, planName:string) => {
     console.log(`Editando plano: ${planId}`);
     router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
+
+  // Make clicking on the card itself navigate to edit plan
+  const handleCardClick = (planId: string, planName: string, e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent navigation if the click was on the dropdown trigger or its items
+    if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
+      return;
+    }
+    router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
+  };
+  
+  const handleCardKeyDown = (planId: string, planName: string, e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+       if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
+        return;
+      }
+      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
+    }
+  };
+
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -105,13 +121,15 @@ export function AssignedPlansViewer() {
         {plans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {plans.map((plan) => (
-              <Link
-                key={plan.id}
-                href={`/edit-plan/${plan.id}?name=${encodeURIComponent(plan.name)}`}
-                className="block h-full group rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                aria-label={`Ver detalles del plano ${plan.name}`}
-              >
-                <Card className="overflow-hidden shadow-sm group-hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col h-full">
+                <Card 
+                    key={plan.id} 
+                    className="overflow-hidden shadow-sm hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-xl transition-shadow duration-200 ease-in-out flex flex-col h-full group"
+                    onClick={(e) => handleCardClick(plan.id, plan.name, e)}
+                    onKeyDown={(e) => handleCardKeyDown(plan.id, plan.name, e)}
+                    tabIndex={0} // Make card focusable
+                    role="article" // More semantic role
+                    aria-labelledby={`plan-title-${plan.id}`}
+                 >
                   <div
                     className="relative w-full h-40 bg-muted flex items-center justify-center text-muted-foreground"
                     data-ai-hint="floor plan building" 
@@ -130,7 +148,7 @@ export function AssignedPlansViewer() {
                   </div>
                   <div className="p-4 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-md text-card-foreground truncate flex-grow pr-2" title={plan.name}>
+                      <h4 id={`plan-title-${plan.id}`} className="font-semibold text-md text-card-foreground truncate flex-grow pr-2 group-hover:text-primary" title={plan.name}>
                         {plan.name}
                       </h4>
                       <DropdownMenu>
@@ -140,8 +158,7 @@ export function AssignedPlansViewer() {
                             size="icon"
                             className="shrink-0"
                             onClick={(e) => {
-                              e.preventDefault(); 
-                              e.stopPropagation(); 
+                              e.stopPropagation(); // Prevent card click from triggering
                             }}
                             aria-label={`Más opciones para ${plan.name}`}
                           >
@@ -185,7 +202,6 @@ export function AssignedPlansViewer() {
                     </p>
                   </div>
                 </Card>
-              </Link>
             ))}
           </div>
         ) : (

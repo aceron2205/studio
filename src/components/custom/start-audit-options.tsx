@@ -4,10 +4,11 @@
 import * as React from "react";
 import { es } from "date-fns/locale/es";
 import { format, isSameDay } from "date-fns";
-import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon, Loader2, Check } from "lucide-react"; // Changed MenuIcon to CalendarIcon
+import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon, Loader2, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ScheduledAuditListItem } from "./scheduled-audit-list-item";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -38,6 +39,7 @@ const INITIAL_AUDITS_TO_SHOW = 2;
 type ViewMode = "list" | "calendar";
 
 export function StartAuditOptions() {
+  const router = useRouter();
   const [visibleAuditsCount, setVisibleAuditsCount] = React.useState(INITIAL_AUDITS_TO_SHOW);
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("list");
@@ -46,11 +48,8 @@ export function StartAuditOptions() {
   const [downloadedAuditIds, setDownloadedAuditIds] = React.useState<Set<string>>(new Set());
 
   const handleStartScheduledAudit = (auditId: string) => {
-    console.log(`Starting scheduled audit: ${auditId}`);
-    toast({
-      title: "Auditoría Iniciada",
-      description: `Preparando auditoría ID: ${auditId}. (Simulado)`,
-    });
+    console.log(`Navegando para auditar auditoría programada: ${auditId}`);
+    router.push(`/audit-scan/${auditId}`);
   };
 
   const handleDownloadAudit = (auditId: string, auditName: string) => {
@@ -61,7 +60,7 @@ export function StartAuditOptions() {
     setDownloadingAuditIds(prev => new Set(prev).add(auditId));
     setDownloadedAuditIds(prev => {
       const newSet = new Set(prev);
-      newSet.delete(auditId); // Allow re-download visual cue
+      newSet.delete(auditId); 
       return newSet;
     });
 
@@ -85,11 +84,8 @@ export function StartAuditOptions() {
   };
 
   const handleStartNewAudit = () => {
-    console.log("Starting new unscheduled audit");
-    toast({
-      title: "Nueva Auditoría No Programada",
-      description: "Iniciando el formulario para una nueva auditoría. (Simulado)",
-    });
+    console.log("Starting new unscheduled audit - navigating to new audit form");
+    router.push('/new-audit-form'); // Navigate to the form for unscheduled/new plan audits
   };
 
   const displayedAudits = mockPendingAudits.slice(0, visibleAuditsCount);
@@ -258,7 +254,7 @@ export function StartAuditOptions() {
 
         <div>
           <h3 className="text-xl font-semibold mb-4 text-card-foreground">
-            O Iniciar una Auditoría Nueva
+            O Iniciar una Auditoría Nueva (No Programada)
           </h3>
           <Button
             onClick={handleStartNewAudit}
@@ -266,10 +262,10 @@ export function StartAuditOptions() {
             size="lg"
           >
             <FilePlus2 className="mr-2 h-5 w-5" />
-            Crear Nueva Auditoría No Programada
+            Crear Nueva Auditoría
           </Button>
           <p className="text-sm text-muted-foreground mt-2">
-            Perfecto para auditorías no planificadas o de seguimiento.
+            Perfecto para auditorías no planificadas o de seguimiento inmediato. Se abrirá el formulario de nuevo plano/auditoría.
           </p>
         </div>
       </CardContent>
