@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save } from "lucide-react";
+import { Save, Trash2 } from "lucide-react"; // Added Trash2
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,7 +57,7 @@ const checklistFormItems = [
 interface ExtinguisherEditorFormProps {
   initialData: Partial<ExtinguisherFormData>;
   onSubmitSuccess: (data: ExtinguisherFormData) => void; // Callback for successful submission
-  extinguisherId: string;
+  extinguisherId: string; // Kept extinguisherId prop for context if needed elsewhere, though not in title
 }
 
 export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguisherId }: ExtinguisherEditorFormProps) {
@@ -92,11 +92,23 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     onSubmitSuccess(data); // Call the callback
   }
 
+  const handleDarDeBaja = () => {
+    // In a real app, this would trigger a confirmation dialog and then a delete operation
+    console.log(`Solicitando dar de baja extinguidor: ${extinguisherId}`);
+    toast({
+      title: "Dar de Baja Solicitado",
+      description: `Se ha solicitado dar de baja el extinguidor ID: ${extinguisherId}. (Simulado)`,
+      variant: "destructive",
+    });
+    // Potentially navigate back or call a specific delete handler passed via props
+    // For now, it just logs and shows a toast.
+  };
+
   return (
     <Card className="w-full shadow-lg">
       <CardHeader>
         <CardTitle className="text-xl text-center">
-          Editando Extinguidor (ID: {extinguisherId})
+          Editar Extinguidor
         </CardTitle>
       </CardHeader>
       <Form {...form}>
@@ -236,8 +248,22 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
               )}
             />
           </CardContent>
-          <CardFooter className="flex justify-center pt-8 border-t">
-            <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
+          <CardFooter className="flex flex-col sm:flex-row justify-end pt-8 border-t space-y-2 sm:space-y-0 sm:space-x-3">
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleDarDeBaja}
+              className="w-full sm:w-auto"
+            >
+              <Trash2 className="mr-2 h-5 w-5" />
+              Dar de baja
+            </Button>
+            <Button 
+              type="submit" 
+              size="lg" 
+              disabled={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
               <Save className="mr-2 h-5 w-5" />
               {form.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
             </Button>
