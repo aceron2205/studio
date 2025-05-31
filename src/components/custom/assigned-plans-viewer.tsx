@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface AssignedPlan {
   id: string;
@@ -38,12 +39,10 @@ export function AssignedPlansViewer() {
 
   const handleDownload = (planId: string, planName: string) => {
     if (downloadingPlanIds.has(planId)) {
-      // Ya se está descargando, no hacer nada
       return;
     }
 
     setDownloadingPlanIds(prev => new Set(prev).add(planId));
-    // Si ya estaba marcado como descargado, lo quitamos para simular una nueva descarga
     setDownloadedPlanIds(prev => {
       const newSet = new Set(prev);
       newSet.delete(planId);
@@ -55,7 +54,6 @@ export function AssignedPlansViewer() {
       description: `La descarga del plano ${planName} ha comenzado.`,
     });
 
-    // Simular descarga
     setTimeout(() => {
       setDownloadingPlanIds(prev => {
         const newSet = new Set(prev);
@@ -63,12 +61,7 @@ export function AssignedPlansViewer() {
         return newSet;
       });
       setDownloadedPlanIds(prev => new Set(prev).add(planId));
-      // Opcional: un toast de completado, aunque el cambio de ícono ya es feedback
-      // toast({
-      //   title: "Descarga Completada",
-      //   description: `El plano ${planName} ha sido descargado.`,
-      // });
-    }, 2000); // Simular 2 segundos de descarga
+    }, 2000); 
   };
 
   const handleAudit = (planId: string, planName: string) => {
@@ -77,7 +70,6 @@ export function AssignedPlansViewer() {
       title: "Auditoría Iniciada",
       description: `Preparando auditoría para el plano ${planName}.`,
     });
-    // Potentially navigate to an audit form: router.push(`/new-audit-form?planId=${planId}`);
   };
 
   const handleEdit = (planId: string, planName:string) => {
@@ -125,6 +117,16 @@ export function AssignedPlansViewer() {
                     data-ai-hint="floor plan building" 
                   >
                     <span>Previsualización del Plano</span>
+                    {downloadingPlanIds.has(plan.id) && (
+                      <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full">
+                        <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                      </div>
+                    )}
+                    {!downloadingPlanIds.has(plan.id) && downloadedPlanIds.has(plan.id) && (
+                       <div className="absolute top-2 right-2 bg-green-500/80 text-white p-1.5 rounded-full">
+                        <Check className="h-5 w-5" />
+                      </div>
+                    )}
                   </div>
                   <div className="p-4 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2">
