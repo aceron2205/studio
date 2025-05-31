@@ -61,8 +61,8 @@ export function ScheduledAuditListItem({
           <Check className="h-5 w-5" />
         </div>
       )}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex-1 pr-8"> {/* Added pr-8 to prevent text overlap with absolute icons */}
+      <div className="flex justify-between items-center mb-2 pr-8"> {/* Align items center, add padding for status icon */}
+        <div className="flex-1"> {/* Removed specific pr-8 from here */}
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-2 mb-1">
             <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
             <Badge
@@ -78,7 +78,7 @@ export function ScheduledAuditListItem({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="-mr-2 -mt-1 sm:mt-0">
+            <Button variant="ghost" size="icon"> {/* Removed custom margin classes */}
               <ChevronDown className="h-5 w-5" />
               <span className="sr-only">Más opciones para {audit.clientName}</span>
             </Button>
