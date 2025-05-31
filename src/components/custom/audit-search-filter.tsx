@@ -34,7 +34,7 @@ export function AuditSearchFilter() {
         </Link>
         <CardTitle className="text-2xl font-semibold text-primary flex items-center gap-2">
           <SearchIcon className="w-6 h-6" />
-          Filtrar Auditorías
+          Búsqueda de Clientes
         </CardTitle>
       </CardHeader>
       <CardContent>
