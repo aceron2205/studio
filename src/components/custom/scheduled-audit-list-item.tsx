@@ -4,7 +4,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { format, type Locale } from "date-fns";
-import { MapPin, Play, Download, ChevronDown } from "lucide-react";
+import { MapPin, Play, Download, ChevronDown, Loader2, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface Audit {
   id: string;
@@ -27,10 +28,19 @@ interface ScheduledAuditListItemProps {
   audit: Audit;
   locale: Locale;
   onAudit: (auditId: string) => void;
-  onDownload: (auditId: string) => void;
+  onDownload: (auditId: string, auditName: string) => void;
+  isDownloading?: boolean;
+  isDownloaded?: boolean;
 }
 
-export function ScheduledAuditListItem({ audit, locale, onAudit, onDownload }: ScheduledAuditListItemProps) {
+export function ScheduledAuditListItem({
+  audit,
+  locale,
+  onAudit,
+  onDownload,
+  isDownloading = false,
+  isDownloaded = false,
+}: ScheduledAuditListItemProps) {
   const [formattedFullDate, setFormattedFullDate] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,9 +50,19 @@ export function ScheduledAuditListItem({ audit, locale, onAudit, onDownload }: S
   }, [audit.date, audit.time, locale]);
 
   return (
-    <div className="p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
+    <div className="relative p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
+      {isDownloading && (
+        <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full">
+          <Loader2 className="h-5 w-5 text-primary animate-spin" />
+        </div>
+      )}
+      {!isDownloading && isDownloaded && (
+         <div className="absolute top-2 right-2 bg-green-500/80 text-white p-1.5 rounded-full">
+          <Check className="h-5 w-5" />
+        </div>
+      )}
       <div className="flex justify-between items-start mb-2">
-        <div className="flex-1 pr-2">
+        <div className="flex-1 pr-8"> {/* Added pr-8 to prevent text overlap with absolute icons */}
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-2 mb-1">
             <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
             <Badge
@@ -68,9 +88,19 @@ export function ScheduledAuditListItem({ audit, locale, onAudit, onDownload }: S
               <Play className="mr-2 h-4 w-4" />
               Auditar
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDownload(audit.id)}>
-              <Download className="mr-2 h-4 w-4" />
-              Descargar
+            <DropdownMenuItem onClick={() => onDownload(audit.id, audit.clientName)} disabled={isDownloading}>
+              {isDownloading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : isDownloaded ? (
+                <Check className="mr-2 h-4 w-4 text-green-600" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {isDownloading
+                ? 'Descargando...'
+                : isDownloaded
+                ? 'Descargado'
+                : 'Descargar'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

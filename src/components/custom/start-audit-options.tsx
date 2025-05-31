@@ -4,7 +4,7 @@
 import * as React from "react";
 import { es } from "date-fns/locale/es";
 import { format, isSameDay } from "date-fns";
-import { FilePlus2, Play, Download, ArrowLeft, ChevronDown, ChevronUp, Menu as MenuIcon } from "lucide-react"; // Play and Download are no longer directly used here but kept for icons in dropdown
+import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, Menu as MenuIcon, Loader2, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
+import { toast } from "@/hooks/use-toast";
 
 const today = new Date();
 const currentYear = today.getFullYear();
@@ -41,17 +42,54 @@ export function StartAuditOptions() {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("list");
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
+  const [downloadingAuditIds, setDownloadingAuditIds] = React.useState<Set<string>>(new Set());
+  const [downloadedAuditIds, setDownloadedAuditIds] = React.useState<Set<string>>(new Set());
 
   const handleStartScheduledAudit = (auditId: string) => {
     console.log(`Starting scheduled audit: ${auditId}`);
+    toast({
+      title: "Auditoría Iniciada",
+      description: `Preparando auditoría ID: ${auditId}. (Simulado)`,
+    });
   };
 
-  const handleDownloadAudit = (auditId: string) => {
-    console.log(`Downloading audit for start: ${auditId}`);
+  const handleDownloadAudit = (auditId: string, auditName: string) => {
+    if (downloadingAuditIds.has(auditId)) {
+      return;
+    }
+
+    setDownloadingAuditIds(prev => new Set(prev).add(auditId));
+    setDownloadedAuditIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(auditId); // Allow re-download visual cue
+      return newSet;
+    });
+
+    toast({
+      title: "Descarga Iniciada",
+      description: `La descarga de la auditoría "${auditName}" ha comenzado.`,
+    });
+
+    setTimeout(() => {
+      setDownloadingAuditIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(auditId);
+        return newSet;
+      });
+      setDownloadedAuditIds(prev => new Set(prev).add(auditId));
+      toast({
+        title: "Auditoría Descargada",
+        description: `La auditoría "${auditName}" ha sido descargada. (Simulado)`,
+      });
+    }, 2000);
   };
 
   const handleStartNewAudit = () => {
     console.log("Starting new unscheduled audit");
+    toast({
+      title: "Nueva Auditoría No Programada",
+      description: "Iniciando el formulario para una nueva auditoría. (Simulado)",
+    });
   };
 
   const displayedAudits = mockPendingAudits.slice(0, visibleAuditsCount);
@@ -137,6 +175,8 @@ export function StartAuditOptions() {
                     locale={es}
                     onAudit={handleStartScheduledAudit}
                     onDownload={handleDownloadAudit}
+                    isDownloading={downloadingAuditIds.has(audit.id)}
+                    isDownloaded={downloadedAuditIds.has(audit.id)}
                   />
                 ))}
               </div>
@@ -199,6 +239,8 @@ export function StartAuditOptions() {
                         locale={es}
                         onAudit={handleStartScheduledAudit}
                         onDownload={handleDownloadAudit}
+                        isDownloading={downloadingAuditIds.has(audit.id)}
+                        isDownloaded={downloadedAuditIds.has(audit.id)}
                       />
                     ))}
                   </div>
