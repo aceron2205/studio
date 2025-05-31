@@ -4,7 +4,7 @@
 import * as React from "react";
 import { es } from "date-fns/locale/es";
 import { format, isSameDay } from "date-fns";
-import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, Menu as MenuIcon, Loader2, Check } from "lucide-react";
+import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon, Loader2, Check } from "lucide-react"; // Changed MenuIcon to CalendarIcon
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -145,7 +145,7 @@ export function StartAuditOptions() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" aria-label="Seleccionar vista">
-                <MenuIcon className="h-5 w-5" />
+                <CalendarIcon className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
