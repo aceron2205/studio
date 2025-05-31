@@ -9,12 +9,15 @@ export default function HomePage() {
   const userName = "Usuario"; // Placeholder, replace with actual user data logic
 
   const menuItems = [
-    { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
-    { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
-    { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
-    { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
+    // Fila Superior
     { title: 'Planos Asignados', icon: ListChecks, href: '/view-plans', description: 'Visualizar y gestionar planos' },
+    { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
+    // Fila Central
     { title: 'Crear Diseño de Plano', icon: Map, href: '/create-plan', description: 'Diseñar o registrar auditoría' },
+    { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
+    // Fila Inferior
+    { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
+    { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
   ];
 
   return (
