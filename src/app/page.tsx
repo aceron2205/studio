@@ -1,9 +1,12 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Search, Archive, RefreshCw, Download, Edit3, FilePlus2, Map, CalendarDays, Layers, ListChecks } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Search, Archive, RefreshCw, Map, FilePlus2, ListChecks } from 'lucide-react';
+// Download and Edit3 icons are no longer needed as Quick Actions are removed
+// import { Download, Edit3 } from 'lucide-react';
+// Button and Link for Quick Actions are no longer needed
+// import { Button } from '@/components/ui/button';
+// import Link from 'next/link';
 
 export default function HomePage() {
   const userName = "Usuario"; // Placeholder, replace with actual user data logic
@@ -39,6 +42,7 @@ export default function HomePage() {
           </div>
         </main>
 
+        {/* Quick Actions section removed
         <section aria-labelledby="quick-actions-title" className="mt-10">
           <h2 id="quick-actions-title" className="text-xl font-semibold text-center mb-4 text-primary">Acciones Rápidas</h2>
           <div className="space-y-3">
@@ -56,6 +60,7 @@ export default function HomePage() {
             </Button>
           </div>
         </section>
+        */}
         
         <footer className="text-center py-10 mt-6">
           <p className="text-sm text-muted-foreground">
