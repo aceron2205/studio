@@ -23,6 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ScannerInterface } from "./scanner-interface"; // Importar ScannerInterface
 
 const ExtinguisherSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
@@ -73,6 +74,40 @@ const checklistFormItems = [
     { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
 ];
 
+// Datos simulados para pre-rellenar campos desde ScannerInterface
+const mockKnownExtinguishersData: Record<string, Partial<ExtinguisherFormData>> = {
+  'EXT-001': {
+    ubicacion: 'Recepción Principal',
+    capacidadLibras: '10 lbs',
+    modelo: 'Amerex B402',
+    agenteExtintor: 'Polvo Químico Seco (ABC)',
+    indicadorPresion: 'En Verde',
+    cargaExtintores: 'Cargado (01/2024)',
+    instrucciones: 'C', calcomaniasPlacas: 'C', selloSeguridad: 'C', pinPasador: 'C',
+    pinturaBuenEstado: 'C', cilindroMangueraBoquillas: 'C', alturaAdecuada: 'C', accesoLibre: 'C',
+  },
+  'CO2-SERV': {
+    ubicacion: 'Sala de Servidores',
+    capacidadLibras: '5 kg',
+    modelo: 'Kidde K05',
+    agenteExtintor: 'Dióxido de Carbono (CO2)',
+    indicadorPresion: 'N/A (CO2)',
+    cargaExtintores: 'Cargado (11/2023)',
+    instrucciones: 'C', calcomaniasPlacas: 'C', selloSeguridad: 'C', pinPasador: 'C',
+    pinturaBuenEstado: 'NC', cilindroMangueraBoquillas: 'C', alturaAdecuada: 'C', accesoLibre: 'C',
+    observacionesGenerales: 'Pintura ligeramente rayada en base.',
+  },
+  'sim-cam-123': { // Para simulación de cámara
+    ubicacion: 'Taller - Simulado Cámara',
+    capacidadLibras: '20 lbs',
+    modelo: 'SIM-CAM-MOD',
+    agenteExtintor: 'Agua Presurizada (Sim.)',
+    indicadorPresion: 'En Verde',
+    cargaExtintores: `Cargado (${format(new Date(), 'MM/yyyy')})`,
+  }
+};
+
+
 export function NewAuditForm() {
   const router = useRouter();
   const [openAccordionItem, setOpenAccordionItem] = React.useState<string | undefined>(undefined);
@@ -99,7 +134,6 @@ export function NewAuditForm() {
 
   React.useEffect(() => {
     if (fields.length > prevFieldsLengthRef.current) {
-      // A new item was added
       const newItemId = fields[fields.length - 1]?.id;
       if (newItemId) {
         setOpenAccordionItem(newItemId);
@@ -115,6 +149,8 @@ export function NewAuditForm() {
       description: "Los datos del nuevo plano/auditoría han sido registrados.",
       variant: "default",
     });
+    // Podrías, por ejemplo, redirigir al usuario o limpiar el formulario.
+    // router.push("/");
   }
 
   const addNewExtinguisher = () => {
@@ -123,18 +159,44 @@ export function NewAuditForm() {
       capacidadLibras: "",
       modelo: "",
       agenteExtintor: "",
-      instrucciones: "",
-      calcomaniasPlacas: "",
-      selloSeguridad: "",
-      pinPasador: "",
-      pinturaBuenEstado: "",
-      cilindroMangueraBoquillas: "",
-      alturaAdecuada: "",
+      instrucciones: "P", // Default checklist items to Pendiente
+      calcomaniasPlacas: "P",
+      selloSeguridad: "P",
+      pinPasador: "P",
+      pinturaBuenEstado: "P",
+      cilindroMangueraBoquillas: "P",
+      alturaAdecuada: "P",
       indicadorPresion: "",
-      accesoLibre: "",
+      accesoLibre: "P",
       cargaExtintores: "",
       observacionesGenerales: "",
     });
+  };
+
+  const handleCodeScannedForExtinguisher = (index: number, code: string) => {
+    console.log(`Código escaneado/ingresado para extinguidor #${index + 1}: ${code}`);
+    const extinguisherData = mockKnownExtinguishersData[code.toUpperCase()] || mockKnownExtinguishersData[code];
+
+    if (extinguisherData) {
+      // Iterar sobre las claves de extinguisherData y establecer los valores en el formulario
+      (Object.keys(extinguisherData) as Array<keyof ExtinguisherFormData>).forEach(key => {
+        const value = extinguisherData[key];
+        if (value !== undefined && key in form.getValues(`extinguishers.${index}`)) {
+           form.setValue(`extinguishers.${index}.${key}`, value as any, { shouldValidate: true, shouldDirty: true });
+        }
+      });
+
+      toast({
+        title: `Extinguidor #${index + 1} Actualizado`,
+        description: `Datos rellenados desde el código ${code}. Revise y complete los campos necesarios.`,
+      });
+    } else {
+       toast({
+        variant: "destructive",
+        title: `Extinguidor no Encontrado`,
+        description: `No se encontraron datos predefinidos para el código: ${code}. Por favor, ingrese los datos manualmente.`,
+      });
+    }
   };
 
 
@@ -281,7 +343,7 @@ export function NewAuditForm() {
                         <span className="text-lg font-semibold text-primary">Extinguidor #{index + 1}</span>
                         <div
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent accordion toggle
+                            e.stopPropagation(); 
                             remove(index);
                           }}
                           aria-label={`Eliminar extinguidor ${index + 1}`}
@@ -296,6 +358,7 @@ export function NewAuditForm() {
                     </AccordionTrigger>
                     <AccordionContent className="p-0">
                       <div className="p-4 md:p-6 space-y-4">
+                        {/* Campos existentes del extinguidor */}
                         <FormField
                           control={form.control}
                           name={`extinguishers.${index}.ubicacion`}
@@ -390,7 +453,7 @@ export function NewAuditForm() {
                                     <FormLabel>{checkItem.label}</FormLabel>
                                     <Select
                                       onValueChange={field.onChange}
-                                      value={field.value || ""}
+                                      value={field.value || "P"} // Ensure a default for Select
                                     >
                                       <FormControl>
                                         <SelectTrigger>
@@ -429,6 +492,16 @@ export function NewAuditForm() {
                             </FormItem>
                           )}
                         />
+                        {/* Sección para ScannerInterface */}
+                        <div className="pt-6 mt-6 border-t">
+                          <h4 className="text-base font-semibold mb-3 text-muted-foreground">
+                            Identificar/Pre-rellenar Extinguidor #{index + 1}
+                          </h4>
+                          <ScannerInterface
+                            onCodeScanned={(code) => handleCodeScannedForExtinguisher(index, code)}
+                            showCamera={true} 
+                          />
+                        </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -458,3 +531,6 @@ export function NewAuditForm() {
     </Card>
   );
 }
+
+
+    
