@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Camera, ScanLine, Send, AlertTriangle, List, ShieldCheck, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown, MoreVertical } from "lucide-react";
+import { Camera, ScanLine, Send, AlertTriangle, List, ShieldCheck, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -280,6 +280,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                              isCurrentOpen && "border-b"
                            )}
                          >
+                           {/* Left Group: Shield Icon & Text */}
                            <div className="flex items-center gap-3 flex-grow overflow-hidden">
                              <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
                              <div className="flex-grow overflow-hidden text-left">
@@ -291,27 +292,12 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                                </p>
                              </div>
                            </div>
+
+                           {/* Right Group: Status & Chevron */}
                            <div className="flex items-center shrink-0 gap-1 sm:gap-2">
                              <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
                                ({isAudited ? '1/1' : '0/1'})
                              </span>
-                             <DropdownMenu>
-                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()} onKeyDown={(e) => {if(e.key === 'Enter' || e.key === ' ') e.stopPropagation();}}>
-                                 <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Más opciones para extinguidor ${ext.id}`}>
-                                   <MoreVertical className="h-4 w-4" />
-                                 </Button>
-                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                 <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
-                                   <FileCheck className="mr-2 h-4 w-4" />
-                                   Auditar
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id)}>
-                                   <Edit3 className="mr-2 h-4 w-4" />
-                                   Editar
-                                 </DropdownMenuItem>
-                               </DropdownMenuContent>
-                             </DropdownMenu>
                              <ChevronDown
                                className={cn(
                                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
@@ -365,3 +351,4 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
+
