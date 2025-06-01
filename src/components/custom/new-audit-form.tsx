@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { es } from "date-fns/locale/es";
+import esLocaleData from "date-fns/locale/es"; // Changed import
 import { ArrowLeft, CalendarIcon, PlusCircle, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -313,7 +313,7 @@ export function NewAuditForm() {
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP", { locale: es })
+                                format(field.value, "PPP", { locale: esLocaleData })
                               ) : (
                                 <span>Seleccione una fecha</span>
                               )}
@@ -329,7 +329,7 @@ export function NewAuditForm() {
                               date > new Date() || date < new Date("1900-01-01")
                             }
                             initialFocus
-                            locale={es}
+                            locale={esLocaleData}
                           />
                         </PopoverContent>
                       </Popover>
@@ -354,13 +354,13 @@ export function NewAuditForm() {
                   className="w-full sm:w-auto"
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Añadir Extinguidor Manualmente
+                  Añadir Manualmente
                 </Button>
               </div>
               
               <Card className="mb-6 p-4 shadow-sm">
                 <CardHeader className="p-2 pb-3">
-                    <CardTitle className="text-lg text-primary">Escanear para Pre-rellenar Extinguidor Abierto</CardTitle>
+                    <CardTitle className="text-lg text-primary">Escanear para Pre-rellenar Extinguidor</CardTitle>
                     <CardDescription className="text-sm">
                         Expanda un extinguidor de la lista de abajo y luego use el escáner o ingrese un código aquí para buscar y pre-rellenar sus datos.
                     </CardDescription>

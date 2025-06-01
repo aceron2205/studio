@@ -1,7 +1,8 @@
+
 "use client";
 
 import * as React from "react";
-import { es } from "date-fns/locale/es";
+import esLocaleData from "date-fns/locale/es"; // Changed import
 import { format, isSameDay } from "date-fns";
 import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon, Loader2, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -167,7 +168,7 @@ export function StartAuditOptions() {
                   <ScheduledAuditListItem
                     key={`list-${audit.id}`}
                     audit={audit}
-                    locale={es}
+                    locale={esLocaleData} 
                     onAudit={handleStartScheduledAudit}
                     onDownload={handleDownloadAudit}
                     isDownloading={downloadingAuditIds.has(audit.id)}
@@ -207,7 +208,7 @@ export function StartAuditOptions() {
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md border shadow"
-                locale={es}
+                locale={esLocaleData} 
                 ISOWeek
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersStyles={{
@@ -223,7 +224,7 @@ export function StartAuditOptions() {
             {selectedDate && (
               <div>
                 <h4 className="text-lg font-semibold mb-4 text-center text-primary">
-                  Auditorías para el {format(selectedDate, "PPP", { locale: es })}
+                  Auditorías para el {format(selectedDate, "PPP", { locale: esLocaleData })}
                 </h4>
                 {auditsForSelectedDay.length > 0 ? (
                   <div className="space-y-4">
@@ -231,7 +232,7 @@ export function StartAuditOptions() {
                       <ScheduledAuditListItem
                         key={`cal-${audit.id}`}
                         audit={audit}
-                        locale={es}
+                        locale={esLocaleData} 
                         onAudit={handleStartScheduledAudit}
                         onDownload={handleDownloadAudit}
                         isDownloading={downloadingAuditIds.has(audit.id)}

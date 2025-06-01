@@ -142,7 +142,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
         <CardTitle className="text-xl text-primary flex items-center justify-center gap-2">
           {/* ScanLine icon can be kept or removed depending on preference */}
           <List className="h-6 w-6" /> 
-          Escanear/Registrar Extinguidor
+          Escanear Extinguidor
         </CardTitle>
         <CardDescription>
           Ingresa un código manualmente o usa la cámara.

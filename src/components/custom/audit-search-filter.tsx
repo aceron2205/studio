@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale/es"; // Import Spanish locale
+import esLocaleData from "date-fns/locale/es"; // Import Spanish locale using default import
 import { SearchIcon, ListFilter, ArrowLeft } from "lucide-react"; 
 import Link from "next/link"; // Import Link
 
@@ -67,7 +67,7 @@ export function AuditSearchFilter() {
                   >
                     <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: es })}
+                      Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: esLocaleData })}
                     </p>
                     <p className="text-sm text-muted-foreground">Ubicación: {client.location}</p>
                     <p className="text-sm text-muted-foreground">Extintores Pendientes: {client.pendingExtinguishers}</p>
