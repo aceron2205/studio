@@ -140,37 +140,43 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
         description: `Mostrando formulario para extinguidor simulado. Item auditado: ${itemId}`,
       });
       const simulatedExtId = "sim-ext-123";
-      if (currentExtinguisherId === simulatedExtId && currentExtinguisherData) {
-        // Data already loaded and possibly edited, reuse it.
-      } else {
-        setCurrentExtinguisherData(mockExtinguisherFor123);
-        setCurrentExtinguisherId(simulatedExtId); 
-      }
+      // No es necesario verificar currentExtinguisherId aquí si siempre queremos cargar 'mockExtinguisherFor123'
+      // si el código es "123", independientemente de lo que esté cargado.
+      setCurrentExtinguisherData(mockExtinguisherFor123);
+      setCurrentExtinguisherId(simulatedExtId); 
       setViewMode('form');
     } else {
       console.log(`Código manual para item ID ${itemId}: ${data.code}`);
-      // Try to find the extinguisher in the plan list
       const foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === data.code.toLowerCase());
       if (foundExtinguisher) {
         toast({
           title: "Extinguidor del Plano Encontrado",
           description: `Mostrando formulario para ${foundExtinguisher.type}. Item auditado: ${itemId}`,
         });
-        setCurrentExtinguisherData({ // Populate with data from the plan
+        // Cargar datos base del extinguidor del plano. El ExtinguisherEditorForm puede tener más campos,
+        // que se llenarán con defaults o estarán vacíos si no vienen del plan.
+        setCurrentExtinguisherData({ 
             ubicacion: foundExtinguisher.location_description,
             capacidadLibras: foundExtinguisher.capacity,
             agenteExtintor: foundExtinguisher.type,
-            modelo: "Modelo del Plano", // Placeholder
+            // Aquí podrías añadir más mapeos si ExtinguisherDataFromPlan tuviera más campos
+            // o cargar un objeto completo de datos simulados si coincide el ID.
         });
         setCurrentExtinguisherId(foundExtinguisher.id);
         setViewMode('form');
       } else {
         toast({
           title: "Código Procesado (Manual)",
-          description: `Item: ${itemId}, Código: ${data.code}. (Simulado, no acción específica, extinguidor no encontrado en lista)`,
+          description: `Item: ${itemId}, Código: ${data.code}. (Extinguidor no encontrado en lista de plano actual).`,
         });
+        // Opcional: Si se ingresa un ID no listado, ¿debería abrir un formulario nuevo?
+        // Por ahora, no lo hace y solo limpia los datos.
         setCurrentExtinguisherData(null); 
         setCurrentExtinguisherId(null);
+        // Podrías decidir si quieres cambiar a 'form' con datos vacíos para un nuevo extinguidor:
+        // setCurrentExtinguisherData({}); 
+        // setCurrentExtinguisherId(data.code); // Asignar el código ingresado como nuevo ID
+        // setViewMode('form');
       }
     }
     form.reset();
@@ -185,16 +191,19 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     if (currentExtinguisherId) {
       setAuditedExtinguisherIds(prev => new Set(prev).add(currentExtinguisherId));
     }
-    setCurrentExtinguisherData(formData); 
+    // setCurrentExtinguisherData(formData); // Opcional: mantener datos si se reabre, o limpiar:
+    setCurrentExtinguisherData(null);
+    setCurrentExtinguisherId(null);
     setViewMode('scanner');
     form.reset(); 
   };
 
   const handleReturnToScanner = () => {
     setViewMode('scanner');
+    setCurrentExtinguisherData(null); // Limpiar datos al volver al escáner
+    setCurrentExtinguisherId(null);
     if (isCameraOpen) { 
         // Optionally close camera, or leave it open
-        // Example: handleToggleCamera(); 
     }
   };
 
@@ -215,7 +224,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
   const auditedCountInList = extinguishersForPlan.filter(ext => auditedExtinguisherIds.has(ext.id)).length;
 
-  if (viewMode === 'form' && currentExtinguisherData && currentExtinguisherId) {
+  if (viewMode === 'form' && currentExtinguisherId) { // Permitir currentExtinguisherData ser null inicialmente para 'new'
     return (
       <div className="w-full">
         <div className="mb-6 flex items-center justify-between">
@@ -229,7 +238,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
             </div>
         </div>
         <ExtinguisherEditorForm
-          initialData={currentExtinguisherData}
+          initialData={currentExtinguisherData || {}} // Asegurar que siempre sea un objeto
           onSubmitSuccess={handleExtinguisherFormSubmitSuccess}
           extinguisherId={currentExtinguisherId}
           isNew={!extinguishersForPlan.some(ext => ext.id === currentExtinguisherId) && currentExtinguisherId !== 'sim-ext-123'} 
@@ -334,7 +343,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                       <div className="flex items-center justify-between">
                         <div
                           className="flex items-center gap-3 flex-grow overflow-hidden cursor-pointer"
-                          onClick={() => onManualSubmit({ code: ext.id })}
+                          onClick={() => onManualSubmit({ code: ext.id })} // Default action: open extinguisher info
                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onManualSubmit({ code: ext.id })}}
                           role="button"
                           tabIndex={0}
@@ -384,5 +393,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
+    
 
     
