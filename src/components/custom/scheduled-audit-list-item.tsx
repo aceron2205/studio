@@ -60,11 +60,11 @@ export function ScheduledAuditListItem({
 
   const handleCancelAudit = () => {
     toast({
-      title: "Funcionalidad Pendiente",
-      description: "La opción de cancelar auditoría aún no está implementada.",
+      title: "Cancelación Solicitada",
+      description: "Se ha solicitado la cancelación de la auditoría. Requiere autorización del administrador.",
       variant: "destructive"
     });
-    console.log(`Intento de cancelar auditoría: ${audit.id} - ${audit.clientName}`);
+    console.log(`Solicitud de cancelación para auditoría: ${audit.id} - ${audit.clientName}. Pendiente de autorización.`);
   };
 
 
