@@ -258,7 +258,7 @@ export function NewAuditForm() {
         </Link>
         <div className="w-full text-center">
           <CardTitle className="text-2xl font-semibold text-primary">
-            Formulario de Nuevo Plano / Auditoría
+            Formulario de nuevo plano
           </CardTitle>
           <CardDescription className="mt-1">
             Complete los detalles del cliente y la inspección de extintores.
@@ -542,42 +542,4 @@ export function NewAuditForm() {
                               <FormLabel>Observaciones Generales del Extinguidor</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Anotaciones adicionales sobre este extinguidor..."
-                                  className="resize-y min-h-[60px]"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-              {form.formState.errors.extinguishers && !form.formState.errors.extinguishers.root && (
-                 <p className="text-sm font-medium text-destructive mt-2">
-                    {form.formState.errors.extinguishers.message}
-                 </p>
-              )}
-               {form.formState.errors.extinguishers?.root && (
-                 <p className="text-sm font-medium text-destructive mt-2">
-                    {form.formState.errors.extinguishers.root.message}
-                 </p>
-              )}
-            </div>
-
-            <CardFooter className="flex justify-center pt-8">
-              <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
-                <Save className="mr-2 h-5 w-5" />
-                {form.formState.isSubmitting ? "Guardando..." : "Guardar Plano / Auditoría"}
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
-  );
-}
-    
+                                  placeholder="Anotaciones adicional
