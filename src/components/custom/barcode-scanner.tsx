@@ -1,7 +1,7 @@
 
 "use client";
 
-import *import * as React from "react";
+import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -278,10 +278,8 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
                   return (
                     <AccordionItem value={ext.id} key={ext.id} className="border rounded-lg shadow-sm bg-card overflow-hidden" data-radix-accordion-item>
-                       {/* The div containing AccordionTrigger and status text, with overall padding and item separation handled by p-3 on this div */}
                        <div className="flex items-center justify-between p-3 group" data-state={isCurrentOpen ? "open" : "closed"}>
                         <AccordionTrigger asChild>
-                          {/* This div becomes the actual trigger, handles click for accordion open/close */}
                           <div
                             className="flex flex-1 items-center justify-between gap-3 overflow-hidden cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             role="button" 
@@ -293,7 +291,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                               }
                             }}
                           >
-                            {/* Left part of the trigger: Shield icon and text description */}
                             <div className="flex items-center gap-3 flex-grow overflow-hidden">
                                 <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
                                 <div className="flex-grow overflow-hidden text-left">
@@ -305,8 +302,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                                     </p>
                                 </div>
                             </div>
-                            {/* Right part of the trigger: Status text and Chevron icon, grouped together */}
-                            <div className="flex items-center shrink-0 gap-1 sm:gap-2 ml-2"> {/* Added ml-2 for spacing from text */}
+                            <div className="flex items-center shrink-0 gap-1 sm:gap-2 ml-2"> 
                                 <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
                                     ({isAudited ? '1/1' : '0/1'})
                                 </span>

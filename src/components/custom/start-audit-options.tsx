@@ -1,8 +1,7 @@
-
 "use client";
 
 import * as React from "react";
-import esLocaleData from "date-fns/locale/es"; // Changed import style
+import { es } from "date-fns/locale/es";
 import { format, isSameDay } from "date-fns";
 import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon, Loader2, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -60,7 +59,7 @@ export function StartAuditOptions() {
     setDownloadingAuditIds(prev => new Set(prev).add(auditId));
     setDownloadedAuditIds(prev => {
       const newSet = new Set(prev);
-      newSet.delete(auditId); 
+      newSet.delete(auditId);
       return newSet;
     });
 
@@ -168,7 +167,7 @@ export function StartAuditOptions() {
                   <ScheduledAuditListItem
                     key={`list-${audit.id}`}
                     audit={audit}
-                    locale={esLocaleData} // Use the new import name
+                    locale={es}
                     onAudit={handleStartScheduledAudit}
                     onDownload={handleDownloadAudit}
                     isDownloading={downloadingAuditIds.has(audit.id)}
@@ -208,7 +207,7 @@ export function StartAuditOptions() {
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md border shadow"
-                locale={esLocaleData} // Use the new import name
+                locale={es}
                 ISOWeek
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersStyles={{
@@ -224,7 +223,7 @@ export function StartAuditOptions() {
             {selectedDate && (
               <div>
                 <h4 className="text-lg font-semibold mb-4 text-center text-primary">
-                  Auditorías para el {format(selectedDate, "PPP", { locale: esLocaleData })} {/* Use new import name */}
+                  Auditorías para el {format(selectedDate, "PPP", { locale: es })}
                 </h4>
                 {auditsForSelectedDay.length > 0 ? (
                   <div className="space-y-4">
@@ -232,7 +231,7 @@ export function StartAuditOptions() {
                       <ScheduledAuditListItem
                         key={`cal-${audit.id}`}
                         audit={audit}
-                        locale={esLocaleData} // Use new import name
+                        locale={es}
                         onAudit={handleStartScheduledAudit}
                         onDownload={handleDownloadAudit}
                         isDownloading={downloadingAuditIds.has(audit.id)}
