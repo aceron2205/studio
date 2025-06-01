@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Camera, FileCheck } from "lucide-react"; // Changed icon for title
+import { Save, Camera, FileCheck, Trash2 } from "lucide-react"; // Changed icon for title, added Trash2
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-// AlertDialog for "Dar de baja" is removed as the button is removed for the audit form.
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 const ExtinguisherAuditSchema = z.object({ // Schema remains largely the same as it describes the extinguisher's state
   ubicacion: z.string().min(1, "La ubicación es requerida"),
@@ -60,8 +70,6 @@ interface ExtinguisherAuditFormProps {
   initialData: Partial<ExtinguisherAuditFormData>;
   onSubmitSuccess: (data: ExtinguisherAuditFormData) => void;
   extinguisherId: string;
-  // isNew prop is removed as auditing is typically for existing items.
-  // If a new extinguisher is found, it should be added to plan first.
 }
 
 export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguisherId }: ExtinguisherAuditFormProps) {
@@ -102,6 +110,17 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
         title: "Funcionalidad Pendiente",
         description: "La carga de fotos aún no está implementada.",
     });
+  };
+
+  const confirmDarDeBaja = () => {
+    console.log(`Confirmado dar de baja extinguidor: ${extinguisherId} desde el formulario de auditoría.`);
+    toast({
+      title: "Extinguidor Marcado para Baja",
+      description: `El extinguidor ID: ${extinguisherId} ha sido marcado para baja. (Simulado)`,
+      variant: "destructive",
+    });
+    // Aquí podrías llamar a una función para realmente marcarlo para baja en tu backend.
+    // Por ahora, solo muestra el toast y no cierra el formulario.
   };
 
   return (
@@ -271,8 +290,33 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
             </div>
 
           </CardContent>
-          <CardFooter className="flex justify-end pt-8 border-t">
-            {/* "Dar de baja" button removed */}
+          <CardFooter className="flex flex-col sm:flex-row justify-end pt-8 border-t space-y-2 sm:space-y-0 sm:space-x-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="mr-2 h-5 w-5" />
+                  Dar de baja
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción marcará el extinguidor para darlo de baja. Esto se reflejará en el reporte de auditoría. No podrás deshacer esta acción fácilmente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmDarDeBaja}>
+                    Confirmar Baja
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button
               type="submit"
               size="lg"
