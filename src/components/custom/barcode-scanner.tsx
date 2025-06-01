@@ -2,27 +2,16 @@
 "use client";
 
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Camera, ScanLine, Send, AlertTriangle, List, ShieldCheck, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
+import { List, ShieldCheck, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ScannerInterface } from "./scanner-interface"; // New import
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   Accordion,
   AccordionContent,
@@ -30,11 +19,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const ManualCodeSchema = z.object({
-  code: z.string().min(1, "El código no puede estar vacío."),
-});
-
-type ManualCodeFormDataInternal = z.infer<typeof ManualCodeSchema>;
 
 export interface ExtinguisherDataForAccordion {
   id: string;
@@ -83,84 +67,53 @@ const mockExtinguisherDataFor123: ExtinguisherDataForAccordion = {
 
 export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeScannerProps) {
   const router = useRouter();
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const [isCameraOpen, setIsCameraOpen] = React.useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | null>(null);
-  const [scannedCode, setScannedCode] = React.useState<string | null>(null);
   const [openAccordionItem, setOpenAccordionItem] = React.useState<string | undefined>();
   const [auditedExtinguisherIds, setAuditedExtinguisherIds] = React.useState<Set<string>>(new Set());
 
-  const form = useForm<ManualCodeFormDataInternal>({
-    resolver: zodResolver(ManualCodeSchema),
-    defaultValues: { code: "" },
-  });
-
-  React.useEffect(() => {
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-
-  const requestCameraPermission = async () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        setHasCameraPermission(true);
-        if (videoRef.current) videoRef.current.srcObject = stream;
-        return stream;
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-        setHasCameraPermission(false);
-        toast({ variant: "destructive", title: "Acceso a Cámara Denegado", description: "Por favor, habilita los permisos de cámara." });
-        return null;
-      }
-    } else {
-      setHasCameraPermission(false);
-      toast({ variant: "destructive", title: "Cámara no Soportada", description: "Tu navegador no soporta acceso a cámara." });
-      return null;
-    }
-  };
-
-  const handleToggleCamera = async () => {
-    if (isCameraOpen) {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-      }
-      setIsCameraOpen(false);
-    } else {
-      const stream = await requestCameraPermission();
-      if (stream) setIsCameraOpen(true);
-    }
-  };
-
-  function onManualSubmit(data: ManualCodeFormDataInternal) {
+  const handleCodeProcessed = (code: string) => {
     let foundExtinguisher: ExtinguisherDataForAccordion | undefined;
-    if (data.code === "123") {
+    if (code === "123") { 
       foundExtinguisher = mockExtinguisherDataFor123;
-    } else {
-      foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === data.code.toLowerCase());
+    } else if (code.startsWith("sim-cam-")) { // Handle simulated camera scans
+      foundExtinguisher = { // Create a mock extinguisher for simulated camera scan
+        id: code,
+        location_description: `Ubicación Simulada Cámara (${code})`,
+        capacity: '5 kg',
+        type: 'CO2 (Simulado Cámara)',
+        model: `MODEL-${code}`,
+        pressure_indicator: 'En Verde',
+        charge_status: 'Cargado (Simulado)',
+        last_revision_date: new Date().toISOString().split('T')[0],
+      };
+       // Add to detailedMockExtinguishers if you want it to be "known" for future manual lookups in this session
+      if (!detailedMockExtinguishers[code]) {
+        detailedMockExtinguishers[code] = foundExtinguisher;
+      }
+       // Also, if you want it to appear in the list, you might need to add it to extinguishersForPlan
+       // This depends on whether simulated scans should dynamically add to the current plan's list
+       // For now, it will just be found/highlighted if it matches an existing ID or the special "123"
+    }
+    else {
+      foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === code.toLowerCase());
       if (!foundExtinguisher) {
-        foundExtinguisher = detailedMockExtinguishers[data.code.toLowerCase()];
+        foundExtinguisher = detailedMockExtinguishers[code.toLowerCase()];
       }
     }
 
     if (foundExtinguisher) {
       toast({ title: "Código Procesado", description: `Extinguidor: ${foundExtinguisher.id}. Detalles en la lista de abajo.` });
       setOpenAccordionItem(foundExtinguisher.id);
-      const itemElement = document.querySelector(`[data-radix-accordion-item][value="${foundExtinguisher.id}"]`);
-      if (itemElement) {
-        itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      // Ensure item exists in DOM before trying to scroll
+      setTimeout(() => { // Delay to allow accordion to render if new item was added
+        const itemElement = document.querySelector(`[data-radix-accordion-item][value="${foundExtinguisher?.id}"]`);
+        if (itemElement) {
+          itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 0);
     } else {
-      toast({ variant: "destructive", title: "Extinguidor no Encontrado", description: `No se encontró el código: ${data.code}. Puede agregarlo si es necesario.` });
+      toast({ variant: "destructive", title: "Extinguidor no Encontrado", description: `No se encontró el código: ${code}. Puede agregarlo si es necesario.` });
     }
-    form.reset();
-  }
+  };
 
   const handleAuditExtinguisher = (extId: string) => {
     setAuditedExtinguisherIds(prev => new Set(prev).add(extId));
@@ -170,10 +123,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
   const handleEditExtinguisher = (extId: string) => {
     router.push(`/edit-extinguisher/${itemId}/${extId}`);
   };
-
-  React.useEffect(() => {
-    if (isCameraOpen && videoRef.current) { /* Scanning logic would go here */ }
-  }, [isCameraOpen]);
 
   const auditedCountInList = extinguishersForPlan.filter(ext => auditedExtinguisherIds.has(ext.id)).length;
 
@@ -191,7 +140,8 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     <Card className="w-full shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-xl text-primary flex items-center justify-center gap-2">
-          <ScanLine className="h-6 w-6" />
+          {/* ScanLine icon can be kept or removed depending on preference */}
+          <List className="h-6 w-6" /> 
           Escanear/Registrar Extinguidor
         </CardTitle>
         <CardDescription>
@@ -200,54 +150,8 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onManualSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ingresar código de extinguidor</FormLabel>
-                  <FormControl>
-                    <div className="flex gap-2">
-                    <Input placeholder="Ej: 123 (sim) o ID de lista" {...field} />
-                     <Button type="submit" size="icon" aria-label="Procesar código manual">
-                        <Send className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <Separator />
-
-        <div className="space-y-4">
-          <Button onClick={handleToggleCamera} className="w-full" variant="outline">
-            <Camera className="mr-2 h-5 w-5" />
-            {isCameraOpen ? "Cerrar Cámara" : "Escanear con Cámara"}
-          </Button>
-
-          {hasCameraPermission === false && !isCameraOpen && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Permiso de Cámara Denegado</AlertTitle>
-              <AlertDescription>No se pudo acceder a la cámara. Verifica los permisos.</AlertDescription>
-            </Alert>
-          )}
-
-          <div className={cn("rounded-md overflow-hidden border bg-muted", isCameraOpen ? "block" : "hidden")}>
-            <video ref={videoRef} className="w-full aspect-video" autoPlay playsInline muted />
-          </div>
-          {isCameraOpen && hasCameraPermission && (
-             <p className="text-xs text-muted-foreground text-center">Apuntando cámara... (Escaneo no implementado)</p>
-          )}
-          {scannedCode && ( <Alert><ScanLine className="h-4 w-4" /><AlertTitle>Código Escaneado</AlertTitle><AlertDescription>Detectado: {scannedCode}</AlertDescription></Alert> )}
-        </div>
-
+        <ScannerInterface onCodeScanned={handleCodeProcessed} />
+        
         {extinguishersForPlan && extinguishersForPlan.length > 0 && (
           <>
             <Separator />
@@ -268,9 +172,18 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                          <div
                            role="button"
                            tabIndex={0}
-                           onClick={() => setOpenAccordionItem(isCurrentOpen ? undefined : ext.id)}
+                           onClick={(e) => {
+                             // Prevent dropdown trigger from toggling accordion if clicked directly
+                             if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]')) {
+                               return;
+                             }
+                             setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
+                           }}
                            onKeyDown={(e) => {
                              if (e.key === 'Enter' || e.key === ' ') {
+                               if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]')) {
+                                 return;
+                               }
                                e.preventDefault();
                                setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
                              }
@@ -280,7 +193,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                              isCurrentOpen && "border-b"
                            )}
                          >
-                           {/* Left Group: Shield Icon & Text */}
                            <div className="flex items-center gap-3 flex-grow overflow-hidden">
                              <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
                              <div className="flex-grow overflow-hidden text-left">
@@ -292,8 +204,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                                </p>
                              </div>
                            </div>
-
-                           {/* Right Group: Status & Chevron */}
                            <div className="flex items-center shrink-0 gap-1 sm:gap-2">
                              <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
                                ({isAudited ? '1/1' : '0/1'})
@@ -327,7 +237,11 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                                         <ChevronDown className="ml-2 h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent 
+                                  align="end" 
+                                  onClick={(e) => e.stopPropagation()} 
+                                  onCloseAutoFocus={(e) => e.preventDefault()}
+                                >
                                 <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
                                     <FileCheck className="mr-2 h-4 w-4" />
                                     Auditar
