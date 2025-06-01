@@ -56,7 +56,7 @@ export interface ExtinguisherDataForAccordion {
 }
 
 interface BarcodeScannerProps {
-  itemId: string; 
+  itemId: string;
   extinguishersForPlan?: ExtinguisherDataForAccordion[];
 }
 
@@ -151,7 +151,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
     if (foundExtinguisher) {
       toast({ title: "Código Procesado", description: `Extinguidor: ${foundExtinguisher.id}. Detalles en la lista de abajo.` });
-      setOpenAccordionItem(foundExtinguisher.id); 
+      setOpenAccordionItem(foundExtinguisher.id);
       const itemElement = document.querySelector(`[data-radix-accordion-item][value="${foundExtinguisher.id}"]`);
       if (itemElement) {
         itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -238,7 +238,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
               <AlertDescription>No se pudo acceder a la cámara. Verifica los permisos.</AlertDescription>
             </Alert>
           )}
-          
+
           <div className={cn("rounded-md overflow-hidden border bg-muted", isCameraOpen ? "block" : "hidden")}>
             <video ref={videoRef} className="w-full aspect-video" autoPlay playsInline muted />
           </div>
@@ -264,41 +264,64 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
                   return (
                     <AccordionItem value={ext.id} key={ext.id} className="border rounded-lg shadow-sm bg-card overflow-hidden" data-radix-accordion-item>
-                       <div className="flex items-center justify-between p-3 group" data-state={isCurrentOpen ? "open" : "closed"}>
-                        <AccordionTrigger asChild>
-                          <div
-                            className="flex flex-1 items-center justify-between gap-3 overflow-hidden cursor-pointer"
-                            role="button" 
-                            tabIndex={0} 
-                            onClick={() => setOpenAccordionItem(isCurrentOpen ? undefined : ext.id)}
-                            onKeyDown={(e) => { 
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-3 flex-grow overflow-hidden">
-                                <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
-                                <div className="flex-grow overflow-hidden text-left">
-                                    <p className="font-medium text-sm text-card-foreground truncate" title={`${displayExt.type} - ${displayExt.capacity}`}>
-                                    {displayExt.type} - {displayExt.capacity}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground truncate" title={displayExt.location_description}>
-                                    {displayExt.location_description}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center shrink-0 gap-1 sm:gap-2">
-                                <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
-                                    ({isAudited ? '1/1' : '0/1'})
-                                </span>
-                                <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200", isCurrentOpen && "rotate-180")} />
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-                      </div>
-                      
+                       <AccordionTrigger asChild>
+                         <div
+                           role="button"
+                           tabIndex={0}
+                           onClick={() => setOpenAccordionItem(isCurrentOpen ? undefined : ext.id)}
+                           onKeyDown={(e) => {
+                             if (e.key === 'Enter' || e.key === ' ') {
+                               e.preventDefault();
+                               setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
+                             }
+                           }}
+                           className={cn(
+                             "flex items-center justify-between w-full p-3 cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                             isCurrentOpen && "border-b"
+                           )}
+                         >
+                           <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                             <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
+                             <div className="flex-grow overflow-hidden text-left">
+                               <p className="font-medium text-sm text-card-foreground truncate" title={`${displayExt.type} - ${displayExt.capacity}`}>
+                                 {displayExt.type} - {displayExt.capacity}
+                               </p>
+                               <p className="text-xs text-muted-foreground truncate" title={displayExt.location_description}>
+                                 {displayExt.location_description}
+                               </p>
+                             </div>
+                           </div>
+                           <div className="flex items-center shrink-0 gap-1 sm:gap-2">
+                             <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
+                               ({isAudited ? '1/1' : '0/1'})
+                             </span>
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()} onKeyDown={(e) => {if(e.key === 'Enter' || e.key === ' ') e.stopPropagation();}}>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Más opciones para extinguidor ${ext.id}`}>
+                                   <MoreVertical className="h-4 w-4" />
+                                 </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                 <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
+                                   <FileCheck className="mr-2 h-4 w-4" />
+                                   Auditar
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id)}>
+                                   <Edit3 className="mr-2 h-4 w-4" />
+                                   Editar
+                                 </DropdownMenuItem>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
+                             <ChevronDown
+                               className={cn(
+                                 "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                                 isCurrentOpen && "rotate-180"
+                               )}
+                             />
+                           </div>
+                         </div>
+                       </AccordionTrigger>
+
                       <AccordionContent className="p-4 bg-muted/30">
                         <div className="space-y-1 mb-4">
                           <DetailItem icon={Tag} label="ID Extinguidor" value={displayExt.id} />
@@ -342,9 +365,3 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
-    
-
-    
-
-    
-
