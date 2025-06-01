@@ -26,7 +26,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ScannerInterface } from "./scanner-interface";
 
 const ExtinguisherSchema = z.object({
-  id: z.string().optional(), // Added to help find item by ID
+  id: z.string().optional(), // Added to help find item by ID and for accordion key
   ubicacion: z.string().min(1, "La ubicación es requerida"),
   capacidadLibras: z.string().min(1, "La capacidad es requerida"),
   modelo: z.string().min(1, "El modelo es requerido"),
@@ -132,7 +132,7 @@ export function NewAuditForm() {
     form.setValue("date", new Date());
   }, [form]);
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "extinguishers",
   });
@@ -161,76 +161,72 @@ export function NewAuditForm() {
       description: "Los datos del nuevo plano/auditoría han sido registrados.",
       variant: "default",
     });
+    // router.push('/'); // Potentially navigate away or to a success page
   }
   
   const handleCodeScannedFromTopInterface = (code: string) => {
     console.log(`Código escaneado desde interfaz superior: ${code}`);
-    if (!openAccordionItem && fields.length > 0) {
-      toast({ 
-        title: "Acción Requerida", 
-        description: "Por favor, expanda un extinguidor de la lista para pre-rellenar sus datos, o añada uno nuevo si la lista está vacía.",
-        variant: "default"
-      });
-      return;
-    }
-     if (fields.length === 0) {
-      toast({ 
-        title: "Lista Vacía", 
-        description: "Añada un extinguidor manualmente primero para poder pre-rellenar sus datos con el escáner.",
-        variant: "default"
-      });
-      return;
-    }
-
+    
     const targetIndex = fields.findIndex(field => field.id === openAccordionItem);
 
-    if (targetIndex === -1 && openAccordionItem) {
-       toast({ variant: "destructive", title: "Error", description: "No se pudo encontrar el extinguidor abierto en la lista." });
+    if (targetIndex === -1) {
+       if (fields.length === 0) {
+           toast({ 
+               title: "Lista Vacía", 
+               description: "Añada un extinguidor manualmente primero para poder pre-rellenar sus datos con el escáner.",
+               variant: "default"
+           });
+       } else if (!openAccordionItem) {
+           toast({ 
+               title: "Acción Requerida", 
+               description: "Por favor, expanda un extinguidor de la lista para pre-rellenar sus datos.",
+               variant: "default"
+           });
+       } else {
+           // This case implies openAccordionItem has an ID but it's not in `fields`. Should ideally not happen if state is synced.
+           toast({ variant: "destructive", title: "Error de Sincronización", description: "El extinguidor abierto no se encuentra. Intente cerrar y reabrirlo." });
+       }
        return;
     }
     
-    if (targetIndex !== -1) {
-        const extinguisherData = mockKnownExtinguishersData[code.toUpperCase()] || mockKnownExtinguishersData[code];
-        if (extinguisherData) {
-          const currentExtinguisherValues = form.getValues(`extinguishers.${targetIndex}`);
-          
-          form.setValue(`extinguishers.${targetIndex}.ubicacion`, extinguisherData.ubicacion || currentExtinguisherValues.ubicacion || "");
-          form.setValue(`extinguishers.${targetIndex}.capacidadLibras`, extinguisherData.capacidadLibras || currentExtinguisherValues.capacidadLibras || "");
-          form.setValue(`extinguishers.${targetIndex}.modelo`, extinguisherData.modelo || currentExtinguisherValues.modelo || "");
-          form.setValue(`extinguishers.${targetIndex}.agenteExtintor`, extinguisherData.agenteExtintor || currentExtinguisherValues.agenteExtintor || "");
-          form.setValue(`extinguishers.${targetIndex}.indicadorPresion`, extinguisherData.indicadorPresion || currentExtinguisherValues.indicadorPresion || "");
-          form.setValue(`extinguishers.${targetIndex}.cargaExtintores`, extinguisherData.cargaExtintores || currentExtinguisherValues.cargaExtintores || "");
-          form.setValue(`extinguishers.${targetIndex}.observacionesGenerales`, extinguisherData.observacionesGenerales || currentExtinguisherValues.observacionesGenerales || "");
-          
-          checklistFormItems.forEach(checkItem => {
-            const key = `extinguishers.${targetIndex}.${checkItem.name}`;
-            // @ts-ignore
-            const mockValue = extinguisherData[checkItem.name];
-            const existingValue = form.getValues(key as any);
-            form.setValue(key as any, mockValue || existingValue || defaultChecklistValues[checkItem.name]);
-          });
+    // This part will only execute if targetIndex is found (i.e., an item is open)
+    const extinguisherData = mockKnownExtinguishersData[code.toUpperCase()] || mockKnownExtinguishersData[code];
+    if (extinguisherData) {
+      const currentExtinguisherValues = form.getValues(`extinguishers.${targetIndex}`);
+      
+      form.setValue(`extinguishers.${targetIndex}.ubicacion`, extinguisherData.ubicacion || currentExtinguisherValues.ubicacion || "");
+      form.setValue(`extinguishers.${targetIndex}.capacidadLibras`, extinguisherData.capacidadLibras || currentExtinguisherValues.capacidadLibras || "");
+      form.setValue(`extinguishers.${targetIndex}.modelo`, extinguisherData.modelo || currentExtinguisherValues.modelo || "");
+      form.setValue(`extinguishers.${targetIndex}.agenteExtintor`, extinguisherData.agenteExtintor || currentExtinguisherValues.agenteExtintor || "");
+      form.setValue(`extinguishers.${targetIndex}.indicadorPresion`, extinguisherData.indicadorPresion || currentExtinguisherValues.indicadorPresion || "");
+      form.setValue(`extinguishers.${targetIndex}.cargaExtintores`, extinguisherData.cargaExtintores || currentExtinguisherValues.cargaExtintores || "");
+      form.setValue(`extinguishers.${targetIndex}.observacionesGenerales`, extinguisherData.observacionesGenerales || currentExtinguisherValues.observacionesGenerales || "");
+      
+      checklistFormItems.forEach(checkItem => {
+        const key = `extinguishers.${targetIndex}.${checkItem.name}`;
+        // @ts-ignore - We know checkItem.name is a key in ExtinguisherFormData & mock.
+        const mockValue = extinguisherData[checkItem.name];
+        const existingValue = form.getValues(key as any); // Use 'as any' if TypeScript complains about dynamic key
+        form.setValue(key as any, mockValue || existingValue || defaultChecklistValues[checkItem.name]);
+      });
 
-          toast({
-            title: `Datos Precargados para Extinguidor #${targetIndex + 1}`,
-            description: `El extinguidor con código ${code} ha precargado datos. Verifique y complete.`,
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: `Código no Encontrado`,
-            description: `No se encontraron datos para el código: ${code}. Complete manualmente el extinguidor #${targetIndex + 1}.`,
-          });
-        }
-    } else if (!openAccordionItem && fields.length > 0) { // Should have been caught earlier, but as a fallback
-        toast({ title: "Acción Requerida", description: "Expanda un extinguidor para usar el escáner."});
+      toast({
+        title: `Datos Precargados para Extinguidor #${targetIndex + 1}`,
+        description: `El extinguidor con código ${code} ha precargado datos. Verifique y complete.`,
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: `Código no Encontrado`,
+        description: `No se encontraron datos para el código: ${code}. Complete manualmente el extinguidor #${targetIndex + 1}.`,
+      });
     }
   };
 
   const addNewExtinguisherManually = () => {
-    // When adding manually, ensure a unique ID for the accordion item state
     const newId = `ext-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     append({
-      id: newId, // Make sure new items get an ID for accordion control
+      id: newId,
       ubicacion: "",
       capacidadLibras: "",
       modelo: "",
@@ -258,7 +254,7 @@ export function NewAuditForm() {
         </Link>
         <div className="w-full text-center">
           <CardTitle className="text-2xl font-semibold text-primary">
-            Formulario de nuevo plano
+            Formulario de Nuevo Plano / Auditoría
           </CardTitle>
           <CardDescription className="mt-1">
             Complete los detalles del cliente y la inspección de extintores.
@@ -394,7 +390,7 @@ export function NewAuditForm() {
                 {fields.map((item, index) => (
                   <AccordionItem
                     key={item.id} 
-                    value={item.id!} // Ensure item.id is used for value
+                    value={item.id!} 
                     className="border rounded-lg shadow-sm bg-card overflow-hidden"
                     data-radix-accordion-item
                   >
@@ -542,4 +538,39 @@ export function NewAuditForm() {
                               <FormLabel>Observaciones Generales del Extinguidor</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Anotaciones adicional
+                                  placeholder="Anotaciones adicionales sobre este extinguidor..."
+                                  className="resize-y min-h-[60px]"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+              {form.formState.errors.extinguishers && !form.formState.errors.extinguishers.root && !Array.isArray(form.formState.errors.extinguishers) && (
+                <p className="text-sm font-medium text-destructive mt-2">
+                  {form.formState.errors.extinguishers.message}
+                </p>
+              )}
+
+            </div>
+
+            <CardFooter className="flex justify-end pt-8 border-t">
+              <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
+                <Save className="mr-2 h-5 w-5" />
+                {form.formState.isSubmitting ? "Guardando..." : "Guardar Plano/Auditoría"}
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+    
