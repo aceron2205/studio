@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Camera, ScanLine, Send, AlertTriangle, List, ShieldCheck, MoreVertical, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
+import { Camera, ScanLine, Send, AlertTriangle, List, ShieldCheck, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -260,10 +260,10 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
                   return (
                     <AccordionItem value={ext.id} key={ext.id} className="border rounded-lg shadow-sm bg-card overflow-hidden" data-radix-accordion-item>
-                      <div className="flex items-center justify-between p-3 group" data-state={isCurrentOpen ? "open" : "closed"}>
+                       <div className="flex items-center justify-between p-3 group" data-state={isCurrentOpen ? "open" : "closed"}>
                         <AccordionTrigger asChild>
                           <div
-                            className="flex flex-1 items-center gap-3 overflow-hidden cursor-pointer rounded-md pr-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex flex-1 items-center justify-between gap-3 overflow-hidden cursor-pointer rounded-md pr-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             role="button" 
                             tabIndex={0} 
                             onKeyDown={(e) => { 
@@ -273,14 +273,16 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                               }
                             }}
                           >
-                            <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
-                            <div className="flex-grow overflow-hidden text-left">
-                                <p className="font-medium text-sm text-card-foreground truncate" title={`${displayExt.type} - ${displayExt.capacity}`}>
-                                {displayExt.type} - {displayExt.capacity}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate" title={displayExt.location_description}>
-                                {displayExt.location_description}
-                                </p>
+                            <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                                <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
+                                <div className="flex-grow overflow-hidden text-left">
+                                    <p className="font-medium text-sm text-card-foreground truncate" title={`${displayExt.type} - ${displayExt.capacity}`}>
+                                    {displayExt.type} - {displayExt.capacity}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate" title={displayExt.location_description}>
+                                    {displayExt.location_description}
+                                    </p>
+                                </div>
                             </div>
                             <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200", isCurrentOpen && "rotate-180")} />
                           </div>
@@ -288,9 +290,8 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
                         <div className="flex items-center shrink-0 ml-2 pl-1">
                             <span className={cn("text-xs font-semibold mr-1 sm:mr-2", isAudited ? "text-green-600" : "text-muted-foreground")}>
-                                ({isAudited ? 'Auditado' : 'Pendiente'})
+                                ({isAudited ? '1/1' : '0/1'})
                             </span>
-                            {/* DropdownMenu removed from here */}
                         </div>
                       </div>
                       
@@ -337,4 +338,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
+    
+
     
