@@ -1,7 +1,7 @@
 
 "use client";
 
-import * as React from "react";
+import *import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -56,10 +56,12 @@ export interface ExtinguisherDataForAccordion {
 }
 
 interface BarcodeScannerProps {
-  itemId: string;
+  itemId: string; // This is the planId or general audit item ID
   extinguishersForPlan?: ExtinguisherDataForAccordion[];
 }
 
+// This mock data is for when a code is manually entered and matches one of these IDs directly.
+// It complements extinguishersForPlan which comes from the page props.
 const detailedMockExtinguishers: Record<string, ExtinguisherDataForAccordion> = {
   'ext-1': { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', last_revision_date: '2024-01-15' },
   'ext-2': { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', last_revision_date: '2023-11-20' },
@@ -68,6 +70,7 @@ const detailedMockExtinguishers: Record<string, ExtinguisherDataForAccordion> = 
   'ext-5': { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', last_revision_date: '2024-05-05' },
 };
 
+// Mock data for a simulated scan of code "123"
 const mockExtinguisherDataFor123: ExtinguisherDataForAccordion = {
   id: 'sim-ext-123',
   location_description: 'Entrada Principal (Escaneado 123)',
@@ -144,14 +147,28 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     if (data.code === "123") {
       foundExtinguisher = mockExtinguisherDataFor123;
     } else {
-      foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === data.code.toLowerCase()) || detailedMockExtinguishers[data.code.toLowerCase()];
+      // Prioritize finding in the plan's extinguishers list first
+      foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === data.code.toLowerCase());
+      if (!foundExtinguisher) {
+        // Fallback to general detailed mock if not in plan's list (e.g. a general ID scan)
+        foundExtinguisher = detailedMockExtinguishers[data.code.toLowerCase()];
+      }
     }
 
     if (foundExtinguisher) {
       toast({ title: "Código Procesado", description: `Extinguidor: ${foundExtinguisher.id}. Detalles en la lista de abajo.` });
       setOpenAccordionItem(foundExtinguisher.id); 
+      // Scroll to the item if it's in the list
       const itemElement = document.querySelector(`[data-radix-accordion-item][value="${foundExtinguisher.id}"]`);
-      itemElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (itemElement) {
+        itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        // If the scanned item isn't directly in the `extinguishersForPlan` list (e.g., scanned "123")
+        // We don't have an accordion item to scroll to.
+        // Consider if we need to temporarily add it to the list or handle differently.
+        // For now, just opens the form if it's not in the list.
+        console.warn(`Scanned extinguisher ${foundExtinguisher.id} not found in the current plan's list. Form might not be prefilled as expected from list context.`);
+      }
     } else {
       toast({ variant: "destructive", title: "Extinguidor no Encontrado", description: `No se encontró el código: ${data.code}. Puede agregarlo si es necesario.` });
     }
@@ -159,12 +176,12 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
   }
 
   const handleAuditExtinguisher = (extId: string) => {
-    setAuditedExtinguisherIds(prev => new Set(prev).add(extId));
-    router.push(`/audit-extinguisher/${itemId}/${extId}`);
+    setAuditedExtinguisherIds(prev => new Set(prev).add(extId)); // Mark as audited for UI feedback
+    router.push(`/audit-extinguisher/${itemId}/${extId}`); // itemId is the planId
   };
 
   const handleEditExtinguisher = (extId: string) => {
-    router.push(`/edit-extinguisher/${itemId}/${extId}`);
+    router.push(`/edit-extinguisher/${itemId}/${extId}`); // itemId is the planId
   };
 
   React.useEffect(() => {
@@ -255,15 +272,18 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
               <Accordion type="single" collapsible className="w-full space-y-2" value={openAccordionItem} onValueChange={setOpenAccordionItem}>
                 {extinguishersForPlan.map((ext) => {
                   const isAudited = auditedExtinguisherIds.has(ext.id);
-                  const displayExt = detailedMockExtinguishers[ext.id] || ext;
+                  // Attempt to get full details from the plan's data, or fallback to the general mock if ID matches
+                  const displayExt = extinguishersForPlan.find(e => e.id === ext.id) || detailedMockExtinguishers[ext.id] || ext;
                   const isCurrentOpen = openAccordionItem === ext.id;
 
                   return (
                     <AccordionItem value={ext.id} key={ext.id} className="border rounded-lg shadow-sm bg-card overflow-hidden" data-radix-accordion-item>
+                       {/* The div containing AccordionTrigger and status text, with overall padding and item separation handled by p-3 on this div */}
                        <div className="flex items-center justify-between p-3 group" data-state={isCurrentOpen ? "open" : "closed"}>
                         <AccordionTrigger asChild>
+                          {/* This div becomes the actual trigger, handles click for accordion open/close */}
                           <div
-                            className="flex flex-1 items-center justify-between gap-3 overflow-hidden cursor-pointer rounded-md pr-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex flex-1 items-center justify-between gap-3 overflow-hidden cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             role="button" 
                             tabIndex={0} 
                             onKeyDown={(e) => { 
@@ -273,6 +293,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                               }
                             }}
                           >
+                            {/* Left part of the trigger: Shield icon and text description */}
                             <div className="flex items-center gap-3 flex-grow overflow-hidden">
                                 <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
                                 <div className="flex-grow overflow-hidden text-left">
@@ -284,15 +305,15 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                                     </p>
                                 </div>
                             </div>
-                            <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200", isCurrentOpen && "rotate-180")} />
+                            {/* Right part of the trigger: Status text and Chevron icon, grouped together */}
+                            <div className="flex items-center shrink-0 gap-1 sm:gap-2 ml-2"> {/* Added ml-2 for spacing from text */}
+                                <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
+                                    ({isAudited ? '1/1' : '0/1'})
+                                </span>
+                                <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200", isCurrentOpen && "rotate-180")} />
+                            </div>
                           </div>
                         </AccordionTrigger>
-
-                        <div className="flex items-center shrink-0 ml-2 pl-1">
-                            <span className={cn("text-xs font-semibold mr-1 sm:mr-2", isAudited ? "text-green-600" : "text-muted-foreground")}>
-                                ({isAudited ? '1/1' : '0/1'})
-                            </span>
-                        </div>
                       </div>
                       
                       <AccordionContent className="p-4 bg-muted/30">
@@ -306,7 +327,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                           <DetailItem icon={BatteryCharging} label="Estado Carga" value={displayExt.charge_status} />
                           <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
                         </div>
-                        <div className="flex justify-end pt-2 border-t border-border">
+                        <div className="flex justify-end pt-3 mt-3 border-t border-border">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline" size="sm">
@@ -338,6 +359,8 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
+    
+
     
 
     
