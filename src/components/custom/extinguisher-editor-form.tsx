@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Trash2 } from "lucide-react";
+import { Save, Trash2, Camera } from "lucide-react"; // Added Camera icon
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,7 @@ const ExtinguisherSchema = z.object({
   accesoLibre: z.string().optional(),
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
   observacionesGenerales: z.string().optional(),
+  // photoEvidence: z.any().optional(), // Placeholder for future photo data
 });
 
 export type ExtinguisherFormData = z.infer<typeof ExtinguisherSchema>;
@@ -109,6 +110,14 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
       title: "Extinguidor Dado de Baja",
       description: `El extinguidor ID: ${extinguisherId} ha sido marcado para baja. (Simulado)`,
       variant: "destructive",
+    });
+  };
+
+  const handleAddPhotoEvidence = () => {
+    console.log("Botón 'Agregar Fotos de Evidencia' clickeado. Funcionalidad no implementada.");
+    toast({
+        title: "Funcionalidad Pendiente",
+        description: "La carga de fotos aún no está implementada.",
     });
   };
 
@@ -255,6 +264,29 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
                 </FormItem>
               )}
             />
+
+            {/* Photo Evidence Section */}
+            <div className="pt-2 space-y-3">
+              <FormLabel className="text-md font-semibold block">Fotos de Evidencia</FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddPhotoEvidence}
+                className="w-full sm:w-auto"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                Agregar Fotos
+              </Button>
+              <div 
+                className="mt-2 w-full min-h-[120px] border-2 border-dashed border-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-4"
+                data-ai-hint="photo gallery"
+              >
+                <Camera className="h-10 w-10 mb-2 opacity-50" />
+                <span className="text-sm">Previsualización de Fotos</span>
+                <span className="text-xs">(Aquí se mostrarán las fotos cargadas)</span>
+              </div>
+            </div>
+            
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-end pt-8 border-t space-y-2 sm:space-y-0 sm:space-x-3">
             {!isNew && (
@@ -302,3 +334,5 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     </Card>
   );
 }
+
+    
