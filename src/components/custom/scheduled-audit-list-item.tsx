@@ -78,9 +78,34 @@ export function ScheduledAuditListItem({
     console.log(`Solicitud de cancelación para auditoría: ${audit.id} - ${audit.clientName}. Pendiente de autorización.`);
   };
 
+  const handleCardClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent card click if the click originated from within the dropdown trigger or content
+    if ((event.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (event.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
+      return;
+    }
+    onAudit(audit.id);
+  };
+
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      // Prevent card keydown if focus is within the dropdown trigger (e.g. if user is navigating dropdown with keyboard)
+      if ((event.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]')) {
+          return;
+      }
+      onAudit(audit.id);
+    }
+  };
+
 
   return (
-    <div className="relative p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
+    <div
+      className="relative p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={`Iniciar auditoría para ${audit.clientName}`}
+    >
       {isDownloading && (
         <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full">
           <Loader2 className="h-5 w-5 text-primary animate-spin" />
@@ -109,12 +134,17 @@ export function ScheduledAuditListItem({
         <AlertDialog>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon"> 
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={(e) => e.stopPropagation()} 
+                aria-label={`Más opciones para ${audit.clientName}`}
+                className="absolute top-2 right-0" // Positioned to not interfere with status icons
+              > 
                 <ChevronDown className="h-5 w-5" />
-                <span className="sr-only">Más opciones para {audit.clientName}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => onAudit(audit.id)}>
                 <Play className="mr-2 h-4 w-4" />
                 Auditar
@@ -173,3 +203,4 @@ export function ScheduledAuditListItem({
     </div>
   );
 }
+
