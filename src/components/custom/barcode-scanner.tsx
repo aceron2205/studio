@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Camera, ScanLine, Send, AlertTriangle, ArrowLeft, List, ShieldCheck, MoreVertical, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react"; // Added ChevronDown
+import { Camera, ScanLine, Send, AlertTriangle, List, ShieldCheck, MoreVertical, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -264,9 +264,9 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                         <AccordionTrigger asChild>
                           <div
                             className="flex flex-1 items-center gap-3 overflow-hidden cursor-pointer rounded-md pr-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            role="button" // Explicitly give it a button role for accessibility as it's a div
-                            tabIndex={0} // Make it focusable
-                            onKeyDown={(e) => { // Allow keyboard activation
+                            role="button" 
+                            tabIndex={0} 
+                            onKeyDown={(e) => { 
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
@@ -290,13 +290,30 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                             <span className={cn("text-xs font-semibold mr-1 sm:mr-2", isAudited ? "text-green-600" : "text-muted-foreground")}>
                                 ({isAudited ? 'Auditado' : 'Pendiente'})
                             </span>
+                            {/* DropdownMenu removed from here */}
+                        </div>
+                      </div>
+                      
+                      <AccordionContent className="p-4 bg-muted/30">
+                        <div className="space-y-1 mb-4">
+                          <DetailItem icon={Tag} label="ID Extinguidor" value={displayExt.id} />
+                          <DetailItem icon={Building} label="Ubicación Detallada" value={displayExt.location_description} />
+                          <DetailItem icon={Tag} label="Tipo Agente" value={displayExt.type} />
+                          <DetailItem icon={Tag} label="Capacidad" value={displayExt.capacity} />
+                          <DetailItem icon={Tag} label="Modelo" value={displayExt.model} />
+                          <DetailItem icon={Thermometer} label="Indicador Presión" value={displayExt.pressure_indicator} />
+                          <DetailItem icon={BatteryCharging} label="Estado Carga" value={displayExt.charge_status} />
+                          <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
+                        </div>
+                        <div className="flex justify-end pt-2 border-t border-border">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button asChild variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); }} aria-label={`Más opciones para extinguidor ${ext.id}`}>
-                                        <span><MoreVertical className="h-4 w-4" /></span>
+                                    <Button variant="outline" size="sm">
+                                        Acciones
+                                        <ChevronDown className="ml-2 h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => { e.stopPropagation(); }}>
+                                <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
                                     <FileCheck className="mr-2 h-4 w-4" />
                                     Auditar
@@ -307,19 +324,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                                 </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                        </div>
-                      </div>
-                      
-                      <AccordionContent className="p-4 bg-muted/30">
-                        <div className="space-y-1">
-                          <DetailItem icon={Tag} label="ID Extinguidor" value={displayExt.id} />
-                          <DetailItem icon={Building} label="Ubicación Detallada" value={displayExt.location_description} />
-                          <DetailItem icon={Tag} label="Tipo Agente" value={displayExt.type} />
-                          <DetailItem icon={Tag} label="Capacidad" value={displayExt.capacity} />
-                          <DetailItem icon={Tag} label="Modelo" value={displayExt.model} />
-                          <DetailItem icon={Thermometer} label="Indicador Presión" value={displayExt.pressure_indicator} />
-                          <DetailItem icon={BatteryCharging} label="Estado Carga" value={displayExt.charge_status} />
-                          <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -333,6 +337,4 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
-    
-
     
