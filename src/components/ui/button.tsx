@@ -42,12 +42,20 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, type, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+
+    // If Comp is a button, set its type attribute (defaults to "button" if not provided).
+    // If Comp is Slot (asChild is true), do not pass the type attribute,
+    // as the slotted child (e.g., a <span>) cannot have a 'type' attribute.
+    // The 'type' prop is destructured so it's not in '...props' when asChild is true.
+    const buttonTypeProps = asChild ? {} : { type: type || "button" };
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        {...buttonTypeProps}
         {...props}
       />
     )
