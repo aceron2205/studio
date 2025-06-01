@@ -23,7 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ScannerInterface } from "./scanner-interface"; // Importar ScannerInterface
+import { ScannerInterface } from "./scanner-interface";
 
 const ExtinguisherSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
@@ -63,6 +63,17 @@ const checklistOptions = [
   { value: "P", label: "Pendiente" },
 ];
 
+const defaultChecklistValues = {
+    instrucciones: "P",
+    calcomaniasPlacas: "P",
+    selloSeguridad: "P",
+    pinPasador: "P",
+    pinturaBuenEstado: "P",
+    cilindroMangueraBoquillas: "P",
+    alturaAdecuada: "P",
+    accesoLibre: "P",
+};
+
 const checklistFormItems = [
     { name: "instrucciones" as const, label: "Instrucciones legibles y a la vista" },
     { name: "calcomaniasPlacas" as const, label: "Calcomanías/placas legibles y en buen estado" },
@@ -74,34 +85,29 @@ const checklistFormItems = [
     { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
 ];
 
-// Datos simulados para pre-rellenar campos desde ScannerInterface
 const mockKnownExtinguishersData: Record<string, Partial<ExtinguisherFormData>> = {
   'EXT-001': {
-    ubicacion: 'Recepción Principal',
+    ubicacion: 'Recepción Principal (Desde Scan)',
     capacidadLibras: '10 lbs',
-    modelo: 'Amerex B402',
+    modelo: 'Amerex B402 Scan',
     agenteExtintor: 'Polvo Químico Seco (ABC)',
     indicadorPresion: 'En Verde',
     cargaExtintores: 'Cargado (01/2024)',
-    instrucciones: 'C', calcomaniasPlacas: 'C', selloSeguridad: 'C', pinPasador: 'C',
-    pinturaBuenEstado: 'C', cilindroMangueraBoquillas: 'C', alturaAdecuada: 'C', accesoLibre: 'C',
   },
   'CO2-SERV': {
-    ubicacion: 'Sala de Servidores',
+    ubicacion: 'Sala de Servidores (Desde Scan)',
     capacidadLibras: '5 kg',
-    modelo: 'Kidde K05',
+    modelo: 'Kidde K05 Scan',
     agenteExtintor: 'Dióxido de Carbono (CO2)',
     indicadorPresion: 'N/A (CO2)',
     cargaExtintores: 'Cargado (11/2023)',
-    instrucciones: 'C', calcomaniasPlacas: 'C', selloSeguridad: 'C', pinPasador: 'C',
-    pinturaBuenEstado: 'NC', cilindroMangueraBoquillas: 'C', alturaAdecuada: 'C', accesoLibre: 'C',
-    observacionesGenerales: 'Pintura ligeramente rayada en base.',
+    observacionesGenerales: 'Pintura ligeramente rayada en base (detectado por scan).',
   },
-  'sim-cam-123': { // Para simulación de cámara
-    ubicacion: 'Taller - Simulado Cámara',
+  'sim-cam-123': { 
+    ubicacion: 'Taller - Simulado Cámara (Desde Scan)',
     capacidadLibras: '20 lbs',
-    modelo: 'SIM-CAM-MOD',
-    agenteExtintor: 'Agua Presurizada (Sim.)',
+    modelo: 'SIM-CAM-MOD-SCAN',
+    agenteExtintor: 'Agua Presurizada (Sim. Scan)',
     indicadorPresion: 'En Verde',
     cargaExtintores: `Cargado (${format(new Date(), 'MM/yyyy')})`,
   }
@@ -137,6 +143,11 @@ export function NewAuditForm() {
       const newItemId = fields[fields.length - 1]?.id;
       if (newItemId) {
         setOpenAccordionItem(newItemId);
+         // Scroll to the new item
+        setTimeout(() => {
+          const itemElement = document.querySelector(`[data-radix-accordion-item][value="${newItemId}"]`);
+          itemElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
       }
     }
     prevFieldsLengthRef.current = fields.length;
@@ -149,52 +160,45 @@ export function NewAuditForm() {
       description: "Los datos del nuevo plano/auditoría han sido registrados.",
       variant: "default",
     });
-    // Podrías, por ejemplo, redirigir al usuario o limpiar el formulario.
-    // router.push("/");
   }
 
-  const addNewExtinguisher = () => {
+  const addNewExtinguisherManually = () => {
     append({
       ubicacion: "",
       capacidadLibras: "",
       modelo: "",
       agenteExtintor: "",
-      instrucciones: "P", // Default checklist items to Pendiente
-      calcomaniasPlacas: "P",
-      selloSeguridad: "P",
-      pinPasador: "P",
-      pinturaBuenEstado: "P",
-      cilindroMangueraBoquillas: "P",
-      alturaAdecuada: "P",
+      ...defaultChecklistValues,
       indicadorPresion: "",
-      accesoLibre: "P",
       cargaExtintores: "",
       observacionesGenerales: "",
     });
   };
 
-  const handleCodeScannedForExtinguisher = (index: number, code: string) => {
-    console.log(`Código escaneado/ingresado para extinguidor #${index + 1}: ${code}`);
+  const handleScannedCodeToAdd = (code: string) => {
+    console.log(`Código escaneado/ingresado para añadir nuevo extinguidor: ${code}`);
     const extinguisherData = mockKnownExtinguishersData[code.toUpperCase()] || mockKnownExtinguishersData[code];
 
     if (extinguisherData) {
-      // Iterar sobre las claves de extinguisherData y establecer los valores en el formulario
-      (Object.keys(extinguisherData) as Array<keyof ExtinguisherFormData>).forEach(key => {
-        const value = extinguisherData[key];
-        if (value !== undefined && key in form.getValues(`extinguishers.${index}`)) {
-           form.setValue(`extinguishers.${index}.${key}`, value as any, { shouldValidate: true, shouldDirty: true });
-        }
+      append({
+        ubicacion: extinguisherData.ubicacion || "",
+        capacidadLibras: extinguisherData.capacidadLibras || "",
+        modelo: extinguisherData.modelo || "",
+        agenteExtintor: extinguisherData.agenteExtintor || "",
+        indicadorPresion: extinguisherData.indicadorPresion || "",
+        cargaExtintores: extinguisherData.cargaExtintores || "",
+        observacionesGenerales: extinguisherData.observacionesGenerales || "",
+        ...defaultChecklistValues, // Ensure all checklist items have defaults
       });
-
       toast({
-        title: `Extinguidor #${index + 1} Actualizado`,
-        description: `Datos rellenados desde el código ${code}. Revise y complete los campos necesarios.`,
+        title: `Extinguidor Añadido`,
+        description: `Nuevo extinguidor añadido a la lista desde el código ${code}. Complete los detalles.`,
       });
     } else {
        toast({
         variant: "destructive",
-        title: `Extinguidor no Encontrado`,
-        description: `No se encontraron datos predefinidos para el código: ${code}. Por favor, ingrese los datos manualmente.`,
+        title: `Código no Encontrado`,
+        description: `No se encontraron datos para el código: ${code}. Puede añadir el extinguidor manualmente.`,
       });
     }
   };
@@ -304,24 +308,40 @@ export function NewAuditForm() {
             <Separator />
 
             <div>
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                 <h3 className="text-xl font-semibold text-card-foreground">
                   Extintores ({fields.length})
                 </h3>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={addNewExtinguisher}
+                  onClick={addNewExtinguisherManually}
                   className="w-full sm:w-auto"
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Añadir Extinguidor
+                  Añadir Extinguidor Manualmente
                 </Button>
               </div>
+              
+              <Card className="mb-6 p-4 shadow-sm">
+                <CardHeader className="p-2 pb-3">
+                    <CardTitle className="text-lg text-primary">Añadir Extinguidor por Código</CardTitle>
+                    <CardDescription className="text-sm">
+                        Use el escáner o ingrese un código para pre-rellenar y añadir un nuevo extinguidor a la lista.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-2">
+                    <ScannerInterface
+                        onCodeScanned={handleScannedCodeToAdd}
+                        showCamera={true} 
+                    />
+                </CardContent>
+              </Card>
+
 
               {fields.length === 0 && (
                 <p className="text-muted-foreground text-center py-4">
-                  No se han agregado extinguidores. Haga clic en "Añadir Extinguidor" para comenzar.
+                  No se han agregado extinguidores. Use el escáner o el botón "Añadir Extinguidor Manualmente".
                 </p>
               )}
 
@@ -337,6 +357,7 @@ export function NewAuditForm() {
                     key={item.id}
                     value={item.id}
                     className="border rounded-lg shadow-sm bg-card overflow-hidden"
+                    data-radix-accordion-item // Added for scrolling
                   >
                     <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:border-b">
                       <div className="flex flex-row items-center justify-between w-full">
@@ -358,7 +379,6 @@ export function NewAuditForm() {
                     </AccordionTrigger>
                     <AccordionContent className="p-0">
                       <div className="p-4 md:p-6 space-y-4">
-                        {/* Campos existentes del extinguidor */}
                         <FormField
                           control={form.control}
                           name={`extinguishers.${index}.ubicacion`}
@@ -453,7 +473,7 @@ export function NewAuditForm() {
                                     <FormLabel>{checkItem.label}</FormLabel>
                                     <Select
                                       onValueChange={field.onChange}
-                                      value={field.value || "P"} // Ensure a default for Select
+                                      value={field.value || "P"} 
                                     >
                                       <FormControl>
                                         <SelectTrigger>
@@ -492,16 +512,6 @@ export function NewAuditForm() {
                             </FormItem>
                           )}
                         />
-                        {/* Sección para ScannerInterface */}
-                        <div className="pt-6 mt-6 border-t">
-                          <h4 className="text-base font-semibold mb-3 text-muted-foreground">
-                            Identificar/Pre-rellenar Extinguidor #{index + 1}
-                          </h4>
-                          <ScannerInterface
-                            onCodeScanned={(code) => handleCodeScannedForExtinguisher(index, code)}
-                            showCamera={true} 
-                          />
-                        </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -531,6 +541,6 @@ export function NewAuditForm() {
     </Card>
   );
 }
-
+    
 
     
