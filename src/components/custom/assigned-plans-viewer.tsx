@@ -135,7 +135,7 @@ export function AssignedPlansViewer() {
                     className="relative w-full h-40 bg-muted flex items-center justify-center text-muted-foreground"
                     data-ai-hint="floor plan building" 
                   >
-                    <span>Previsualización del Plano</span>
+                    {/* <span>Previsualización del Plano</span> Removed placeholder text */}
                     {downloadingPlanIds.has(plan.id) && (
                       <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full">
                         <Loader2 className="h-5 w-5 text-primary animate-spin" />
