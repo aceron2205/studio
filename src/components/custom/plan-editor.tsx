@@ -80,8 +80,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
       return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5'].includes(ext.id));
     }
     
-    // Fallback for other plan IDs not explicitly handled, to avoid empty lists
-    // In a real app, this would fetch based on planId
     console.warn(`PlanEditor: Mock data for planId "${planId}" not explicitly defined. Showing all ${componentMockExtinguishers.length} mock extinguishers as a fallback.`);
     return componentMockExtinguishers;
   });
@@ -240,4 +238,3 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     </Card>
   );
 }
-
