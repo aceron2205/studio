@@ -4,7 +4,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { format, type Locale } from "date-fns";
-import { MapPin, Play, Download, ChevronDown, Loader2, Check } from "lucide-react";
+import { MapPin, Play, Download, ChevronDown, Loader2, Check, CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface Audit {
   id: string;
@@ -48,6 +49,14 @@ export function ScheduledAuditListItem({
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     setFormattedFullDate(`${format(localDate, "PPP", { locale })} a las ${audit.time}`);
   }, [audit.date, audit.time, locale]);
+
+  const handleReschedule = () => {
+    toast({
+      title: "Funcionalidad Pendiente",
+      description: "La opción de reagendar auditoría aún no está implementada.",
+    });
+    console.log(`Intento de reagendar auditoría: ${audit.id} - ${audit.clientName}`);
+  };
 
   return (
     <div className="relative p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
@@ -101,6 +110,10 @@ export function ScheduledAuditListItem({
                 : isDownloaded
                 ? 'Descargado'
                 : 'Descargar'}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleReschedule}>
+              <CalendarClock className="mr-2 h-4 w-4" />
+              Reagendar auditoria
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
