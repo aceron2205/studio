@@ -60,6 +60,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
   const [viewMode, setViewMode] = React.useState<'scanner' | 'form'>('scanner');
   const [currentExtinguisherData, setCurrentExtinguisherData] = React.useState<Partial<ExtinguisherFormData> | null>(null);
   const [currentExtinguisherId, setCurrentExtinguisherId] = React.useState<string | null>(null);
+  const [auditedExtinguisherIds, setAuditedExtinguisherIds] = React.useState<Set<string>>(new Set());
 
   const form = useForm<ManualCodeFormDataInternal>({
     resolver: zodResolver(ManualCodeSchema),
@@ -130,21 +131,43 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
         title: "Código Simulado Reconocido",
         description: `Mostrando formulario para extinguidor simulado. Item auditado: ${itemId}`,
       });
-      if (currentExtinguisherId === "sim-ext-123" && currentExtinguisherData) {
+      const simulatedExtId = "sim-ext-123";
+      if (currentExtinguisherId === simulatedExtId && currentExtinguisherData) {
         // Data already loaded and possibly edited, reuse it.
       } else {
         setCurrentExtinguisherData(mockExtinguisherFor123);
-        setCurrentExtinguisherId("sim-ext-123"); 
+        setCurrentExtinguisherId(simulatedExtId); 
       }
       setViewMode('form');
     } else {
       console.log(`Código manual para item ID ${itemId}: ${data.code}`);
-      toast({
-        title: "Código Procesado (Manual)",
-        description: `Item: ${itemId}, Código: ${data.code}. (Simulado, no acción)`,
-      });
-      setCurrentExtinguisherData(null);
-      setCurrentExtinguisherId(null);
+      // Try to find the extinguisher in the plan list
+      const foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === data.code.toLowerCase());
+      if (foundExtinguisher) {
+        toast({
+          title: "Extinguidor del Plano Encontrado",
+          description: `Mostrando formulario para ${foundExtinguisher.type}. Item auditado: ${itemId}`,
+        });
+        setCurrentExtinguisherData({ // Populate with data from the plan
+            ubicacion: foundExtinguisher.location_description,
+            capacidadLibras: foundExtinguisher.capacity,
+            agenteExtintor: foundExtinguisher.type,
+            modelo: "Modelo del Plano", // Placeholder
+        });
+        setCurrentExtinguisherId(foundExtinguisher.id);
+        setViewMode('form');
+      } else {
+        toast({
+          title: "Código Procesado (Manual)",
+          description: `Item: ${itemId}, Código: ${data.code}. (Simulado, no acción específica, extinguidor no encontrado en lista)`,
+        });
+        // Optionally, still allow opening a generic form for a new/unknown extinguisher
+        // setCurrentExtinguisherData({}); // For a truly new one
+        // setCurrentExtinguisherId(data.code); // Use entered code as ID
+        // setViewMode('form');
+        setCurrentExtinguisherData(null); // Or clear if no match
+        setCurrentExtinguisherId(null);
+      }
     }
     form.reset();
   }
@@ -155,6 +178,9 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
       description: `Información para ${currentExtinguisherId} guardada (simulado). Volviendo al escáner.`,
       variant: "default"
     });
+    if (currentExtinguisherId) {
+      setAuditedExtinguisherIds(prev => new Set(prev).add(currentExtinguisherId));
+    }
     setCurrentExtinguisherData(formData); 
     setViewMode('scanner');
     form.reset(); 
@@ -163,7 +189,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
   const handleReturnToScanner = () => {
     setViewMode('scanner');
     if (isCameraOpen) { 
-        handleToggleCamera();
+        handleToggleCamera(); // Optionally close camera, or leave it open
     }
   };
 
@@ -173,6 +199,8 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     }
   }, [isCameraOpen]);
 
+  const auditedCountInList = extinguishersForPlan.filter(ext => auditedExtinguisherIds.has(ext.id)).length;
+
   if (viewMode === 'form' && currentExtinguisherData && currentExtinguisherId) {
     return (
       <div className="w-full">
@@ -181,14 +209,16 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                  <Button variant="ghost" size="icon" onClick={handleReturnToScanner} aria-label="Volver al escáner" className="mr-2">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h2 className="text-xl font-semibold text-primary">Detalles del Extinguidor</h2>
+                <h2 className="text-xl font-semibold text-primary truncate pr-2" title={`Detalles del Extinguidor ${currentExtinguisherId}`}>
+                    Detalles del Extinguidor
+                </h2>
             </div>
         </div>
         <ExtinguisherEditorForm
           initialData={currentExtinguisherData}
           onSubmitSuccess={handleExtinguisherFormSubmitSuccess}
           extinguisherId={currentExtinguisherId}
-          isNew={false} 
+          isNew={!extinguishersForPlan.some(ext => ext.id === currentExtinguisherId) && currentExtinguisherId !== 'sim-ext-123'} // Crude check for new
         />
       </div>
     );
@@ -201,7 +231,10 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
           <ScanLine className="h-6 w-6" />
           Escanear/Registrar Extinguidor
         </CardTitle>
-        <CardDescription>Ingresa un código manualmente o usa la cámara. {extinguishersForPlan.length > 0 ? "Abajo puedes ver los extinguidores de este plano." : ""}</CardDescription>
+        <CardDescription>
+          Ingresa un código manualmente o usa la cámara.
+          {extinguishersForPlan.length > 0 ? " Abajo puedes ver los extinguidores de este plano." : ""}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <Form {...form}>
@@ -214,7 +247,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                   <FormLabel>Ingresar código de extinguidor</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
-                    <Input placeholder="Ej: 12345 (o '123' para simulación)" {...field} />
+                    <Input placeholder="Ej: 123 (sim) o ID de lista" {...field} />
                      <Button type="submit" size="icon" aria-label="Procesar código manual">
                         <Send className="h-5 w-5" />
                       </Button>
@@ -277,24 +310,39 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
                 <List className="h-5 w-5" />
-                Extintores en este Plano ({extinguishersForPlan.length})
+                Extintores en este Plano ({auditedCountInList}/{extinguishersForPlan.length})
               </h3>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                {extinguishersForPlan.map((ext) => (
-                  <Card key={ext.id} className="p-3 bg-card shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-sm text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>
-                          {ext.type} - {ext.capacity}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate" title={ext.location_description}>
-                          {ext.location_description}
-                        </p>
+                {extinguishersForPlan.map((ext) => {
+                  const isAudited = auditedExtinguisherIds.has(ext.id);
+                  return (
+                    <Card 
+                        key={ext.id} 
+                        className="p-3 bg-card shadow-sm cursor-pointer hover:shadow-md"
+                        onClick={() => onManualSubmit({ code: ext.id })} // Allow clicking to "scan"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onManualSubmit({ code: ext.id })}}
+                        aria-label={`Seleccionar extinguidor ${ext.type} ubicado en ${ext.location_description}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                          <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
+                          <div className="flex-grow overflow-hidden">
+                            <p className="font-medium text-sm text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>
+                              {ext.type} - {ext.capacity}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate" title={ext.location_description}>
+                              {ext.location_description}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={cn("text-xs font-semibold ml-2 shrink-0", isAudited ? "text-green-600" : "text-muted-foreground")}>
+                          ({isAudited ? '1/1' : '0/1'})
+                        </span>
                       </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           </>
@@ -303,3 +351,5 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     </Card>
   );
 }
+
+    
