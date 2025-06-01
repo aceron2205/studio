@@ -10,8 +10,8 @@ import { BarcodeScanner } from "@/components/custom/barcode-scanner";
 import { Toaster } from "@/components/ui/toaster"; 
 
 // Mock data: Represents plans and their associated extinguishers
-// In a real app, this would come from a database or API
-const mockPlansWithExtinguishers: Record<string, {
+// Also includes entries for specific audit IDs to link them to a set of extinguishers.
+const mockDataForAuditableItems: Record<string, {
   name: string; 
   extinguishers: Array<{ id: string; type: string; capacity: string; location_description: string }>;
 }> = {
@@ -35,9 +35,40 @@ const mockPlansWithExtinguishers: Record<string, {
       { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Zona de líquidos inflamables, cerca de puerta sur' },
       { id: 'ext-6', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Taller de mantenimiento, junto a banco de trabajo' },
     ],
-  }
-  // If itemId is an extinguisher ID like 'ext-1', it won't be found as a key here,
-  // so extinguishersForPlan will be an empty array, which is the desired behavior.
+  },
+  // --- Specific Audit Item Mappings ---
+  // For an audit item like 'current-day-5', we associate it with a name and a list of extinguishers
+  // (e.g., those from 'plan-alpha' for this simulation)
+  'current-day-5': {
+    name: 'Auditoría Día 5 del Mes',
+    extinguishers: [ // Using extinguishers from plan-alpha as an example
+      { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción' },
+      { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte' },
+    ],
+  },
+  'current-day-15': {
+    name: 'Auditoría Día 15 del Mes',
+    extinguishers: [ // Using extinguishers from plan-beta as an example
+      { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera' },
+    ],
+  },
+  'current-today': {
+    name: 'Auditoría de Hoy',
+    extinguishers: [ // Using extinguishers from plan-gamma as an example
+      { id: 'ext-4', type: 'Polvo Químico Seco (ABC)', capacity: '20 lbs', location_description: 'Almacén principal' },
+      { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Zona de líquidos inflamables, cerca de puerta sur' },
+    ],
+  },
+  'sep-audit-1': {
+    name: 'Empresa Constructora Sol (Sept.)',
+    extinguishers: [
+        { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción' },
+    ],
+  },
+  // If itemId is an extinguisher ID (e.g., 'ext-1', 'ext-2'), it won't be found as a direct key with an 'extinguishers' array.
+  // This means mockDataForAuditableItems[itemId]?.extinguishers will be undefined,
+  // and extinguishersForAuditedItem will correctly be an empty array, which is the desired behavior
+  // for the BarcodeScanner when auditing a single extinguisher (it shouldn't list other extinguishers).
 };
 
 
@@ -50,9 +81,10 @@ interface AuditScanPageProps {
 export default function AuditScanPage({ params: paramsPromise }: AuditScanPageProps) {
   const { itemId } = use(paramsPromise);
 
-  // Get extinguishers for the current plan (itemId). If itemId is not a plan ID, this will be empty.
-  const extinguishersForCurrentPlan = mockPlansWithExtinguishers[itemId]?.extinguishers || [];
-  const currentPlanName = mockPlansWithExtinguishers[itemId]?.name || `Elemento ${itemId}`;
+  // Get extinguishers for the current item (plan or audit).
+  // If itemId is an extinguisher ID, this will be empty.
+  const extinguishersForAuditedItem = mockDataForAuditableItems[itemId]?.extinguishers || [];
+  const auditedItemName = mockDataForAuditableItems[itemId]?.name || `Elemento ${itemId}`;
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
@@ -68,11 +100,11 @@ export default function AuditScanPage({ params: paramsPromise }: AuditScanPagePr
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-semibold text-primary text-center px-12 truncate" title={`Auditar: ${currentPlanName}`}>
-            Auditar: {currentPlanName}
+          <h1 className="text-xl font-semibold text-primary text-center px-12 truncate" title={`Auditar: ${auditedItemName}`}>
+            Auditar: {auditedItemName}
           </h1>
         </div>
-        <BarcodeScanner itemId={itemId} extinguishersForPlan={extinguishersForCurrentPlan} />
+        <BarcodeScanner itemId={itemId} extinguishersForPlan={extinguishersForAuditedItem} />
       </div>
       <Toaster /> 
     </div>
