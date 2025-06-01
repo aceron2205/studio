@@ -5,7 +5,8 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Camera, ScanLine, Send, AlertTriangle, ArrowLeft, List, ShieldCheck } from "lucide-react";
+import { Camera, ScanLine, Send, AlertTriangle, ArrowLeft, List, ShieldCheck, MoreVertical, FileCheck, Edit3 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,6 +17,12 @@ import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { ExtinguisherEditorForm, type ExtinguisherFormData } from "@/components/custom/extinguisher-editor-form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ManualCodeSchema = z.object({
   code: z.string().min(1, "El código no puede estar vacío."),
@@ -52,6 +59,7 @@ const mockExtinguisherFor123: Partial<ExtinguisherFormData> = {
 };
 
 export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeScannerProps) {
+  const router = useRouter();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isCameraOpen, setIsCameraOpen] = React.useState(false);
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | null>(null);
@@ -161,11 +169,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
           title: "Código Procesado (Manual)",
           description: `Item: ${itemId}, Código: ${data.code}. (Simulado, no acción específica, extinguidor no encontrado en lista)`,
         });
-        // Optionally, still allow opening a generic form for a new/unknown extinguisher
-        // setCurrentExtinguisherData({}); // For a truly new one
-        // setCurrentExtinguisherId(data.code); // Use entered code as ID
-        // setViewMode('form');
-        setCurrentExtinguisherData(null); // Or clear if no match
+        setCurrentExtinguisherData(null); 
         setCurrentExtinguisherId(null);
       }
     }
@@ -189,9 +193,19 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
   const handleReturnToScanner = () => {
     setViewMode('scanner');
     if (isCameraOpen) { 
-        handleToggleCamera(); // Optionally close camera, or leave it open
+        // Optionally close camera, or leave it open
+        // Example: handleToggleCamera(); 
     }
   };
+
+  const handleAuditExtinguisher = (planId: string, extinguisherId: string) => {
+    router.push(`/audit-extinguisher/${planId}/${extinguisherId}`);
+  };
+
+  const handleEditExtinguisher = (planId: string, extinguisherId: string) => {
+    router.push(`/edit-extinguisher/${planId}/${extinguisherId}`);
+  };
+
 
   React.useEffect(() => {
     if (isCameraOpen && videoRef.current) {
@@ -218,7 +232,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
           initialData={currentExtinguisherData}
           onSubmitSuccess={handleExtinguisherFormSubmitSuccess}
           extinguisherId={currentExtinguisherId}
-          isNew={!extinguishersForPlan.some(ext => ext.id === currentExtinguisherId) && currentExtinguisherId !== 'sim-ext-123'} // Crude check for new
+          isNew={!extinguishersForPlan.some(ext => ext.id === currentExtinguisherId) && currentExtinguisherId !== 'sim-ext-123'} 
         />
       </div>
     );
@@ -316,16 +330,16 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                 {extinguishersForPlan.map((ext) => {
                   const isAudited = auditedExtinguisherIds.has(ext.id);
                   return (
-                    <Card 
-                        key={ext.id} 
-                        className="p-3 bg-card shadow-sm cursor-pointer hover:shadow-md"
-                        onClick={() => onManualSubmit({ code: ext.id })} // Allow clicking to "scan"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onManualSubmit({ code: ext.id })}}
-                        aria-label={`Seleccionar extinguidor ${ext.type} ubicado en ${ext.location_description}`}
-                    >
+                    <Card key={ext.id} className="p-3 bg-card shadow-sm">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                        <div
+                          className="flex items-center gap-3 flex-grow overflow-hidden cursor-pointer"
+                          onClick={() => onManualSubmit({ code: ext.id })}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onManualSubmit({ code: ext.id })}}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Seleccionar extinguidor ${ext.type} ubicado en ${ext.location_description}`}
+                        >
                           <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
                           <div className="flex-grow overflow-hidden">
                             <p className="font-medium text-sm text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>
@@ -336,9 +350,28 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                             </p>
                           </div>
                         </div>
-                        <span className={cn("text-xs font-semibold ml-2 shrink-0", isAudited ? "text-green-600" : "text-muted-foreground")}>
-                          ({isAudited ? '1/1' : '0/1'})
-                        </span>
+                        <div className="flex items-center shrink-0 ml-2">
+                          <span className={cn("text-xs font-semibold mr-1 sm:mr-2", isAudited ? "text-green-600" : "text-muted-foreground")}>
+                            ({isAudited ? '1/1' : '0/1'})
+                          </span>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()} aria-label={`Más opciones para extinguidor ${ext.id}`}>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => handleAuditExtinguisher(itemId, ext.id)}>
+                                <FileCheck className="mr-2 h-4 w-4" />
+                                Auditar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditExtinguisher(itemId, ext.id)}>
+                                <Edit3 className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </Card>
                   );
