@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -223,32 +224,10 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                              <span className={cn("text-xs font-semibold", isAudited ? "text-green-600" : "text-muted-foreground")}>
                                ({isAudited ? '1/1' : '0/1'})
                              </span>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} aria-label={`Acciones para ${displayExt.id}`}>
-                                        <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  onClick={(e) => e.stopPropagation()}
-                                  onCloseAutoFocus={(e) => e.preventDefault()}
-                                >
-                                <DropdownMenuItem onClick={() => { setOpenAccordionItem(ext.id); handleAuditExtinguisher(ext.id); }}>
-                                    <FileCheck className="mr-2 h-4 w-4" />
-                                    Auditar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setOpenAccordionItem(ext.id); handleEditExtinguisher(ext.id); }}>
-                                    <Edit3 className="mr-2 h-4 w-4" />
-                                    Editar
-                                </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                              <ChevronDown
                                className={cn(
                                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                                 isCurrentOpen && "rotate-180",
-                                 "ml-1" 
+                                 isCurrentOpen && "rotate-180"
                                )}
                              />
                            </div>
@@ -267,15 +246,23 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                           <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
                         </div>
                         <div className="flex justify-end pt-3 mt-3 border-t border-border">
-                           {/* DropdownMenu removed from here, actions moved to AccordionTrigger */}
-                           <Button variant="outline" size="sm" onClick={() => { setOpenAccordionItem(ext.id); handleAuditExtinguisher(ext.id); }}>
-                                <FileCheck className="mr-2 h-4 w-4" />
-                                Auditar
-                            </Button>
-                            <Button variant="outline" size="sm" className="ml-2" onClick={() => {setOpenAccordionItem(ext.id); handleEditExtinguisher(ext.id); }}>
-                                <Edit3 className="mr-2 h-4 w-4" />
-                                Editar
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        Acciones <ChevronDown className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setOpenAccordionItem(ext.id); handleAuditExtinguisher(ext.id); }}>
+                                    <FileCheck className="mr-2 h-4 w-4" />
+                                    Auditar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setOpenAccordionItem(ext.id); handleEditExtinguisher(ext.id); }}>
+                                    <Edit3 className="mr-2 h-4 w-4" />
+                                    Editar
+                                </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -289,3 +276,5 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
     </Card>
   );
 }
+
+    
