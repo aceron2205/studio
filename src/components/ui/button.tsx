@@ -25,7 +25,7 @@ const buttonVariants = cva(
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
-        "icon-lg": "h-12 w-12", // New larger icon button size
+        "icon-lg": "h-12 w-12", 
       },
     },
     defaultVariants: {
@@ -42,32 +42,40 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, type: incomingType, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-
-    // Props that will be passed to the underlying component (Button or Slot)
-    let effectiveProps: Record<string, any> = { ...props };
     
+    let newProps = { ...props };
+
     if (asChild) {
-      // If rendering as a Slot, we don't want to pass the 'type' attribute at all,
-      // as the child of Slot (e.g., a <span>) might not support it.
-      // The 'incomingType' is captured, and 'type' from ...props needs to be removed.
-      // We delete 'type' from effectiveProps if it exists.
-      delete effectiveProps.type;
+      // When asChild is true, Comp is Slot.
+      // We must ensure that the 'type' attribute (especially 'type="button"')
+      // is not passed to the Slot if its child (e.g., a span) cannot validly have it.
+      // Radix Primitives (like DropdownMenuTrigger) might pass 'type="button"'
+      // when they use 'asChild' and our Button is their child.
+      // We delete 'type' from newProps to prevent it from reaching the Slot's child via Slot.
+      delete (newProps as { type?: string }).type;
     } else {
-      // If rendering as a button, set its type (defaults to "button" if not provided).
-      effectiveProps.type = incomingType || "button";
+      // This Button is rendering an actual <button> element (Comp is "button").
+      // Ensure it has a 'type', defaulting to "button".
+      // props.type would be the type explicitly passed to <Button type="...">
+      newProps.type = props.type || "button";
     }
 
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...effectiveProps} // Spread the processed props
-      />
+        {...newProps} 
+      >
+        {children}
+      </Comp>
     )
   }
 )
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
+
+
+    
