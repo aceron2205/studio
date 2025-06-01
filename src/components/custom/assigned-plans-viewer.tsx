@@ -4,7 +4,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -12,6 +12,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -69,8 +70,8 @@ export function AssignedPlansViewer() {
     router.push(`/audit-scan/${planId}`);
   };
 
-  const handleEdit = (planId: string, planName:string) => {
-    console.log(`Editando plano: ${planId}`);
+  const handleViewOrEditPlan = (planId: string, planName:string) => {
+    console.log(`Viendo/Editando plano: ${planId}`);
     router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
 
@@ -80,7 +81,7 @@ export function AssignedPlansViewer() {
     if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
       return;
     }
-    router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
+    handleViewOrEditPlan(planId, planName);
   };
   
   const handleCardKeyDown = (planId: string, planName: string, e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -88,7 +89,7 @@ export function AssignedPlansViewer() {
        if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
         return;
       }
-      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
+      handleViewOrEditPlan(planId, planName);
     }
   };
 
@@ -167,6 +168,19 @@ export function AssignedPlansViewer() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                           <DropdownMenuItem onClick={() => handleViewOrEditPlan(plan.id, plan.name)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ver Plano
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
+                            <FileCheck className="mr-2 h-4 w-4" />
+                            Auditar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewOrEditPlan(plan.id, plan.name)}>
+                            <Edit3 className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             onClick={() => handleDownload(plan.id, plan.name)}
                             disabled={downloadingPlanIds.has(plan.id)}
@@ -183,14 +197,6 @@ export function AssignedPlansViewer() {
                               : downloadedPlanIds.has(plan.id)
                               ? 'Descargado'
                               : 'Descargar'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
-                            <FileCheck className="mr-2 h-4 w-4" />
-                            Auditar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(plan.id, plan.name)}>
-                            <Edit3 className="mr-2 h-4 w-4" />
-                            Editar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
