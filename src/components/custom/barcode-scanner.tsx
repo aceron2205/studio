@@ -10,8 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { ScannerInterface } from "./scanner-interface"; // New import
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ScannerInterface } from "./scanner-interface";
 import {
   Accordion,
   AccordionContent,
@@ -42,6 +41,8 @@ export interface ExtinguisherDataForAccordion {
 interface BarcodeScannerProps {
   itemId: string;
   extinguishersForPlan?: ExtinguisherDataForAccordion[];
+  overrideTitle?: string;
+  overrideBackButton?: React.ReactNode;
 }
 
 const detailedMockExtinguishers: Record<string, ExtinguisherDataForAccordion> = {
@@ -65,17 +66,17 @@ const mockExtinguisherDataFor123: ExtinguisherDataForAccordion = {
   last_revision_date: '2024-01-01'
 };
 
-export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeScannerProps) {
+export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitle, overrideBackButton }: BarcodeScannerProps) {
   const router = useRouter();
   const [openAccordionItem, setOpenAccordionItem] = React.useState<string | undefined>();
   const [auditedExtinguisherIds, setAuditedExtinguisherIds] = React.useState<Set<string>>(new Set());
 
   const handleCodeProcessed = (code: string) => {
     let foundExtinguisher: ExtinguisherDataForAccordion | undefined;
-    if (code === "123") { 
+    if (code === "123") {
       foundExtinguisher = mockExtinguisherDataFor123;
-    } else if (code.startsWith("sim-cam-")) { // Handle simulated camera scans
-      foundExtinguisher = { // Create a mock extinguisher for simulated camera scan
+    } else if (code.startsWith("sim-cam-")) {
+      foundExtinguisher = {
         id: code,
         location_description: `Ubicación Simulada Cámara (${code})`,
         capacity: '5 kg',
@@ -85,13 +86,9 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
         charge_status: 'Cargado (Simulado)',
         last_revision_date: new Date().toISOString().split('T')[0],
       };
-       // Add to detailedMockExtinguishers if you want it to be "known" for future manual lookups in this session
       if (!detailedMockExtinguishers[code]) {
         detailedMockExtinguishers[code] = foundExtinguisher;
       }
-       // Also, if you want it to appear in the list, you might need to add it to extinguishersForPlan
-       // This depends on whether simulated scans should dynamically add to the current plan's list
-       // For now, it will just be found/highlighted if it matches an existing ID or the special "123"
     }
     else {
       foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === code.toLowerCase());
@@ -103,8 +100,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
     if (foundExtinguisher) {
       toast({ title: "Código Procesado", description: `Extinguidor: ${foundExtinguisher.id}. Detalles en la lista de abajo.` });
       setOpenAccordionItem(foundExtinguisher.id);
-      // Ensure item exists in DOM before trying to scroll
-      setTimeout(() => { // Delay to allow accordion to render if new item was added
+      setTimeout(() => {
         const itemElement = document.querySelector(`[data-radix-accordion-item][value="${foundExtinguisher?.id}"]`);
         if (itemElement) {
           itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -138,20 +134,35 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
 
   return (
     <Card className="w-full shadow-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl text-primary flex items-center justify-center gap-2">
-          {/* ScanLine icon can be kept or removed depending on preference */}
-          <List className="h-6 w-6" /> 
-          Escanear Extinguidor
-        </CardTitle>
-        <CardDescription>
-          Ingresa un código manualmente o usa la cámara.
-          {extinguishersForPlan.length > 0 ? " Abajo puedes ver los extinguidores de este plano." : ""}
-        </CardDescription>
+      <CardHeader className={cn(
+        "relative border-b",
+        overrideTitle ? "p-6" : "p-4 text-center"
+      )}>
+        {overrideTitle ? (
+          <>
+            {overrideBackButton}
+            <div className="w-full text-center">
+              <CardTitle className="text-xl font-semibold text-primary px-12 truncate" title={overrideTitle}>
+                {overrideTitle}
+              </CardTitle>
+            </div>
+          </>
+        ) : (
+          <>
+            <CardTitle className="text-xl text-primary flex items-center justify-center gap-2">
+              <List className="h-6 w-6" />
+              Escanear Extinguidor
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Ingresa un código manualmente o usa la cámara.
+              {extinguishersForPlan.length > 0 ? " Abajo puedes ver los extinguidores de este plano." : ""}
+            </CardDescription>
+          </>
+        )}
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-6">
         <ScannerInterface onCodeScanned={handleCodeProcessed} />
-        
+
         {extinguishersForPlan && extinguishersForPlan.length > 0 && (
           <>
             <Separator />
@@ -173,7 +184,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                            role="button"
                            tabIndex={0}
                            onClick={(e) => {
-                             // Prevent dropdown trigger from toggling accordion if clicked directly
                              if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]')) {
                                return;
                              }
@@ -230,16 +240,16 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
                           <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
                         </div>
                         <div className="flex justify-end pt-3 mt-3 border-t border-border">
-                            <DropdownMenu>
+                           <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                                         Acciones
                                         <ChevronDown className="ml-2 h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                  align="end" 
-                                  onClick={(e) => e.stopPropagation()} 
+                                <DropdownMenuContent
+                                  align="end"
+                                  onClick={(e) => e.stopPropagation()}
                                   onCloseAutoFocus={(e) => e.preventDefault()}
                                 >
                                 <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
@@ -266,3 +276,4 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [] }: BarcodeSca
   );
 }
 
+    
