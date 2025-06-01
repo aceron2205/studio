@@ -47,37 +47,43 @@ interface PlanEditorProps {
   planName: string;
 }
 
-const mockExtinguishers: Extinguisher[] = [
+// Expanded mock data for extinguishers within PlanEditor
+const componentMockExtinguishers: Extinguisher[] = [
   { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', map_coordinates: { x: 50, y: 100 } },
   { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', map_coordinates: { x: 150, y: 200 } },
   { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', map_coordinates: { x: 250, y: 150 } },
+  { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', map_coordinates: { x: 300, y: 50 } },
+  { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', map_coordinates: { x: 350, y: 100 } },
 ];
 
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
   const router = useRouter();
   const [currentPlanName, setCurrentPlanName] = React.useState(initialPlanName);
+  
   const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(() => {
-    if (planId === 'new') return [];
+    if (planId === 'new') {
+      return [];
+    }
 
-    // Check if planId matches one of the extinguisher IDs to simulate viewing a plan with a single extinguisher
-    const singleExtinguisherAsPlan = mockExtinguishers.find(ext => ext.id === planId);
+    const singleExtinguisherAsPlan = componentMockExtinguishers.find(ext => ext.id === planId);
     if (singleExtinguisherAsPlan) {
-      // If it's an extinguisher ID passed as planId, create a plan with just that extinguisher
       return [singleExtinguisherAsPlan];
     }
 
-    // Otherwise, assume planId refers to a plan and load its extinguishers (using mockExtinguishers for all for now)
-    // In a real app, you'd fetch extinguishers for the specific planId
     if (planId === 'plan-alpha') {
-         return mockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
+      return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
     }
     if (planId === 'plan-beta') {
-        return mockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
+      return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
     }
     if (planId === 'plan-gamma') {
-         return mockExtinguishers.filter(ext => ['ext-4', 'ext-5', 'ext-6'].includes(ext.id) || mockExtinguishers.find(e => e.id === 'ext-4')); // Example, add more specific data if needed
+      return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5'].includes(ext.id));
     }
-    return mockExtinguishers; // Default fallback or for 'new' plans (though new should be empty)
+    
+    // Fallback for other plan IDs not explicitly handled, to avoid empty lists
+    // In a real app, this would fetch based on planId
+    console.warn(`PlanEditor: Mock data for planId "${planId}" not explicitly defined. Showing all ${componentMockExtinguishers.length} mock extinguishers as a fallback.`);
+    return componentMockExtinguishers;
   });
 
   const handleAddExtinguisher = () => {
@@ -110,7 +116,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleEditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
     console.log(`Editando extinguidor: ${extinguisherId} (${extinguisherType}) desde plan ${planId}`);
-    // Pass planId to the edit page so it knows the context
     router.push(`/edit-extinguisher/${planId}/${extinguisherId}?type=${encodeURIComponent(extinguisherType)}`);
   };
 
@@ -162,7 +167,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                 key={ext.id}
                 className="border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow overflow-hidden"
               >
-                <AccordionTrigger className="p-4 hover:no-underline focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-[state=open]:border-b">
+                <AccordionTrigger className="p-4 hover:no-underline focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-[state=open]:border-b w-full">
                   <div className="flex-grow pr-2 text-left overflow-hidden">
                     <p className="font-semibold text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>{ext.type} - {ext.capacity}</p>
                     <p className="text-sm text-muted-foreground truncate" title={ext.location_description}>{ext.location_description}</p>
@@ -235,3 +240,4 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     </Card>
   );
 }
+
