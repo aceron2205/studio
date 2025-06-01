@@ -59,11 +59,25 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
   const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(() => {
     if (planId === 'new') return [];
 
+    // Check if planId matches one of the extinguisher IDs to simulate viewing a plan with a single extinguisher
     const singleExtinguisherAsPlan = mockExtinguishers.find(ext => ext.id === planId);
     if (singleExtinguisherAsPlan) {
+      // If it's an extinguisher ID passed as planId, create a plan with just that extinguisher
       return [singleExtinguisherAsPlan];
     }
-    return mockExtinguishers;
+
+    // Otherwise, assume planId refers to a plan and load its extinguishers (using mockExtinguishers for all for now)
+    // In a real app, you'd fetch extinguishers for the specific planId
+    if (planId === 'plan-alpha') {
+         return mockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
+    }
+    if (planId === 'plan-beta') {
+        return mockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
+    }
+    if (planId === 'plan-gamma') {
+         return mockExtinguishers.filter(ext => ['ext-4', 'ext-5', 'ext-6'].includes(ext.id) || mockExtinguishers.find(e => e.id === 'ext-4')); // Example, add more specific data if needed
+    }
+    return mockExtinguishers; // Default fallback or for 'new' plans (though new should be empty)
   });
 
   const handleAddExtinguisher = () => {
@@ -96,6 +110,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
 
   const handleEditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
     console.log(`Editando extinguidor: ${extinguisherId} (${extinguisherType}) desde plan ${planId}`);
+    // Pass planId to the edit page so it knows the context
     router.push(`/edit-extinguisher/${planId}/${extinguisherId}?type=${encodeURIComponent(extinguisherType)}`);
   };
 
