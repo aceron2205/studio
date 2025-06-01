@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Save, MapPin, Eye, Building, Tag, Thermometer, BatteryCharging, Calendar } from "lucide-react"; // Removed Trash2, Edit3, FileCheck, ChevronDown
+import { ArrowLeft, PlusCircle, Save, MapPin, Eye, Building, Tag, Thermometer, BatteryCharging, Calendar, FileCheck, Edit3, Trash2, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,23 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown"; // Import the new component
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Extinguisher {
   id: string;
@@ -52,62 +68,55 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     if (planId === 'new') {
       return [];
     }
-    // Check if planId matches a specific extinguisher ID (used when navigating from audit-scan for a single item)
     const singleExtinguisherAsPlan = componentMockExtinguishers.find(ext => ext.id === planId);
     if (singleExtinguisherAsPlan) {
       return [singleExtinguisherAsPlan];
     }
 
-    // Check for known plan IDs
     if (planId === 'plan-alpha') return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
     if (planId === 'plan-beta') return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
     if (planId === 'plan-gamma') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5'].includes(ext.id));
     
-    // Fallback for unknown planId or specific audit item IDs that might map to plans
-    // e.g. 'current-day-5' might map to plan-alpha conceptually
     if (planId === 'current-day-5') return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
     if (planId === 'current-day-15') return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
-    if (planId === 'current-today') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5',].includes(ext.id)); // Example
+    if (planId === 'current-today') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5',].includes(ext.id));
     if (planId === 'sep-audit-1') return componentMockExtinguishers.filter(ext => ['ext-1'].includes(ext.id));
 
-
-    console.warn(\`PlanEditor: Mock data for planId "\${planId}" not explicitly defined or matched. Displaying a default set or empty.\`);
-    // Default to empty or a specific set if no match, rather than all.
-    return []; // Or a more specific default if required.
+    console.warn(`PlanEditor: Mock data for planId "${planId}" not explicitly defined or matched. Displaying a default set or empty.`);
+    return [];
   });
-
 
   const handleAddExtinguisher = () => {
     console.log("Navegando para agregar nuevo extintor al plano:", planId);
-    router.push(\`/edit-extinguisher/\${planId}/new\`);
+    router.push(`/edit-extinguisher/${planId}/new`);
   };
 
   const handleSavePlan = () => {
     console.log("Guardando plano:", planId, "Nombre:", currentPlanName, "Extintores:", extinguishers);
     toast({
         title: "Plano Guardado",
-        description: \`El plano "\${currentPlanName}" ha sido guardado con \${extinguishers.length} extintores.\`,
+        description: `El plano "${currentPlanName}" ha sido guardado con ${extinguishers.length} extintores.`,
     });
   };
 
   const handleDeleteExtinguisher = (extinguisherId: string) => {
     setExtinguishers(prev => prev.filter(ext => ext.id !== extinguisherId));
-    console.log(\`Extinguidor \${extinguisherId} eliminado/dado de baja del plano \${planId}\`);
+    console.log(`Extinguidor ${extinguisherId} eliminado/dado de baja del plano ${planId}`);
     toast({
         title: "Extinguidor Eliminado",
-        description: \`El extinguidor ha sido eliminado del plano. (Simulado)\`,
+        description: `El extinguidor ha sido eliminado del plano. (Simulado)`,
         variant: "destructive",
     });
   };
 
   const handleAuditExtinguisher = (extinguisherId: string) => {
-    console.log(\`Navegando para auditar extinguidor: \${extinguisherId} desde plano \${planId}\`);
-    router.push(\`/audit-extinguisher/\${planId}/\${extinguisherId}\`);
+    console.log(`Navegando para auditar extinguidor: ${extinguisherId} desde plano ${planId}`);
+    router.push(`/audit-extinguisher/${planId}/${extinguisherId}`);
   };
 
   const handleEditExtinguisher = (extinguisherId: string) => {
-    console.log(\`Editando extinguidor: \${extinguisherId} desde plan \${planId}\`);
-    router.push(\`/edit-extinguisher/\${planId}/\${extinguisherId}\`);
+    console.log(`Editando extinguidor: ${extinguisherId} desde plan ${planId}`);
+    router.push(`/edit-extinguisher/${planId}/${extinguisherId}`);
   };
 
   const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
@@ -170,7 +179,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
               >
                 <AccordionTrigger className="p-4 hover:no-underline focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-[state=open]:border-b w-full">
                   <div className="flex-grow pr-2 text-left overflow-hidden">
-                    <p className="font-semibold text-card-foreground truncate" title={\`\${ext.type} - \${ext.capacity}\`}>{ext.type} - {ext.capacity}</p>
+                    <p className="font-semibold text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>{ext.type} - {ext.capacity}</p>
                     <p className="text-sm text-muted-foreground truncate" title={ext.location_description}>{ext.location_description}</p>
                   </div>
                 </AccordionTrigger>
@@ -186,13 +195,49 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                     <DetailItem icon={Calendar} label="Última Revisión" value={ext.last_revision_date} />
                   </div>
                   <div className="flex justify-end">
-                    <ExtinguisherActionsDropdown
-                      extinguisherId={ext.id}
-                      extinguisherType={ext.type}
-                      onAudit={handleAuditExtinguisher}
-                      onEdit={handleEditExtinguisher}
-                      onDelete={handleDeleteExtinguisher}
-                    />
+                    <AlertDialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            Acciones <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
+                            <FileCheck className="mr-2 h-4 w-4" />
+                            Auditar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id)}>
+                            <Edit3 className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()} 
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Dar de baja
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción eliminará el extinguidor "{ext.type} ({ext.id})"
+                            de este plano. Esta acción no se puede deshacer.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteExtinguisher(ext.id)}>
+                            Confirmar Baja
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </AccordionContent>
               </AccordionItem>
