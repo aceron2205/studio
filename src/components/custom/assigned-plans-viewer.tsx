@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from 'next/image'; // Added import for Next/Image
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ interface AssignedPlan {
   id: string;
   name: string;
   lastModified: string;
-  thumbnailUrl: string; 
+  thumbnailUrl: string;
   clientName?: string;
   location?: string;
 }
@@ -62,7 +63,7 @@ export function AssignedPlansViewer() {
         return newSet;
       });
       setDownloadedPlanIds(prev => new Set(prev).add(planId));
-    }, 2000); 
+    }, 2000);
   };
 
   const handleAudit = (planId: string, planName: string) => {
@@ -83,7 +84,7 @@ export function AssignedPlansViewer() {
     }
     handleViewOrEditPlan(planId, planName);
   };
-  
+
   const handleCardKeyDown = (planId: string, planName: string, e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
        if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
@@ -122,8 +123,8 @@ export function AssignedPlansViewer() {
         {plans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {plans.map((plan) => (
-                <Card 
-                    key={plan.id} 
+                <Card
+                    key={plan.id}
                     className="overflow-hidden shadow-sm hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-xl transition-shadow duration-200 ease-in-out flex flex-col h-full group"
                     onClick={(e) => handleCardClick(plan.id, plan.name, e)}
                     onKeyDown={(e) => handleCardKeyDown(plan.id, plan.name, e)}
@@ -132,17 +133,25 @@ export function AssignedPlansViewer() {
                     aria-labelledby={`plan-title-${plan.id}`}
                  >
                   <div
-                    className="relative w-full h-40 bg-muted flex items-center justify-center text-muted-foreground"
-                    data-ai-hint="floor plan building" 
+                    className="relative w-full h-40 bg-muted"
                   >
-                    {/* <span>Previsualización del Plano</span> Removed placeholder text */}
+                    {plan.thumbnailUrl ? (
+                      <Image
+                        src={plan.thumbnailUrl}
+                        alt={`Previsualización de ${plan.name}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                        data-ai-hint="floor plan building"
+                      />
+                    ) : null}
                     {downloadingPlanIds.has(plan.id) && (
-                      <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full">
+                      <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full z-10">
                         <Loader2 className="h-5 w-5 text-primary animate-spin" />
                       </div>
                     )}
                     {!downloadingPlanIds.has(plan.id) && downloadedPlanIds.has(plan.id) && (
-                       <div className="absolute top-2 right-2 bg-green-500/80 text-white p-1.5 rounded-full">
+                       <div className="absolute top-2 right-2 bg-green-500/80 text-white p-1.5 rounded-full z-10">
                         <Check className="h-5 w-5" />
                       </div>
                     )}
@@ -181,7 +190,7 @@ export function AssignedPlansViewer() {
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDownload(plan.id, plan.name)}
                             disabled={downloadingPlanIds.has(plan.id)}
                           >
