@@ -26,6 +26,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ScannerInterface } from "./scanner-interface";
 
 const ExtinguisherSchema = z.object({
+  id: z.string().optional(), // Added to help find item by ID
   ubicacion: z.string().min(1, "La ubicación es requerida"),
   capacidadLibras: z.string().min(1, "La capacidad es requerida"),
   modelo: z.string().min(1, "El modelo es requerido"),
@@ -131,7 +132,7 @@ export function NewAuditForm() {
     form.setValue("date", new Date());
   }, [form]);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "extinguishers",
   });
@@ -139,11 +140,10 @@ export function NewAuditForm() {
   const prevFieldsLengthRef = React.useRef(fields.length);
 
   React.useEffect(() => {
-    if (fields.length > prevFieldsLengthRef.current) {
+    if (fields.length > prevFieldsLengthRef.current) { // If a new item was appended
       const newItemId = fields[fields.length - 1]?.id;
       if (newItemId) {
         setOpenAccordionItem(newItemId);
-         // Scroll to the new item
         setTimeout(() => {
           const itemElement = document.querySelector(`[data-radix-accordion-item][value="${newItemId}"]`);
           itemElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -153,6 +153,7 @@ export function NewAuditForm() {
     prevFieldsLengthRef.current = fields.length;
   }, [fields, setOpenAccordionItem]);
 
+
   function onSubmit(data: NewPlanFormData) {
     console.log("Form data submitted:", data);
     toast({
@@ -161,9 +162,75 @@ export function NewAuditForm() {
       variant: "default",
     });
   }
+  
+  const handleCodeScannedFromTopInterface = (code: string) => {
+    console.log(`Código escaneado desde interfaz superior: ${code}`);
+    if (!openAccordionItem && fields.length > 0) {
+      toast({ 
+        title: "Acción Requerida", 
+        description: "Por favor, expanda un extinguidor de la lista para pre-rellenar sus datos, o añada uno nuevo si la lista está vacía.",
+        variant: "default"
+      });
+      return;
+    }
+     if (fields.length === 0) {
+      toast({ 
+        title: "Lista Vacía", 
+        description: "Añada un extinguidor manualmente primero para poder pre-rellenar sus datos con el escáner.",
+        variant: "default"
+      });
+      return;
+    }
+
+    const targetIndex = fields.findIndex(field => field.id === openAccordionItem);
+
+    if (targetIndex === -1 && openAccordionItem) {
+       toast({ variant: "destructive", title: "Error", description: "No se pudo encontrar el extinguidor abierto en la lista." });
+       return;
+    }
+    
+    if (targetIndex !== -1) {
+        const extinguisherData = mockKnownExtinguishersData[code.toUpperCase()] || mockKnownExtinguishersData[code];
+        if (extinguisherData) {
+          const currentExtinguisherValues = form.getValues(`extinguishers.${targetIndex}`);
+          
+          form.setValue(`extinguishers.${targetIndex}.ubicacion`, extinguisherData.ubicacion || currentExtinguisherValues.ubicacion || "");
+          form.setValue(`extinguishers.${targetIndex}.capacidadLibras`, extinguisherData.capacidadLibras || currentExtinguisherValues.capacidadLibras || "");
+          form.setValue(`extinguishers.${targetIndex}.modelo`, extinguisherData.modelo || currentExtinguisherValues.modelo || "");
+          form.setValue(`extinguishers.${targetIndex}.agenteExtintor`, extinguisherData.agenteExtintor || currentExtinguisherValues.agenteExtintor || "");
+          form.setValue(`extinguishers.${targetIndex}.indicadorPresion`, extinguisherData.indicadorPresion || currentExtinguisherValues.indicadorPresion || "");
+          form.setValue(`extinguishers.${targetIndex}.cargaExtintores`, extinguisherData.cargaExtintores || currentExtinguisherValues.cargaExtintores || "");
+          form.setValue(`extinguishers.${targetIndex}.observacionesGenerales`, extinguisherData.observacionesGenerales || currentExtinguisherValues.observacionesGenerales || "");
+          
+          checklistFormItems.forEach(checkItem => {
+            const key = `extinguishers.${targetIndex}.${checkItem.name}`;
+            // @ts-ignore
+            const mockValue = extinguisherData[checkItem.name];
+            const existingValue = form.getValues(key as any);
+            form.setValue(key as any, mockValue || existingValue || defaultChecklistValues[checkItem.name]);
+          });
+
+          toast({
+            title: `Datos Precargados para Extinguidor #${targetIndex + 1}`,
+            description: `El extinguidor con código ${code} ha precargado datos. Verifique y complete.`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: `Código no Encontrado`,
+            description: `No se encontraron datos para el código: ${code}. Complete manualmente el extinguidor #${targetIndex + 1}.`,
+          });
+        }
+    } else if (!openAccordionItem && fields.length > 0) { // Should have been caught earlier, but as a fallback
+        toast({ title: "Acción Requerida", description: "Expanda un extinguidor para usar el escáner."});
+    }
+  };
 
   const addNewExtinguisherManually = () => {
+    // When adding manually, ensure a unique ID for the accordion item state
+    const newId = `ext-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     append({
+      id: newId, // Make sure new items get an ID for accordion control
       ubicacion: "",
       capacidadLibras: "",
       modelo: "",
@@ -173,34 +240,6 @@ export function NewAuditForm() {
       cargaExtintores: "",
       observacionesGenerales: "",
     });
-  };
-
-  const handleScannedCodeToAdd = (code: string) => {
-    console.log(`Código escaneado/ingresado para añadir nuevo extinguidor: ${code}`);
-    const extinguisherData = mockKnownExtinguishersData[code.toUpperCase()] || mockKnownExtinguishersData[code];
-
-    if (extinguisherData) {
-      append({
-        ubicacion: extinguisherData.ubicacion || "",
-        capacidadLibras: extinguisherData.capacidadLibras || "",
-        modelo: extinguisherData.modelo || "",
-        agenteExtintor: extinguisherData.agenteExtintor || "",
-        indicadorPresion: extinguisherData.indicadorPresion || "",
-        cargaExtintores: extinguisherData.cargaExtintores || "",
-        observacionesGenerales: extinguisherData.observacionesGenerales || "",
-        ...defaultChecklistValues, // Ensure all checklist items have defaults
-      });
-      toast({
-        title: `Extinguidor Añadido`,
-        description: `Nuevo extinguidor añadido a la lista desde el código ${code}. Complete los detalles.`,
-      });
-    } else {
-       toast({
-        variant: "destructive",
-        title: `Código no Encontrado`,
-        description: `No se encontraron datos para el código: ${code}. Puede añadir el extinguidor manualmente.`,
-      });
-    }
   };
 
 
@@ -308,7 +347,7 @@ export function NewAuditForm() {
             <Separator />
 
             <div>
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                 <h3 className="text-xl font-semibold text-card-foreground">
                   Extintores ({fields.length})
                 </h3>
@@ -325,14 +364,14 @@ export function NewAuditForm() {
               
               <Card className="mb-6 p-4 shadow-sm">
                 <CardHeader className="p-2 pb-3">
-                    <CardTitle className="text-lg text-primary">Añadir Extinguidor por Código</CardTitle>
+                    <CardTitle className="text-lg text-primary">Escanear para Pre-rellenar Extinguidor Abierto</CardTitle>
                     <CardDescription className="text-sm">
-                        Use el escáner o ingrese un código para pre-rellenar y añadir un nuevo extinguidor a la lista.
+                        Expanda un extinguidor de la lista de abajo y luego use el escáner o ingrese un código aquí para buscar y pre-rellenar sus datos.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-2">
                     <ScannerInterface
-                        onCodeScanned={handleScannedCodeToAdd}
+                        onCodeScanned={handleCodeScannedFromTopInterface}
                         showCamera={true} 
                     />
                 </CardContent>
@@ -341,7 +380,7 @@ export function NewAuditForm() {
 
               {fields.length === 0 && (
                 <p className="text-muted-foreground text-center py-4">
-                  No se han agregado extinguidores. Use el escáner o el botón "Añadir Extinguidor Manualmente".
+                  No se han agregado extinguidores. Use el botón "Añadir Extinguidor Manualmente".
                 </p>
               )}
 
@@ -354,10 +393,10 @@ export function NewAuditForm() {
               >
                 {fields.map((item, index) => (
                   <AccordionItem
-                    key={item.id}
-                    value={item.id}
+                    key={item.id} 
+                    value={item.id!} // Ensure item.id is used for value
                     className="border rounded-lg shadow-sm bg-card overflow-hidden"
-                    data-radix-accordion-item // Added for scrolling
+                    data-radix-accordion-item
                   >
                     <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:border-b">
                       <div className="flex flex-row items-center justify-between w-full">
@@ -541,6 +580,4 @@ export function NewAuditForm() {
     </Card>
   );
 }
-    
-
     
