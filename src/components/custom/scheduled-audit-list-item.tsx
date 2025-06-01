@@ -13,6 +13,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -58,7 +69,7 @@ export function ScheduledAuditListItem({
     console.log(`Intento de reagendar auditoría: ${audit.id} - ${audit.clientName}`);
   };
 
-  const handleCancelAudit = () => {
+  const handleConfirmCancelAudit = () => {
     toast({
       title: "Cancelación Solicitada",
       description: "Se ha solicitado la cancelación de la auditoría. Requiere autorización del administrador.",
@@ -80,8 +91,8 @@ export function ScheduledAuditListItem({
           <Check className="h-5 w-5" />
         </div>
       )}
-      <div className="flex justify-between items-center mb-2 pr-8"> {/* Align items center, add padding for status icon */}
-        <div className="flex-1"> {/* Removed specific pr-8 from here */}
+      <div className="flex justify-between items-center mb-2 pr-8"> 
+        <div className="flex-1"> 
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-2 mb-1">
             <h3 className="text-lg font-semibold text-card-foreground">{audit.clientName}</h3>
             <Badge
@@ -95,42 +106,64 @@ export function ScheduledAuditListItem({
             {formattedFullDate ? `Fecha: ${formattedFullDate}` : 'Fecha: Cargando...'}
           </p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon"> {/* Removed custom margin classes */}
-              <ChevronDown className="h-5 w-5" />
-              <span className="sr-only">Más opciones para {audit.clientName}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onAudit(audit.id)}>
-              <Play className="mr-2 h-4 w-4" />
-              Auditar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDownload(audit.id, audit.clientName)} disabled={isDownloading}>
-              {isDownloading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : isDownloaded ? (
-                <Check className="mr-2 h-4 w-4 text-green-600" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              {isDownloading
-                ? 'Descargando...'
-                : isDownloaded
-                ? 'Descargado'
-                : 'Descargar'}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleReschedule}>
-              <CalendarClock className="mr-2 h-4 w-4" />
-              Reagendar auditoria
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCancelAudit} className="text-destructive focus:text-destructive">
-              <Ban className="mr-2 h-4 w-4" />
-              Cancelar Auditoría
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <AlertDialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon"> 
+                <ChevronDown className="h-5 w-5" />
+                <span className="sr-only">Más opciones para {audit.clientName}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onAudit(audit.id)}>
+                <Play className="mr-2 h-4 w-4" />
+                Auditar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDownload(audit.id, audit.clientName)} disabled={isDownloading}>
+                {isDownloading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : isDownloaded ? (
+                  <Check className="mr-2 h-4 w-4 text-green-600" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                {isDownloading
+                  ? 'Descargando...'
+                  : isDownloaded
+                  ? 'Descargado'
+                  : 'Descargar'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleReschedule}>
+                <CalendarClock className="mr-2 h-4 w-4" />
+                Reagendar auditoria
+              </DropdownMenuItem>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem 
+                  onSelect={(e) => e.preventDefault()} 
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Ban className="mr-2 h-4 w-4" />
+                  Cancelar Auditoría
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Solicitud de Cancelación</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Estás seguro de que deseas solicitar la cancelación de esta auditoría?
+                Esta acción requerirá la autorización de un administrador.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Volver</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmCancelAudit}>
+                Confirmar Solicitud
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="flex items-center text-sm text-muted-foreground mt-1">
