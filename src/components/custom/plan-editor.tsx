@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3, FileCheck, ChevronDown } from "lucide-react";
+import { ArrowLeft, PlusCircle, Save, MapPin, Trash2, Edit3, FileCheck, ChevronDown, Building, Tag, Thermometer, BatteryCharging, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,9 +36,13 @@ import { cn } from "@/lib/utils";
 
 interface Extinguisher {
   id: string;
-  type: string;
-  capacity: string;
-  location_description: string;
+  type: string; // Agente Extintor
+  capacity: string; // Capacidad (Libras)
+  location_description: string; // Ubicación
+  model?: string; // Modelo
+  pressure_indicator?: string; // Indicador de Presión
+  charge_status?: string; // Estado de Carga / Próxima Recarga
+  last_revision_date?: string; // Fecha Última Revisión (simulada)
   map_coordinates?: { x: number; y: number };
 }
 
@@ -47,13 +51,12 @@ interface PlanEditorProps {
   planName: string;
 }
 
-// Expanded mock data for extinguishers within PlanEditor
 const componentMockExtinguishers: Extinguisher[] = [
-  { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', map_coordinates: { x: 50, y: 100 } },
-  { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', map_coordinates: { x: 150, y: 200 } },
-  { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', map_coordinates: { x: 250, y: 150 } },
-  { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', map_coordinates: { x: 300, y: 50 } },
-  { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', map_coordinates: { x: 350, y: 100 } },
+  { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', last_revision_date: '2024-01-15', map_coordinates: { x: 50, y: 100 } },
+  { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', last_revision_date: '2023-11-20', map_coordinates: { x: 150, y: 200 } },
+  { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)', last_revision_date: '2024-03-10', map_coordinates: { x: 250, y: 150 } },
+  { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', last_revision_date: '2023-08-01', map_coordinates: { x: 300, y: 50 } },
+  { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', last_revision_date: '2024-05-05', map_coordinates: { x: 350, y: 100 } },
 ];
 
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
@@ -117,6 +120,16 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     router.push(`/edit-extinguisher/${planId}/${extinguisherId}?type=${encodeURIComponent(extinguisherType)}`);
   };
 
+  const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
+    value ? (
+      <div className="flex items-start text-sm">
+        <Icon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground flex-shrink-0" />
+        <span className="font-medium text-muted-foreground">{label}:&nbsp;</span>
+        <span className="text-foreground break-words">{value}</span>
+      </div>
+    ) : null
+  );
+
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="relative p-6 border-b">
@@ -131,7 +144,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         </Button>
         <div className="w-full text-center">
           <CardTitle className="text-2xl font-semibold text-primary flex items-center justify-center gap-2">
-            <MapPin className="h-6 w-6" />
+            <Eye className="h-6 w-6" />
             {planId === 'new' ? 'Creando Nuevo Plano' : 'Ver Plano'}
           </CardTitle>
           <Input
@@ -172,6 +185,16 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="p-4 bg-muted/30">
+                  <div className="space-y-3 mb-4">
+                    <DetailItem icon={Tag} label="ID Extinguidor" value={ext.id} />
+                    <DetailItem icon={Building} label="Ubicación Detallada" value={ext.location_description} />
+                    <DetailItem icon={Tag} label="Tipo Agente" value={ext.type} />
+                    <DetailItem icon={Tag} label="Capacidad" value={ext.capacity} />
+                    <DetailItem icon={Tag} label="Modelo" value={ext.model} />
+                    <DetailItem icon={Thermometer} label="Indicador Presión" value={ext.pressure_indicator} />
+                    <DetailItem icon={BatteryCharging} label="Estado Carga" value={ext.charge_status} />
+                    <DetailItem icon={Calendar} label="Última Revisión" value={ext.last_revision_date} />
+                  </div>
                   <div className="flex justify-end">
                     <AlertDialog>
                       <DropdownMenu>
@@ -238,3 +261,4 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     </Card>
   );
 }
+
