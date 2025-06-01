@@ -4,7 +4,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { format, type Locale } from "date-fns";
-import { MapPin, Play, Download, ChevronDown, Loader2, Check, CalendarClock } from "lucide-react";
+import { MapPin, Play, Download, ChevronDown, Loader2, Check, CalendarClock, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,6 +57,16 @@ export function ScheduledAuditListItem({
     });
     console.log(`Intento de reagendar auditoría: ${audit.id} - ${audit.clientName}`);
   };
+
+  const handleCancelAudit = () => {
+    toast({
+      title: "Funcionalidad Pendiente",
+      description: "La opción de cancelar auditoría aún no está implementada.",
+      variant: "destructive"
+    });
+    console.log(`Intento de cancelar auditoría: ${audit.id} - ${audit.clientName}`);
+  };
+
 
   return (
     <div className="relative p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow">
@@ -114,6 +124,10 @@ export function ScheduledAuditListItem({
             <DropdownMenuItem onClick={handleReschedule}>
               <CalendarClock className="mr-2 h-4 w-4" />
               Reagendar auditoria
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCancelAudit} className="text-destructive focus:text-destructive">
+              <Ban className="mr-2 h-4 w-4" />
+              Cancelar Auditoría
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
