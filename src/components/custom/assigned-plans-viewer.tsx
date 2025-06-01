@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from 'next/image'; // Added import for Next/Image
+// Image import is removed as it's no longer used
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ interface AssignedPlan {
   id: string;
   name: string;
   lastModified: string;
-  thumbnailUrl: string;
+  thumbnailUrl: string; // Kept in interface in case it's used elsewhere, but not rendered as image here
   clientName?: string;
   location?: string;
 }
@@ -76,9 +76,7 @@ export function AssignedPlansViewer() {
     router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
 
-  // Make clicking on the card itself navigate to edit plan
   const handleCardClick = (planId: string, planName: string, e: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent navigation if the click was on the dropdown trigger or its items
     if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
       return;
     }
@@ -128,34 +126,11 @@ export function AssignedPlansViewer() {
                     className="overflow-hidden shadow-sm hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-xl transition-shadow duration-200 ease-in-out flex flex-col h-full group"
                     onClick={(e) => handleCardClick(plan.id, plan.name, e)}
                     onKeyDown={(e) => handleCardKeyDown(plan.id, plan.name, e)}
-                    tabIndex={0} // Make card focusable
-                    role="article" // More semantic role
+                    tabIndex={0}
+                    role="article"
                     aria-labelledby={`plan-title-${plan.id}`}
                  >
-                  <div
-                    className="relative w-full h-40 bg-muted"
-                  >
-                    {plan.thumbnailUrl ? (
-                      <Image
-                        src={plan.thumbnailUrl}
-                        alt={`Previsualización de ${plan.name}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover"
-                        data-ai-hint="floor plan building"
-                      />
-                    ) : null}
-                    {downloadingPlanIds.has(plan.id) && (
-                      <div className="absolute top-2 right-2 bg-background/70 p-1.5 rounded-full z-10">
-                        <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                      </div>
-                    )}
-                    {!downloadingPlanIds.has(plan.id) && downloadedPlanIds.has(plan.id) && (
-                       <div className="absolute top-2 right-2 bg-green-500/80 text-white p-1.5 rounded-full z-10">
-                        <Check className="h-5 w-5" />
-                      </div>
-                    )}
-                  </div>
+                  {/* Image container and status icons removed */}
                   <div className="p-4 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2">
                       <h4 id={`plan-title-${plan.id}`} className="font-semibold text-md text-card-foreground truncate flex-grow pr-2 group-hover:text-primary" title={plan.name}>
@@ -232,3 +207,4 @@ export function AssignedPlansViewer() {
     </Card>
   );
 }
+
