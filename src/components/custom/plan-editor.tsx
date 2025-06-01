@@ -25,14 +25,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Extinguisher {
   id: string;
-  type: string; 
-  capacity: string; 
-  location_description: string; 
-  map_coordinates?: { x: number; y: number }; 
+  type: string;
+  capacity: string;
+  location_description: string;
+  map_coordinates?: { x: number; y: number };
 }
 
 interface PlanEditorProps {
@@ -47,18 +54,17 @@ const mockExtinguishers: Extinguisher[] = [
 ];
 
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
-  const router = useRouter(); 
+  const router = useRouter();
   const [currentPlanName, setCurrentPlanName] = React.useState(initialPlanName);
   const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(() => {
     if (planId === 'new') return [];
-    
+
     const singleExtinguisherAsPlan = mockExtinguishers.find(ext => ext.id === planId);
     if (singleExtinguisherAsPlan) {
       return [singleExtinguisherAsPlan];
     }
-    return mockExtinguishers; 
+    return mockExtinguishers;
   });
-
 
   const handleAddExtinguisher = () => {
     console.log("Navegando para agregar nuevo extintor al plano:", planId);
@@ -72,7 +78,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         description: `El plano "${currentPlanName}" ha sido guardado con ${extinguishers.length} extintores.`,
     });
   };
-  
+
   const handleDeleteExtinguisher = (extinguisherId: string) => {
     setExtinguishers(prev => prev.filter(ext => ext.id !== extinguisherId));
     console.log(`Extinguidor ${extinguisherId} eliminado/dado de baja del plano ${planId}`);
@@ -99,8 +105,8 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Volver" 
-          onClick={() => router.back()} 
+          aria-label="Volver"
+          onClick={() => router.back()}
           className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -110,7 +116,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
             <MapPin className="h-6 w-6" />
             {planId === 'new' ? 'Creando Nuevo Plano' : 'Ver Plano'}
           </CardTitle>
-          <Input 
+          <Input
             value={currentPlanName}
             onChange={(e) => setCurrentPlanName(e.target.value)}
             placeholder="Nombre del Plano"
@@ -134,67 +140,74 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         </div>
 
         {extinguishers.length > 0 ? (
-          <div className="space-y-4">
+          <Accordion type="single" collapsible className="w-full space-y-3">
             {extinguishers.map((ext) => (
-              <Card key={ext.id} className="p-4 bg-card shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start">
-                  <div className="flex-grow pr-2 overflow-hidden">
+              <AccordionItem
+                value={ext.id}
+                key={ext.id}
+                className="border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow overflow-hidden"
+              >
+                <AccordionTrigger className="p-4 hover:no-underline focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-[state=open]:border-b">
+                  <div className="flex-grow pr-2 text-left overflow-hidden">
                     <p className="font-semibold text-card-foreground truncate" title={`${ext.type} - ${ext.capacity}`}>{ext.type} - {ext.capacity}</p>
                     <p className="text-sm text-muted-foreground truncate" title={ext.location_description}>{ext.location_description}</p>
                   </div>
-                  <AlertDialog>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="shrink-0 -mr-2 -mt-1 sm:mt-0">
-                          <ChevronDown className="h-5 w-5" /> 
-                          <span className="sr-only">Más opciones para {ext.type}</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id, ext.type)}>
-                          <FileCheck className="mr-2 h-4 w-4" />
-                          Auditar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id, ext.type)}>
-                          <Edit3 className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()} 
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Dar de baja
+                </AccordionTrigger>
+                <AccordionContent className="p-4 bg-muted/30">
+                  <div className="flex justify-end">
+                    <AlertDialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            Acciones <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id, ext.type)}>
+                            <FileCheck className="mr-2 h-4 w-4" />
+                            Auditar
                           </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta acción eliminará el extinguidor "{ext.type}" de este plano. Esta acción no se puede deshacer.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteExtinguisher(ext.id)}>
-                          Confirmar Baja
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </Card>
+                          <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id, ext.type)}>
+                            <Edit3 className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Dar de baja
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción eliminará el extinguidor "{ext.type}" de este plano. Esta acción no se puede deshacer.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteExtinguisher(ext.id)}>
+                            Confirmar Baja
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         ) : (
           <p className="text-muted-foreground text-center py-4">
             Aún no hay extintores agregados a este plano. Haga clic en "Agregar" para registrar uno.
           </p>
         )}
-        
+
         <Separator className="my-8"/>
 
         <div className="text-center">
