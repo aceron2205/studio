@@ -36,13 +36,13 @@ import { cn } from "@/lib/utils";
 
 interface Extinguisher {
   id: string;
-  type: string; // Agente Extintor
-  capacity: string; // Capacidad (Libras)
-  location_description: string; // Ubicación
-  model?: string; // Modelo
-  pressure_indicator?: string; // Indicador de Presión
-  charge_status?: string; // Estado de Carga / Próxima Recarga
-  last_revision_date?: string; // Fecha Última Revisión (simulada)
+  type: string;
+  capacity: string;
+  location_description: string;
+  model?: string;
+  pressure_indicator?: string;
+  charge_status?: string;
+  last_revision_date?: string; // Simulate as string for display
   map_coordinates?: { x: number; y: number };
 }
 
@@ -51,6 +51,7 @@ interface PlanEditorProps {
   planName: string;
 }
 
+// Updated mock data with more details
 const componentMockExtinguishers: Extinguisher[] = [
   { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', last_revision_date: '2024-01-15', map_coordinates: { x: 50, y: 100 } },
   { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', last_revision_date: '2023-11-20', map_coordinates: { x: 150, y: 200 } },
@@ -62,30 +63,35 @@ const componentMockExtinguishers: Extinguisher[] = [
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
   const router = useRouter();
   const [currentPlanName, setCurrentPlanName] = React.useState(initialPlanName);
-  
+
   const [extinguishers, setExtinguishers] = React.useState<Extinguisher[]>(() => {
     if (planId === 'new') {
       return [];
     }
-
+    // Check if planId matches a specific extinguisher ID (used when navigating from audit-scan for a single item)
     const singleExtinguisherAsPlan = componentMockExtinguishers.find(ext => ext.id === planId);
     if (singleExtinguisherAsPlan) {
       return [singleExtinguisherAsPlan];
     }
 
-    if (planId === 'plan-alpha') {
-      return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
-    }
-    if (planId === 'plan-beta') {
-      return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
-    }
-    if (planId === 'plan-gamma') {
-      return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5'].includes(ext.id));
-    }
+    // Check for known plan IDs
+    if (planId === 'plan-alpha') return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
+    if (planId === 'plan-beta') return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
+    if (planId === 'plan-gamma') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5'].includes(ext.id));
     
-    console.warn(`PlanEditor: Mock data for planId "${planId}" not explicitly defined. Showing all ${componentMockExtinguishers.length} mock extinguishers as a fallback.`);
-    return componentMockExtinguishers;
+    // Fallback for unknown planId or specific audit item IDs that might map to plans
+    // e.g. 'current-day-5' might map to plan-alpha conceptually
+    if (planId === 'current-day-5') return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
+    if (planId === 'current-day-15') return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
+    if (planId === 'current-today') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5',].includes(ext.id)); // Example
+    if (planId === 'sep-audit-1') return componentMockExtinguishers.filter(ext => ['ext-1'].includes(ext.id));
+
+
+    console.warn(`PlanEditor: Mock data for planId "${planId}" not explicitly defined or matched. Displaying a default set or empty.`);
+    // Default to empty or a specific set if no match, rather than all.
+    return []; // Or a more specific default if required.
   });
+
 
   const handleAddExtinguisher = () => {
     console.log("Navegando para agregar nuevo extintor al plano:", planId);
@@ -110,14 +116,14 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     });
   };
 
-  const handleAuditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
-    console.log(`Navegando para auditar extinguidor: ${extinguisherId} (${extinguisherType})`);
-    router.push(`/audit-scan/${extinguisherId}`);
+  const handleAuditExtinguisher = (extinguisherId: string) => {
+    console.log(`Navegando para auditar extinguidor: ${extinguisherId} desde plano ${planId}`);
+    router.push(`/audit-extinguisher/${planId}/${extinguisherId}`);
   };
 
-  const handleEditExtinguisher = (extinguisherId: string, extinguisherType: string) => {
-    console.log(`Editando extinguidor: ${extinguisherId} (${extinguisherType}) desde plan ${planId}`);
-    router.push(`/edit-extinguisher/${planId}/${extinguisherId}?type=${encodeURIComponent(extinguisherType)}`);
+  const handleEditExtinguisher = (extinguisherId: string) => {
+    console.log(`Editando extinguidor: ${extinguisherId} desde plan ${planId}`);
+    router.push(`/edit-extinguisher/${planId}/${extinguisherId}`);
   };
 
   const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
@@ -204,11 +210,11 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id, ext.type)}>
+                          <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
                             <FileCheck className="mr-2 h-4 w-4" />
                             Auditar
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id, ext.type)}>
+                          <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id)}>
                             <Edit3 className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
@@ -227,7 +233,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                         <AlertDialogHeader>
                           <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción eliminará el extinguidor "{ext.type}" de este plano. Esta acción no se puede deshacer.
+                            Esta acción eliminará el extinguidor "{ext.type} ({ext.id})" de este plano. Esta acción no se puede deshacer.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -254,11 +260,10 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         <div className="text-center">
           <Button onClick={handleSavePlan} size="lg">
             <Save className="mr-2 h-5 w-5" />
-            Guardar
+            Guardar Cambios al Plano
           </Button>
         </div>
       </CardContent>
     </Card>
   );
 }
-
