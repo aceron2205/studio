@@ -42,21 +42,28 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, type, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+  ({ className, variant, size, asChild = false, type: incomingType, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
 
-    // If Comp is a button, set its type attribute (defaults to "button" if not provided).
-    // If Comp is Slot (asChild is true), do not pass the type attribute,
-    // as the slotted child (e.g., a <span>) cannot have a 'type' attribute.
-    // The 'type' prop is destructured so it's not in '...props' when asChild is true.
-    const buttonTypeProps = asChild ? {} : { type: type || "button" };
+    // Props that will be passed to the underlying component (Button or Slot)
+    let effectiveProps: Record<string, any> = { ...props };
+    
+    if (asChild) {
+      // If rendering as a Slot, we don't want to pass the 'type' attribute at all,
+      // as the child of Slot (e.g., a <span>) might not support it.
+      // The 'incomingType' is captured, and 'type' from ...props needs to be removed.
+      // We delete 'type' from effectiveProps if it exists.
+      delete effectiveProps.type;
+    } else {
+      // If rendering as a button, set its type (defaults to "button" if not provided).
+      effectiveProps.type = incomingType || "button";
+    }
 
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...buttonTypeProps}
-        {...props}
+        {...effectiveProps} // Spread the processed props
       />
     )
   }
