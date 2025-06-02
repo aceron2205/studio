@@ -95,7 +95,7 @@ export function PlanCreator() {
 
         <div>
           <h3 className="text-xl font-semibold mb-6 text-card-foreground">
-            Continuar Plano Existente (Visual)
+            Continuar Plano Existente
           </h3>
           {existingPlansData.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
