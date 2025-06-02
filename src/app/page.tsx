@@ -63,9 +63,7 @@ export default function HomePage() {
         */}
         
         <footer className="text-center py-10 mt-6">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} MobileFlow. Todos los derechos reservados.
-          </p>
+          {/* The requested paragraph has been removed */}
         </footer>
       </div>
     </div>
