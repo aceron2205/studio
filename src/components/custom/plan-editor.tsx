@@ -76,15 +76,18 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     if (planId === 'new') {
       return [];
     }
+    // Check if planId directly matches an extinguisher ID (for viewing a single extinguisher as if it's a "plan")
     const singleExtinguisherAsPlan = componentMockExtinguishers.find(ext => ext.id === planId);
     if (singleExtinguisherAsPlan) {
       return [singleExtinguisherAsPlan];
     }
 
+    // Fallback to known plan IDs
     if (planId === 'plan-alpha') return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
     if (planId === 'plan-beta') return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
     if (planId === 'plan-gamma') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5'].includes(ext.id));
     
+    // These seem like audit IDs being treated as plan IDs
     if (planId === 'current-day-5') return componentMockExtinguishers.filter(ext => ['ext-1', 'ext-2'].includes(ext.id));
     if (planId === 'current-day-15') return componentMockExtinguishers.filter(ext => ['ext-3'].includes(ext.id));
     if (planId === 'current-today') return componentMockExtinguishers.filter(ext => ['ext-4', 'ext-5',].includes(ext.id));
@@ -191,7 +194,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         <div className="w-full text-center">
           <CardTitle className="text-2xl font-semibold text-primary flex items-center justify-center gap-2">
             <Eye className="h-6 w-6" />
-            {planId === 'new' ? 'Creando Nuevo Plano' : 'Ver Plano'}
+            {planId === 'new' ? 'Creando Nuevo Plano' : 'Ver el Extintor'}
           </CardTitle>
           <Input
             value={currentPlanName}
