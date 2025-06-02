@@ -11,18 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Package, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button"; // Added for the edit button
+import { Edit3 } from "lucide-react"; // Added for the edit icon
 
 interface InventoryItem {
   id: string;
   articleName: string;
-  description: string;
+  description: string; // Kept in interface for data integrity, though not displayed
   stockQuantity: number;
   unit: string;
-  suggestedSupplier?: string;
+  suggestedSupplier?: string; // Kept in interface
   lastUpdated: string; // YYYY-MM-DD
-  lowStockThreshold: number;
+  lowStockThreshold: number; // Kept in interface
 }
 
 const mockInventoryItems: InventoryItem[] = [
@@ -101,10 +101,11 @@ const mockInventoryItems: InventoryItem[] = [
 export function InventoryTable() {
   const [inventory, setInventory] = React.useState<InventoryItem[]>(mockInventoryItems);
 
-  // Placeholder for future actions like edit, restock, etc.
-  // const handleRestock = (itemId: string) => {
-  //   console.log(`Restock item: ${itemId}`);
-  // };
+  const handleEditItem = (itemId: string) => {
+    // Placeholder for edit functionality
+    console.log(`Edit item: ${itemId}`);
+    // In a real app, you would navigate to an edit page or open a modal
+  };
 
   return (
     <div className="w-full">
@@ -112,42 +113,31 @@ export function InventoryTable() {
         <TableCaption>Un listado de los artículos de inventario disponibles.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px] hidden md:table-cell">Ícono</TableHead>
+            <TableHead className="hidden md:table-cell text-center w-[150px]">Ultima Mod.</TableHead>
             <TableHead>Artículo</TableHead>
-            <TableHead className="hidden lg:table-cell">Descripción</TableHead>
-            <TableHead className="text-right">Stock</TableHead>
-            <TableHead className="hidden sm:table-cell">Proveedor</TableHead>
-            <TableHead className="hidden md:table-cell text-center">Últ. Act.</TableHead>
-            <TableHead className="text-center">Estado</TableHead>
+            <TableHead className="text-right w-[120px]">Stock</TableHead>
+            <TableHead className="text-center w-[100px]">Editar</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {inventory.map((item) => (
             <TableRow key={item.id}>
-              <TableCell className="hidden md:table-cell">
-                <Package className="h-5 w-5 text-muted-foreground" />
+              <TableCell className="hidden md:table-cell text-center">
+                {new Date(item.lastUpdated + 'T00:00:00').toLocaleDateString()}
               </TableCell>
               <TableCell className="font-medium">{item.articleName}</TableCell>
-              <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
-                {item.description}
-              </TableCell>
               <TableCell className="text-right">
                 {item.stockQuantity} {item.unit}
               </TableCell>
-              <TableCell className="hidden sm:table-cell">{item.suggestedSupplier || "N/A"}</TableCell>
-              <TableCell className="hidden md:table-cell text-center">{new Date(item.lastUpdated + 'T00:00:00').toLocaleDateString()}</TableCell>
               <TableCell className="text-center">
-                {item.stockQuantity <= item.lowStockThreshold ? (
-                  <Badge variant="destructive" className="flex items-center justify-center gap-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Bajo
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="flex items-center justify-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                    OK
-                  </Badge>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEditItem(item.id)}
+                  aria-label={`Editar ${item.articleName}`}
+                >
+                  <Edit3 className="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}
