@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Save, MapPin, Eye, Building, Tag, Thermometer, BatteryCharging, Calendar, FileCheck, Edit3, Trash2, ChevronDown } from "lucide-react";
+import { ArrowLeft, PlusCircle, Save, Eye, Building, Tag, Thermometer, BatteryCharging, Calendar } from "lucide-react"; // Removed FileCheck, Edit3, Trash2, ChevronDown
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,23 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown"; // Import the new component
 
 interface Extinguisher {
   id: string;
@@ -195,49 +179,13 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                     <DetailItem icon={Calendar} label="Última Revisión" value={ext.last_revision_date} />
                   </div>
                   <div className="flex justify-end">
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            Acciones <ChevronDown className="ml-2 h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleAuditExtinguisher(ext.id)}>
-                            <FileCheck className="mr-2 h-4 w-4" />
-                            Auditar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditExtinguisher(ext.id)}>
-                            <Edit3 className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()} 
-                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Dar de baja
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción eliminará el extinguidor "{ext.type} ({ext.id})"
-                            de este plano. Esta acción no se puede deshacer.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDeleteExtinguisher(ext.id)}>
-                            Confirmar Baja
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <ExtinguisherActionsDropdown
+                      extinguisherId={ext.id}
+                      extinguisherType={`${ext.type} (${ext.capacity})`}
+                      onAudit={handleAuditExtinguisher}
+                      onEdit={handleEditExtinguisher}
+                      onDelete={handleDeleteExtinguisher}
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
