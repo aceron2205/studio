@@ -11,18 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button"; // Added for the edit button
-import { Edit3 } from "lucide-react"; // Added for the edit icon
+import { Button } from "@/components/ui/button";
+import { Edit3 } from "lucide-react";
 
 interface InventoryItem {
   id: string;
   articleName: string;
-  description: string; // Kept in interface for data integrity, though not displayed
+  description: string; 
   stockQuantity: number;
   unit: string;
-  suggestedSupplier?: string; // Kept in interface
+  suggestedSupplier?: string; 
   lastUpdated: string; // YYYY-MM-DD
-  lowStockThreshold: number; // Kept in interface
+  lowStockThreshold: number; 
 }
 
 const mockInventoryItems: InventoryItem[] = [
@@ -98,7 +98,7 @@ const mockInventoryItems: InventoryItem[] = [
   },
 ];
 
-export function InventoryTable() {
+export const InventoryTable: React.FC = () => {
   const [inventory, setInventory] = React.useState<InventoryItem[]>(mockInventoryItems);
 
   const handleEditItem = (itemId: string) => {
@@ -116,14 +116,14 @@ export function InventoryTable() {
             <TableHead className="text-center w-[150px]">Ultima Mod.</TableHead>
             <TableHead>Artículo</TableHead>
             <TableHead className="text-right w-[120px]">Stock</TableHead>
-            <TableHead className="text-center">Editar</TableHead> {/* Removed w-[100px] */}
+            <TableHead className="text-center">Editar</TableHead> 
           </TableRow>
         </TableHeader>
         <TableBody>
           {inventory.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="text-center">
-                {new Date(item.lastUpdated + 'T00:00:00').toLocaleDateString()}
+                {new Date(item.lastUpdated + 'T00:00:00').toLocaleDateString('es-ES')}
               </TableCell>
               <TableCell className="font-medium">{item.articleName}</TableCell>
               <TableCell className="text-right">
@@ -150,4 +150,4 @@ export function InventoryTable() {
       )}
     </div>
   );
-}
+};
