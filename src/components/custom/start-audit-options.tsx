@@ -27,12 +27,12 @@ const currentYear = today.getFullYear();
 const currentMonth = today.getMonth(); // 0-indexed
 
 const mockPendingAudits = [
-  { id: 'current-day-5', clientName: 'Auditoría Día 5 del Mes', date: new Date(currentYear, currentMonth, 5).toISOString().split('T')[0], time: '09:00 AM', location: 'Locación A - Mes Actual', status: 'Programada' },
-  { id: 'current-day-15', clientName: 'Auditoría Día 15 del Mes', date: new Date(currentYear, currentMonth, 15).toISOString().split('T')[0], time: '11:00 AM', location: 'Locación B - Mes Actual', status: 'Pendiente' },
-  { id: 'current-day-25', clientName: 'Auditoría Día 25 del Mes', date: new Date(currentYear, currentMonth, 25).toISOString().split('T')[0], time: '01:00 PM', location: 'Locación C - Mes Actual', status: 'Programada' },
-  { id: 'current-today', clientName: 'Auditoría de Hoy', date: today.toISOString().split('T')[0], time: '03:00 PM', location: 'Locación Hoy - Mes Actual', status: 'Programada'},
-  { id: 'sep-audit-1', clientName: 'Empresa Constructora Sol (Sept.)', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
-  { id: 'sep-audit-2', clientName: 'Restaurante Delicias Marinas (Sept.)', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
+  { id: 'current-day-5', clientName: 'Industrias Alfa', date: new Date(currentYear, currentMonth, 5).toISOString().split('T')[0], time: '09:00 AM', location: 'Locación A - Mes Actual', status: 'Programada' },
+  { id: 'current-day-15', clientName: 'Servicios Beta EIRL', date: new Date(currentYear, currentMonth, 15).toISOString().split('T')[0], time: '11:00 AM', location: 'Locación B - Mes Actual', status: 'Pendiente' },
+  { id: 'current-day-25', clientName: 'Comercial Gamma SAC', date: new Date(currentYear, currentMonth, 25).toISOString().split('T')[0], time: '01:00 PM', location: 'Locación C - Mes Actual', status: 'Programada' },
+  { id: 'current-today', clientName: 'Cliente Omega (Hoy)', date: today.toISOString().split('T')[0], time: '03:00 PM', location: 'Locación Hoy - Mes Actual', status: 'Programada'},
+  { id: 'sep-audit-1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
+  { id: 'sep-audit-2', clientName: 'Restaurante Delicias Marinas', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
 ];
 
 const INITIAL_AUDITS_TO_SHOW = 2;
