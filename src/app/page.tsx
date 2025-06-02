@@ -1,7 +1,7 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Archive, RefreshCw, Map, FilePlus2, ListChecks } from 'lucide-react'; // Removed Search icon
+import { Archive, RefreshCw, Map, FilePlus2, ListChecks, Search } from 'lucide-react'; // Added Search icon back
 // Download and Edit3 icons are no longer needed as Quick Actions are removed
 // import { Download, Edit3 } from 'lucide-react';
 // Button and Link for Quick Actions are no longer needed
@@ -19,7 +19,7 @@ export default function HomePage() {
     { title: 'Crear Diseño de Plano', icon: Map, href: '/create-plan', description: 'Diseñar o registrar auditoría' },
     { title: 'Inventario', icon: Archive, href: '/inventory', description: 'Consultar stock de repuestos' },
     // Fila Inferior
-    // { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' }, // Removed Buscador
+    { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' }, // Added Buscador back
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
   ];
 
