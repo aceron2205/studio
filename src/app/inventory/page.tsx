@@ -3,13 +3,16 @@
 
 import { InventoryTable } from "@/components/custom/inventory-table";
 import { Toaster } from "@/components/ui/toaster";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Archive } from "lucide-react"; // Removed PlusCircle
+import { ArrowLeft, Archive, PlusCircle } from "lucide-react"; // Added PlusCircle
 
 export default function InventoryPage() {
-  // Removed handleAddInventoryItem function
+  const handleAddInventoryItem = () => {
+    console.log("Add new inventory item button clicked (bottom of page)");
+    // Placeholder for actual navigation or modal opening logic
+  };
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
@@ -23,7 +26,7 @@ export default function InventoryPage() {
                     variant="ghost"
                     size="icon"
                     aria-label="Volver al Inicio"
-                    className="mr-4" 
+                    className="mr-4"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
@@ -38,12 +41,17 @@ export default function InventoryPage() {
                   </CardDescription>
                 </div>
               </div>
-              {/* Removed the Add Inventory Item Button here */}
             </div>
           </CardHeader>
           <CardContent className="p-6">
             <InventoryTable />
           </CardContent>
+          <CardFooter className="p-6 border-t flex justify-end">
+            <Button onClick={handleAddInventoryItem}>
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Agregar Artículo al Inventario
+            </Button>
+          </CardFooter>
         </Card>
       </div>
       <Toaster />
