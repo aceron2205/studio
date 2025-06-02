@@ -3,29 +3,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-// Image import is removed as it's no longer used
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Download, Edit3, ListChecks, FileCheck, Check, Loader2, Eye } from "lucide-react";
+import { ArrowLeft, ListChecks } from "lucide-react"; // Removed icons now in PlanCard
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { PlanCard, type Plan as PlanCardData } from "./plan-card"; // Import the new PlanCard component
 
-interface AssignedPlan {
-  id: string;
-  name: string;
-  lastModified: string;
-  thumbnailUrl: string; // Kept in interface in case it's used elsewhere, but not rendered as image here
-  clientName?: string;
-  location?: string;
-}
+// Interface for AssignedPlan remains the same as PlanCardData for consistency
+type AssignedPlan = PlanCardData;
 
 const mockAssignedPlans: AssignedPlan[] = [
   { id: 'plan-alpha', name: 'Plano General Fábrica A', lastModified: '2024-07-28', thumbnailUrl: 'https://placehold.co/300x200.png', clientName: 'Industrias Alfa', location: 'Zona Industrial Norte' },
@@ -39,7 +25,7 @@ export function AssignedPlansViewer() {
   const [downloadedPlanIds, setDownloadedPlanIds] = React.useState<Set<string>>(new Set());
   const [downloadingPlanIds, setDownloadingPlanIds] = React.useState<Set<string>>(new Set());
 
-  const handleDownload = (planId: string, planName: string) => {
+  const handleDownloadPlan = (planId: string, planName: string) => {
     if (downloadingPlanIds.has(planId)) {
       return;
     }
@@ -47,7 +33,7 @@ export function AssignedPlansViewer() {
     setDownloadingPlanIds(prev => new Set(prev).add(planId));
     setDownloadedPlanIds(prev => {
       const newSet = new Set(prev);
-      newSet.delete(planId);
+      newSet.delete(planId); // Remove from downloaded if re-downloading
       return newSet;
     });
 
@@ -63,10 +49,12 @@ export function AssignedPlansViewer() {
         return newSet;
       });
       setDownloadedPlanIds(prev => new Set(prev).add(planId));
+      // Optional: Add another toast for completion
+      // toast({ title: "Descarga Completada", description: `El plano ${planName} ha sido descargado.` });
     }, 2000);
   };
 
-  const handleAudit = (planId: string, planName: string) => {
+  const handleAuditPlan = (planId: string, planName: string) => {
     console.log(`Navegando para auditar el plano: ${planId} - ${planName}`);
     router.push(`/audit-scan/${planId}`);
   };
@@ -75,23 +63,6 @@ export function AssignedPlansViewer() {
     console.log(`Viendo/Editando plano: ${planId}`);
     router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
-
-  const handleCardClick = (planId: string, planName: string, e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
-      return;
-    }
-    handleViewOrEditPlan(planId, planName);
-  };
-
-  const handleCardKeyDown = (planId: string, planName: string, e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-       if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]') || (e.target as HTMLElement).closest('[data-radix-dropdown-menu-content]')) {
-        return;
-      }
-      handleViewOrEditPlan(planId, planName);
-    }
-  };
-
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -121,77 +92,16 @@ export function AssignedPlansViewer() {
         {plans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {plans.map((plan) => (
-                <Card
-                    key={plan.id}
-                    className="overflow-hidden shadow-sm hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-xl transition-shadow duration-200 ease-in-out flex flex-col h-full group"
-                    onClick={(e) => handleCardClick(plan.id, plan.name, e)}
-                    onKeyDown={(e) => handleCardKeyDown(plan.id, plan.name, e)}
-                    tabIndex={0}
-                    role="article"
-                    aria-labelledby={`plan-title-${plan.id}`}
-                 >
-                  {/* Image container and status icons removed */}
-                  <div className="p-4 flex flex-col flex-grow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 id={`plan-title-${plan.id}`} className="font-semibold text-md text-card-foreground truncate flex-grow pr-2 group-hover:text-primary" title={plan.name}>
-                        {plan.name}
-                      </h4>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click from triggering
-                            }}
-                            aria-label={`Más opciones para ${plan.name}`}
-                          >
-                            <MoreVertical className="h-5 w-5" />
-                            <span className="sr-only">Más opciones para {plan.name}</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                           <DropdownMenuItem onClick={() => handleViewOrEditPlan(plan.id, plan.name)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver Plano
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAudit(plan.id, plan.name)}>
-                            <FileCheck className="mr-2 h-4 w-4" />
-                            Auditar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewOrEditPlan(plan.id, plan.name)}>
-                            <Edit3 className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleDownload(plan.id, plan.name)}
-                            disabled={downloadingPlanIds.has(plan.id)}
-                          >
-                            {downloadingPlanIds.has(plan.id) ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : downloadedPlanIds.has(plan.id) ? (
-                              <Check className="mr-2 h-4 w-4 text-green-600" />
-                            ) : (
-                              <Download className="mr-2 h-4 w-4" />
-                            )}
-                            {downloadingPlanIds.has(plan.id)
-                              ? 'Descargando...'
-                              : downloadedPlanIds.has(plan.id)
-                              ? 'Descargado'
-                              : 'Descargar'}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    {plan.clientName && <p className="text-xs text-muted-foreground">Cliente: {plan.clientName}</p>}
-                    {plan.location && <p className="text-xs text-muted-foreground">Ubicación: {plan.location}</p>}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Última mod.: {plan.lastModified}
-                    </p>
-                  </div>
-                </Card>
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                isDownloading={downloadingPlanIds.has(plan.id)}
+                isDownloaded={downloadedPlanIds.has(plan.id)}
+                onViewPlan={handleViewOrEditPlan}
+                onAuditPlan={handleAuditPlan}
+                onEditPlan={handleViewOrEditPlan} // Assuming edit and view go to the same place for now
+                onDownloadPlan={handleDownloadPlan}
+              />
             ))}
           </div>
         ) : (
@@ -207,4 +117,3 @@ export function AssignedPlansViewer() {
     </Card>
   );
 }
-
