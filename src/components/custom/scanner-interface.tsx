@@ -126,8 +126,8 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
 
   return (
     <div className="space-y-4">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onManualSubmit)} className="space-y-4">
+      <Form {...form}> {/* This is FormProvider from ShadCN, providing context for react-hook-form */}
+        <div className="space-y-4"> {/* Replaced the <form> tag with a <div> */}
           <FormField
             control={form.control}
             name="code"
@@ -136,8 +136,22 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
                 <FormLabel>Ingresar código manualmente</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
-                    <Input placeholder="Ej: ext-1, 123..." {...field} />
-                    <Button type="submit" size="icon" aria-label="Procesar código manual">
+                    <Input 
+                      placeholder="Ej: ext-1, 123..." 
+                      {...field} 
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          form.handleSubmit(onManualSubmit)(); // Trigger submission logic
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" // Changed from "submit" to "button"
+                      size="icon" 
+                      aria-label="Procesar código manual"
+                      onClick={form.handleSubmit(onManualSubmit)} // Attach submit logic here
+                    >
                       <Send className="h-5 w-5" />
                     </Button>
                   </div>
@@ -146,7 +160,7 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
               </FormItem>
             )}
           />
-        </form>
+        </div>
       </Form>
 
       {showCamera && (
