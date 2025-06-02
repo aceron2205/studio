@@ -8,8 +8,7 @@ import {
   ListChecks, // For Auditorías Programadas (Start Audit)
   ClipboardPlus, // For Crear Nuevo Plan
   MapPinned, // For Planos Asignados / Ver Planos
-  // Search was removed when "Buscador" card was removed
-  // RefreshCw was removed when Sincronizar card was removed
+  Archive, // For Inventario
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
@@ -18,6 +17,7 @@ export default function HomePage() {
     { title: 'Iniciar Auditoría', icon: ListChecks, href: '/start-audit', description: 'Comenzar una nueva inspección o continuar una programada.' },
     { title: 'Crear Nuevo Plan', icon: ClipboardPlus, href: '/create-plan', description: 'Diseñar un nuevo plano de ubicación de extintores.' },
     { title: 'Ver Planos Asignados', icon: MapPinned, href: '/view-plans', description: 'Revisar y gestionar planos existentes.' },
+    { title: 'Inventario', icon: Archive, href: '/inventory', description: 'Gestionar repuestos y artículos de mantenimiento.' },
     { title: 'Reportes', icon: FileText, href: '#', description: 'Visualizar informes y estadísticas de auditorías.' }, // Placeholder href
     { title: 'Configuración', icon: Settings, href: '#', description: 'Ajustar preferencias de la aplicación.' }, // Placeholder href
   ];
