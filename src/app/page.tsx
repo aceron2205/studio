@@ -17,7 +17,7 @@ export default function HomePage() {
     { title: 'Planos Asignados', icon: ListChecks, href: '/view-plans', description: 'Visualizar y gestionar planos' },
     // Fila Central
     { title: 'Crear Diseño de Plano', icon: Map, href: '/create-plan', description: 'Diseñar o registrar auditoría' },
-    { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
+    { title: 'Inventario', icon: Archive, href: '/inventory', description: 'Consultar stock de repuestos' },
     // Fila Inferior
     { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
     { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
