@@ -1,51 +1,97 @@
 
 import Link from 'next/link';
-import { MenuCard } from '@/components/custom/menu-card';
-import { WelcomeHeader } from '@/components/custom/welcome-header';
-import {
-  FileText, // For Reportes
-  Settings, // For Configuración
-  ListChecks, // For Auditorías Programadas (Start Audit)
-  ClipboardPlus, // For Crear Nuevo Plan
-  MapPinned, // For Planos Asignados / Ver Planos
-  Archive, // For Inventario
-} from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { UserCircle, Plus, MapPin, Archive, ClipboardPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type React from 'react';
+
+// Helper component for items in the "Más" section
+function MoreLinkItem({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center p-4 bg-card rounded-lg shadow-sm hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      aria-label={label}
+    >
+      <Icon className="h-6 w-6 text-primary mr-4 flex-shrink-0" />
+      <span className="text-md font-medium text-card-foreground">{label}</span>
+    </Link>
+  );
+}
 
 export default function HomePage() {
-  const menuItems = [
-    { title: 'Iniciar Auditoría', icon: ListChecks, href: '/start-audit', description: 'Comenzar una nueva inspección o continuar una programada.' },
-    { title: 'Crear Nuevo Plan', icon: ClipboardPlus, href: '/create-plan', description: 'Diseñar un nuevo plano de ubicación de extintores.' },
-    { title: 'Ver Planos Asignados', icon: MapPinned, href: '/view-plans', description: 'Revisar y gestionar planos existentes.' },
-    { title: 'Inventario', icon: Archive, href: '/inventory', description: 'Gestionar repuestos y artículos de mantenimiento.' },
-    { title: 'Reportes', icon: FileText, href: '#', description: 'Visualizar informes y estadísticas de auditorías.' }, // Placeholder href
-    { title: 'Configuración', icon: Settings, href: '#', description: 'Ajustar preferencias de la aplicación.' }, // Placeholder href
-  ];
+  const userName = "Usuario"; // Placeholder
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      <WelcomeHeader userName="Usuario" />
-      <main className="flex-grow p-4 md:p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {menuItems.map((item) => (
-            <MenuCard
-              key={item.title}
-              title={item.title}
-              icon={item.icon}
-              href={item.href}
-              description={item.description}
+      <header className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+            Bienvenido, {userName}
+          </h1>
+          <Link href="#" aria-label="Perfil de usuario"> {/* Placeholder for profile/settings */}
+            <UserCircle className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors" />
+          </Link>
+        </div>
+        <Link href="/start-audit" passHref>
+          <Button size="lg" className="w-full py-3 text-lg">
+            <Plus className="mr-2 h-5 w-5" />
+            Iniciar Auditoría
+          </Button>
+        </Link>
+      </header>
+
+      <main className="flex-grow p-4 md:p-6 space-y-8">
+        {/* Auditorías Recientes Section */}
+        <section>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Auditorías Recientes</h2>
+          <div className="bg-card p-4 rounded-lg shadow-sm">
+            {/* Placeholder content for recent audits */}
+            <div className="space-y-3">
+              <div className="h-5 bg-muted rounded w-3/4 animate-pulse"></div>
+              <div className="h-5 bg-muted rounded w-1/2 animate-pulse"></div>
+              <div className="h-5 bg-muted rounded w-5/6 animate-pulse"></div>
+            </div>
+            {/* Future: Link to a page with all recent audits
+            <div className="text-right mt-3">
+              <Link href="#" className="text-sm text-primary hover:underline">
+                Ver todas
+              </Link>
+            </div>
+            */}
+          </div>
+        </section>
+
+        {/* Más Section */}
+        <section>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Más</h2>
+          <div className="space-y-3">
+            <MoreLinkItem
+              href="/view-plans"
+              icon={MapPin}
+              label="Planos Asignados"
             />
-          ))}
-        </div>
-        <Separator className="my-8" />
-        {/* Placeholder for any other content or quick actions */}
-        <div className="text-center">
-          <p className="text-muted-foreground">
-            Más funcionalidades próximamente.
-          </p>
-        </div>
+            <MoreLinkItem
+              href="/inventory"
+              icon={Archive}
+              label="Inventario"
+            />
+            <MoreLinkItem
+              href="/create-plan"
+              icon={ClipboardPlus}
+              label="Crear Nuevo Plan"
+            />
+          </div>
+        </section>
       </main>
-      {/* Footer is handled by MobileNav or a dedicated footer component if needed outside this page */}
+      {/* MobileNav is in RootLayout and will be displayed */}
     </div>
   );
 }
