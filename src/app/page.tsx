@@ -1,7 +1,7 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Archive, RefreshCw, Map, FilePlus2, ListChecks } from 'lucide-react'; // Removed Search icon
+import { Archive, Map, FilePlus2, ListChecks } from 'lucide-react'; // Removed RefreshCw icon
 
 export default function HomePage() {
   const userName = "Usuario"; // Placeholder, replace with actual user data logic
@@ -14,8 +14,7 @@ export default function HomePage() {
     { title: 'Crear Diseño de Plano', icon: Map, href: '/create-plan', description: 'Diseñar o registrar auditoría' },
     { title: 'Inventario', icon: Archive, href: '/inventory', description: 'Consultar stock de repuestos' },
     // Fila Inferior
-    // { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' }, // Removed Buscador
-    { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
+    // { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' }, // Removed Sincronizar
   ];
 
   return (
