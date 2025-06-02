@@ -3,14 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, WalletCards, RefreshCw, UserRound, BarChartBig } from 'lucide-react';
+import { Home, WalletCards, RefreshCw, Search, BarChartBig } from 'lucide-react'; // Changed UserRound to Search
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/inventory', label: 'Wallet', icon: WalletCards },
   { href: '#', icon: RefreshCw, isCentral: true, label: 'SyncAction' }, // Label for key, not displayed
-  { href: '/search', label: 'Profile', icon: UserRound },
+  { href: '/search', label: 'Buscar', icon: Search }, // Updated label and icon
   { href: '/view-plans', label: 'Stats', icon: BarChartBig },
 ];
 
