@@ -113,7 +113,7 @@ export function InventoryTable() {
         <TableCaption>Un listado de los artículos de inventario disponibles.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="hidden md:table-cell text-center w-[150px]">Ultima Mod.</TableHead>
+            <TableHead className="text-center w-[150px]">Ultima Mod.</TableHead>
             <TableHead>Artículo</TableHead>
             <TableHead className="text-right w-[120px]">Stock</TableHead>
             <TableHead className="text-center w-[100px]">Editar</TableHead>
@@ -122,7 +122,7 @@ export function InventoryTable() {
         <TableBody>
           {inventory.map((item) => (
             <TableRow key={item.id}>
-              <TableCell className="hidden md:table-cell text-center">
+              <TableCell className="text-center">
                 {new Date(item.lastUpdated + 'T00:00:00').toLocaleDateString()}
               </TableCell>
               <TableCell className="font-medium">{item.articleName}</TableCell>
