@@ -1,82 +1,51 @@
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { MenuCard } from '@/components/custom/menu-card';
+import { WelcomeHeader } from '@/components/custom/welcome-header';
+import {
+  FileText, // For Reportes
+  Settings, // For Configuración
+  ListChecks, // For Auditorías Programadas (Start Audit)
+  ClipboardPlus, // For Crear Nuevo Plan
+  MapPinned, // For Planos Asignados / Ver Planos
+  // Search was removed when "Buscador" card was removed
+  // RefreshCw was removed when Sincronizar card was removed
+} from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Menu, ChevronRight, FileText, SettingsIcon, Search } from 'lucide-react'; // Added FileText and SettingsIcon, Search is unused
-
-// Mock data for recent audits
-const recentAudits = [
-  { id: 'audit-1', date: 'Apr 10, 2024', href: '/audit-scan/recent-1' },
-  { id: 'audit-2', date: 'Mar 20, 2024', href: '/audit-scan/recent-2' },
-  { id: 'audit-3', date: 'Feb 05, 2024', href: '/audit-scan/recent-3' },
-];
 
 export default function HomePage() {
+  const menuItems = [
+    { title: 'Iniciar Auditoría', icon: ListChecks, href: '/start-audit', description: 'Comenzar una nueva inspección o continuar una programada.' },
+    { title: 'Crear Nuevo Plan', icon: ClipboardPlus, href: '/create-plan', description: 'Diseñar un nuevo plano de ubicación de extintores.' },
+    { title: 'Ver Planos Asignados', icon: MapPinned, href: '/view-plans', description: 'Revisar y gestionar planos existentes.' },
+    { title: 'Reportes', icon: FileText, href: '#', description: 'Visualizar informes y estadísticas de auditorías.' }, // Placeholder href
+    { title: 'Configuración', icon: Settings, href: '#', description: 'Ajustar preferencias de la aplicación.' }, // Placeholder href
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      <div className="flex-grow p-4 md:p-6 max-w-md mx-auto w-full">
-        {/* Top Section */}
-        <header className="mb-6">
-          <div className="flex justify-between items-center mb-4">
-            {/* Hamburger Menu (placeholder or future functionality) */}
-            <Button variant="ghost" size="icon" aria-label="Menu">
-              <Menu className="h-6 w-6" />
-            </Button>
-            {/* Optional: Add a logo or app name here if needed */}
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-4">
-            Manage Fire Extinguishers
-          </h1>
-          <Link href="/start-audit" passHref>
-            <Button size="lg" className="w-full text-lg py-3">
-              Start Audit
-            </Button>
-          </Link>
-        </header>
-
-        <Separator className="my-6" />
-
-        {/* Recent Audits Section */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-3">
-            Recent Audits
-          </h2>
-          <div className="space-y-2">
-            {recentAudits.map((audit) => (
-              <Link href={audit.href} key={audit.id} passHref>
-                <div className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm hover:bg-muted cursor-pointer border border-border transition-colors">
-                  <span className="text-sm font-medium text-card-foreground">{audit.date}</span>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <Separator className="my-6" />
-
-        {/* More Section */}
-        <section>
-          <h2 className="text-xl font-semibold text-foreground mb-3">
-            More
-          </h2>
-          <div className="space-y-3">
-            <Link href="/view-plans" passHref> {/* Changed from #reports to /view-plans */}
-              <Button variant="outline" className="w-full justify-start text-base py-3">
-                <FileText className="mr-2 h-5 w-5" />
-                View Reports
-              </Button>
-            </Link>
-            <Link href="/#" passHref> {/* Placeholder for Settings */}
-              <Button variant="outline" className="w-full justify-start text-base py-3">
-                <SettingsIcon className="mr-2 h-5 w-5" />
-                Settings
-              </Button>
-            </Link>
-          </div>
-        </section>
-      </div>
-      {/* Footer is intentionally kept minimal or removed to match image, MobileNav will be outside this main content flow */}
+      <WelcomeHeader userName="Usuario" />
+      <main className="flex-grow p-4 md:p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {menuItems.map((item) => (
+            <MenuCard
+              key={item.title}
+              title={item.title}
+              icon={item.icon}
+              href={item.href}
+              description={item.description}
+            />
+          ))}
+        </div>
+        <Separator className="my-8" />
+        {/* Placeholder for any other content or quick actions */}
+        <div className="text-center">
+          <p className="text-muted-foreground">
+            Más funcionalidades próximamente.
+          </p>
+        </div>
+      </main>
+      {/* Footer is handled by MobileNav or a dedicated footer component if needed outside this page */}
     </div>
   );
 }
