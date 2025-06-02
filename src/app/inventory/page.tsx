@@ -1,3 +1,4 @@
+"use client";
 
 import { InventoryTable } from "@/components/custom/inventory-table";
 import { Toaster } from "@/components/ui/toaster";
