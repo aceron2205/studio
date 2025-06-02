@@ -7,35 +7,47 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-// Note: 'next/image' is not imported here as we are starting from zero for the visual part.
-// If you re-add images, ensure you use: import { Image } from "next/image";
 import { useRouter } from "next/navigation";
+import { PlanCard, type Plan as PlanCardData } from "./plan-card"; // Import PlanCard
+import { toast } from "@/hooks/use-toast"; // Import toast for placeholder actions
 
-// Mock data for existing plans - kept for now, can be removed/re-evaluated
-const mockExistingPlans = [
-  { id: 'plan-1', name: 'Plano Edificio Central - Planta Baja', lastModified: '2024-07-15', thumbnailUrl: 'https://placehold.co/150x100.png' },
-  { id: 'plan-2', name: 'Almacén Principal - Zona de Carga', lastModified: '2024-07-10', thumbnailUrl: 'https://placehold.co/150x100.png' },
-  { id: 'plan-3', name: 'Oficinas Administrativas - Piso 2', lastModified: '2024-06-20', thumbnailUrl: 'https://placehold.co/150x100.png' },
+// Mock data for existing plans - adapted to fit PlanCardData structure more closely
+const mockExistingPlans: PlanCardData[] = [
+  { id: 'plan-1', name: 'Plano Edificio Central - Planta Baja', lastModified: '2024-07-15', thumbnailUrl: 'https://placehold.co/150x100.png', clientName: 'Interno', location: 'Edificio Principal' },
+  { id: 'plan-2', name: 'Almacén Principal - Zona de Carga', lastModified: '2024-07-10', thumbnailUrl: 'https://placehold.co/150x100.png', clientName: 'Logística XYZ', location: 'Almacén A' },
+  { id: 'plan-3', name: 'Oficinas Administrativas - Piso 2', lastModified: '2024-06-20', thumbnailUrl: 'https://placehold.co/150x100.png', clientName: 'Administración Central', location: 'Oficinas Piso 2' },
 ];
 
 export function PlanCreator() {
   const router = useRouter();
-  const [existingPlans, setExistingPlans] = React.useState(mockExistingPlans);
+  const [existingPlansData, setExistingPlansData] = React.useState<PlanCardData[]>(mockExistingPlans);
 
   const handleCreateNewPlan = () => {
     console.log("Iniciando creación de nuevo plano/auditoría...");
     router.push('/new-audit-form');
   };
 
-  const handleEditPlan = (planId: string) => {
+  const handleNavigateToEdit = (planId: string, planName: string) => {
     console.log(`Editando plano: ${planId}`);
-    const plan = existingPlans.find(p => p.id === planId);
-    if (plan) {
-      router.push(`/edit-plan/${planId}?name=${encodeURIComponent(plan.name)}`);
-    } else {
-      router.push(`/edit-plan/${planId}`);
-    }
+    router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
+
+  const handleAuditPlanPlaceholder = (planId: string, planName: string) => {
+    toast({
+      title: "Acción no disponible",
+      description: `La auditoría para el plano "${planName}" se inicia desde 'Planos Asignados' o 'Iniciar Auditoría'.`,
+    });
+    console.log(`Intento de auditar plano: ${planId} desde PlanCreator (no aplicable aquí).`);
+  };
+
+  const handleDownloadPlanPlaceholder = (planId: string, planName: string) => {
+    toast({
+      title: "Acción no disponible",
+      description: `La descarga del plano "${planName}" se gestiona en 'Planos Asignados'.`,
+    });
+    console.log(`Intento de descargar plano: ${planId} desde PlanCreator (no aplicable aquí).`);
+  };
+
 
   return (
     <Card className="w-full shadow-lg">
@@ -85,35 +97,19 @@ export function PlanCreator() {
           <h3 className="text-xl font-semibold mb-6 text-card-foreground">
             Continuar Plano Existente (Visual)
           </h3>
-          {existingPlans.length > 0 ? (
+          {existingPlansData.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {existingPlans.map((plan) => (
-                <Card key={plan.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  {/* Placeholder for image - re-add <Image> component here if needed */}
-                  <div 
-                    className="relative w-full h-32 sm:h-36 bg-muted flex items-center justify-center"
-                    data-ai-hint="map blueprint"
-                  >
-                    <span className="text-sm text-muted-foreground">Previsualización</span>
-                  </div>
-                  <CardContent className="p-4 space-y-2">
-                    <h4 className="font-semibold text-md text-card-foreground truncate" title={plan.name}>
-                      {plan.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      Última modificación: {plan.lastModified}
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-2"
-                      onClick={() => handleEditPlan(plan.id)}
-                    >
-                      <Edit3 className="mr-2 h-4 w-4" />
-                      Editar Plano Visual
-                    </Button>
-                  </CardContent>
-                </Card>
+              {existingPlansData.map((plan) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isDownloading={false} // No download state managed here
+                  isDownloaded={false}  // No download state managed here
+                  onViewPlan={handleNavigateToEdit}
+                  onAuditPlan={handleAuditPlanPlaceholder} // Placeholder action
+                  onEditPlan={handleNavigateToEdit}
+                  onDownloadPlan={handleDownloadPlanPlaceholder} // Placeholder action
+                />
               ))}
             </div>
           ) : (
