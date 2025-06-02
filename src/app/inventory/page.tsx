@@ -1,3 +1,4 @@
+
 "use client";
 
 import { InventoryTable } from "@/components/custom/inventory-table";
@@ -5,16 +6,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Archive, PlusCircle } from "lucide-react";
+import { ArrowLeft, Archive } from "lucide-react"; // Removed PlusCircle
 
 export default function InventoryPage() {
-  const handleAddInventoryItem = () => {
-    // Placeholder for future functionality
-    console.log("Request to add new inventory item.");
-    // In a real app, this would likely open a modal or navigate to a new form.
-    // For now, we can use a toast to indicate the action.
-    // toast({ title: "Funcionalidad Pendiente", description: "Agregar nuevo artículo al inventario." });
-  };
+  // Removed handleAddInventoryItem function
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
@@ -28,7 +23,7 @@ export default function InventoryPage() {
                     variant="ghost"
                     size="icon"
                     aria-label="Volver al Inicio"
-                    className="mr-4" // Added margin to separate from title
+                    className="mr-4" 
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
@@ -43,10 +38,7 @@ export default function InventoryPage() {
                   </CardDescription>
                 </div>
               </div>
-              <Button onClick={handleAddInventoryItem} size="sm">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Agregar Artículo
-              </Button>
+              {/* Removed the Add Inventory Item Button here */}
             </div>
           </CardHeader>
           <CardContent className="p-6">
