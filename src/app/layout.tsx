@@ -1,18 +1,15 @@
 
 import type {Metadata} from 'next';
-import {Geist, Geist_Mono} from 'next/font/google';
+import { Inter } from 'next/font/google'; // Changed from Geist
 import './globals.css';
 import { MobileNav } from '@/components/custom/mobile-nav';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({ // Changed from geistSans
+  variable: '--font-inter', // Changed variable name
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+// Removed geistMono
 
 export const metadata: Metadata = {
   title: 'Firebase Studio App',
@@ -26,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}> {/* Updated class to use Inter and apply font-sans */}
         <div className="min-h-screen pb-16 md:pb-0"> {/* Add padding-bottom for mobile to avoid overlap with MobileNav */}
           {children}
         </div>
