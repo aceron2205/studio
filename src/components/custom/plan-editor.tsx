@@ -3,8 +3,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Save, Eye, Building, Tag, Thermometer, BatteryCharging, Calendar } from "lucide-react"; // Removed FileCheck, Edit3, Trash2, ChevronDown
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, PlusCircle, Save, Eye, Building, Tag, Thermometer, BatteryCharging, Calendar } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown"; // Import the new component
+import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown";
+import { ScannerInterface } from "./scanner-interface"; // Import ScannerInterface
 
 interface Extinguisher {
   id: string;
@@ -43,6 +44,29 @@ const componentMockExtinguishers: Extinguisher[] = [
   { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', last_revision_date: '2023-08-01', map_coordinates: { x: 300, y: 50 } },
   { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', last_revision_date: '2024-05-05', map_coordinates: { x: 350, y: 100 } },
 ];
+
+// Mock data for scannable extinguishers to be added
+const mockKnownScannableExtinguishers: Record<string, Partial<Extinguisher>> = {
+  'NEW-SCAN-001': {
+    type: 'PQS Especial Scan',
+    capacity: '12 kg',
+    location_description: 'Nueva Ubicación (escaneada)',
+    model: 'ScanModel-Y2K',
+    pressure_indicator: 'En Rojo',
+    charge_status: 'Requiere Revisión',
+    last_revision_date: '2023-01-01',
+  },
+  'NEW-SCAN-002': {
+    type: 'CO2 Scan',
+    capacity: '10 kg',
+    location_description: 'Área de Pruebas (escaneada)',
+    model: 'ScanCO2-Pro',
+    pressure_indicator: 'N/A',
+    charge_status: 'Cargado (Reciente)',
+    last_revision_date: new Date().toISOString().split('T')[0],
+  },
+};
+
 
 export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProps) {
   const router = useRouter();
@@ -103,6 +127,45 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     router.push(`/edit-extinguisher/${planId}/${extinguisherId}`);
   };
 
+  const handleCodeScannedToAdd = (code: string) => {
+    const newExtId = `ext-scan-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
+    const knownData = mockKnownScannableExtinguishers[code.toUpperCase()] || mockKnownScannableExtinguishers[code];
+  
+    let newExtinguisher: Extinguisher;
+  
+    if (knownData) {
+      newExtinguisher = {
+        id: newExtId,
+        type: knownData.type || 'Tipo Desconocido',
+        capacity: knownData.capacity || 'N/A',
+        location_description: knownData.location_description || 'Ubicación Pendiente',
+        model: knownData.model,
+        pressure_indicator: knownData.pressure_indicator,
+        charge_status: knownData.charge_status,
+        last_revision_date: knownData.last_revision_date,
+        map_coordinates: { x: Math.floor(Math.random() * 300) + 50, y: Math.floor(Math.random() * 150) + 50 } 
+      };
+      toast({
+        title: "Extinguidor Añadido desde Escaneo",
+        description: `Se añadió ${newExtinguisher.type} (${code}) al plano.`,
+      });
+    } else {
+      newExtinguisher = {
+        id: newExtId,
+        type: `Nuevo (Código: ${code})`,
+        capacity: 'Por definir',
+        location_description: 'Pendiente de definir ubicación',
+        map_coordinates: { x: Math.floor(Math.random() * 300) + 50, y: Math.floor(Math.random() * 150) + 50 }
+      };
+      toast({
+        title: "Extinguidor Nuevo Añadido",
+        description: `Se añadió un extinguidor para el código ${code}. Complete sus detalles.`,
+        variant: "default" 
+      });
+    }
+    setExtinguishers(prev => [...prev, newExtinguisher]);
+  };
+
   const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
     value ? (
       <div className="flex items-start text-sm">
@@ -141,6 +204,21 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
+        <Card className="mb-6 p-4 shadow-sm">
+          <CardHeader className="p-2 pb-3">
+            <CardTitle className="text-lg text-primary">Escanear para Añadir Extinguidor al Plano</CardTitle>
+            <CardDescription className="text-sm">
+              Use el escáner o ingrese un código aquí para buscar y añadir un nuevo extinguidor directamente a la lista de este plano.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-2">
+            <ScannerInterface
+              onCodeScanned={handleCodeScannedToAdd}
+              showCamera={true} 
+            />
+          </CardContent>
+        </Card>
+        
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-semibold text-card-foreground">
             Extintores en este Plano ({extinguishers.length})
@@ -148,7 +226,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           <div className="flex space-x-2">
             <Button onClick={handleAddExtinguisher} size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Agregar
+              Agregar Manualmente
             </Button>
           </div>
         </div>
@@ -193,7 +271,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
           </Accordion>
         ) : (
           <p className="text-muted-foreground text-center py-4">
-            Aún no hay extintores agregados a este plano. Haga clic en "Agregar" para registrar uno.
+            Aún no hay extintores agregados a este plano. Haga clic en "Agregar Manualmente" o use el escáner de arriba para registrar uno.
           </p>
         )}
 
@@ -209,3 +287,5 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     </Card>
   );
 }
+
+    
