@@ -194,7 +194,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
         <div className="w-full text-center">
           <CardTitle className="text-2xl font-semibold text-primary flex items-center justify-center gap-2">
             <Eye className="h-6 w-6" />
-            {planId === 'new' ? 'Creando Nuevo Plano' : 'Ver el Extintor'}
+            {planId === 'new' ? 'Creando Nuevo Plano' : 'Ver Plano'}
           </CardTitle>
           <Input
             value={currentPlanName}
