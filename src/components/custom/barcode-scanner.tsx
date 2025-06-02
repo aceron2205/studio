@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { List, ShieldCheck, FileCheck, Edit3, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
+import { List, ShieldCheck, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react"; // Removed FileCheck, Edit3
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown"; // Import the new component
 
 
 export interface ExtinguisherDataForAccordion {
@@ -124,6 +119,17 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
 
   const handleEditExtinguisher = (extId: string) => {
     router.push(`/edit-extinguisher/${itemId}/${extId}`);
+  };
+
+  const handleDeleteScannedExtinguisher = (extinguisherId: string, extinguisherType: string) => {
+    console.log(`Solicitud de baja para extinguidor ${extinguisherId} (${extinguisherType}) desde BarcodeScanner.`);
+    toast({
+        title: "Acción Registrada",
+        description: `La solicitud de baja para el extinguidor ${extinguisherType} (${extinguisherId}) ha sido registrada. (Simulado)`,
+        variant: "default", // Or "destructive" if you want to emphasize it
+    });
+    // Note: BarcodeScanner does not modify extinguishersForPlan directly.
+    // This action would typically be handled by a parent component managing the state.
   };
 
   const auditedCountInList = extinguishersForPlan.filter(ext => auditedExtinguisherIds.has(ext.id)).length;
@@ -246,23 +252,13 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                           <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
                         </div>
                         <div className="flex justify-end pt-3 mt-3 border-t border-border">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                        Acciones <ChevronDown className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setOpenAccordionItem(ext.id); handleAuditExtinguisher(ext.id); }}>
-                                    <FileCheck className="mr-2 h-4 w-4" />
-                                    Auditar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setOpenAccordionItem(ext.id); handleEditExtinguisher(ext.id); }}>
-                                    <Edit3 className="mr-2 h-4 w-4" />
-                                    Editar
-                                </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <ExtinguisherActionsDropdown
+                                extinguisherId={ext.id}
+                                extinguisherType={`${displayExt.type} (${displayExt.capacity})`}
+                                onAudit={() => handleAuditExtinguisher(ext.id)}
+                                onEdit={() => handleEditExtinguisher(ext.id)}
+                                onDelete={() => handleDeleteScannedExtinguisher(ext.id, `${displayExt.type} (${displayExt.capacity})`)}
+                            />
                         </div>
                       </AccordionContent>
                     </AccordionItem>
