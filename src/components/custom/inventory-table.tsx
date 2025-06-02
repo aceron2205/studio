@@ -116,7 +116,7 @@ export function InventoryTable() {
             <TableHead className="text-center w-[150px]">Ultima Mod.</TableHead>
             <TableHead>Artículo</TableHead>
             <TableHead className="text-right w-[120px]">Stock</TableHead>
-            <TableHead className="text-center w-[100px]">Editar</TableHead>
+            <TableHead className="text-center">Editar</TableHead> {/* Removed w-[100px] */}
           </TableRow>
         </TableHeader>
         <TableBody>
