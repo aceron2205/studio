@@ -209,7 +209,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
       <CardContent className="p-6 space-y-6">
         <Card className="mb-6 p-4 shadow-sm">
           <CardHeader className="p-2 pb-3">
-            <CardTitle className="text-lg text-primary">Escanear para Añadir Extinguidor al Plano</CardTitle>
+            <CardTitle className="text-lg text-primary">Escanear Extintor</CardTitle>
             <CardDescription className="text-sm">
               Use el escáner o ingrese un código aquí para buscar y añadir un nuevo extinguidor directamente a la lista de este plano.
             </CardDescription>
@@ -290,5 +290,3 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     </Card>
   );
 }
-
-    
