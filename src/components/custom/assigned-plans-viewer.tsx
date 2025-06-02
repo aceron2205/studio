@@ -4,68 +4,39 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ListChecks } from "lucide-react"; // Removed icons now in PlanCard
+import { ArrowLeft, ChevronRight, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-import { PlanCard, type Plan as PlanCardData } from "./plan-card"; // Import the new PlanCard component
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/hooks/use-toast"; // Kept for potential future use, but not directly used now
 
-// Interface for AssignedPlan remains the same as PlanCardData for consistency
-type AssignedPlan = PlanCardData;
+// Interface for Plan data
+interface AssignedPlan {
+  id: string;
+  name: string;
+  lastModified: string;
+  clientName?: string;
+  location?: string;
+  // thumbnailUrl is no longer used in this list view
+}
 
 const mockAssignedPlans: AssignedPlan[] = [
-  { id: 'plan-alpha', name: 'Plano General Fábrica A', lastModified: '2024-07-28', thumbnailUrl: 'https://placehold.co/300x200.png', clientName: 'Industrias Alfa', location: 'Zona Industrial Norte' },
-  { id: 'plan-beta', name: 'Oficinas Corporativas Central', lastModified: '2024-07-25', thumbnailUrl: 'https://placehold.co/300x200.png', clientName: 'Global Corp', location: 'Distrito Financiero' },
-  { id: 'plan-gamma', name: 'Almacén Sur Extintores', lastModified: '2024-07-22', thumbnailUrl: 'https://placehold.co/300x200.png', clientName: 'Logística Segura', location: 'Parque Logístico Sur' },
+  { id: 'plan-alpha', name: 'Plano General Fábrica A', lastModified: '2024-07-28', clientName: 'Industrias Alfa', location: 'Zona Industrial Norte' },
+  { id: 'plan-beta', name: 'Oficinas Corporativas Central', lastModified: '2024-07-25', clientName: 'Global Corp', location: 'Distrito Financiero' },
+  { id: 'plan-gamma', name: 'Almacén Sur Extintores', lastModified: '2024-07-22', clientName: 'Logística Segura', location: 'Parque Logístico Sur' },
 ];
 
 export function AssignedPlansViewer() {
   const router = useRouter();
   const [plans, setPlans] = React.useState<AssignedPlan[]>(mockAssignedPlans);
-  const [downloadedPlanIds, setDownloadedPlanIds] = React.useState<Set<string>>(new Set());
-  const [downloadingPlanIds, setDownloadingPlanIds] = React.useState<Set<string>>(new Set());
 
-  const handleDownloadPlan = (planId: string, planName: string) => {
-    if (downloadingPlanIds.has(planId)) {
-      return;
-    }
-
-    setDownloadingPlanIds(prev => new Set(prev).add(planId));
-    setDownloadedPlanIds(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(planId); // Remove from downloaded if re-downloading
-      return newSet;
-    });
-
-    toast({
-      title: "Descarga Iniciada",
-      description: `La descarga del plano ${planName} ha comenzado.`,
-    });
-
-    setTimeout(() => {
-      setDownloadingPlanIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(planId);
-        return newSet;
-      });
-      setDownloadedPlanIds(prev => new Set(prev).add(planId));
-      // Optional: Add another toast for completion
-      // toast({ title: "Descarga Completada", description: `El plano ${planName} ha sido descargado.` });
-    }, 2000);
-  };
-
-  const handleAuditPlan = (planId: string, planName: string) => {
-    console.log(`Navegando para auditar el plano: ${planId} - ${planName}`);
-    router.push(`/audit-scan/${planId}`);
-  };
-
-  const handleViewOrEditPlan = (planId: string, planName:string) => {
+  const handleViewOrEditPlan = (planId: string, planName: string) => {
     console.log(`Viendo/Editando plano: ${planId}`);
     router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto shadow-lg">
+    <Card className="w-full max-w-2xl mx-auto shadow-lg">
       <CardHeader className="relative p-6 border-b">
         <Link href="/" passHref>
           <Button
@@ -77,35 +48,39 @@ export function AssignedPlansViewer() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div className="w-full text-center">
-          <CardTitle className="text-2xl font-semibold text-primary flex items-center justify-center gap-2">
-            <ListChecks className="h-6 w-6" />
+        <div className="pl-10 text-left"> {/* Adjusted padding to make space for back button */}
+          <CardTitle className="text-2xl font-bold text-foreground">
             Planos Asignados
           </CardTitle>
-          <CardDescription className="mt-1">
-            Visualiza y gestiona los planos de ubicación de extintores asignados.
-          </CardDescription>
+          {/* CardDescription removed to match new UI */}
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-0"> {/* Removed padding from CardContent for full-width list items */}
         {plans.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan) => (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                isDownloading={downloadingPlanIds.has(plan.id)}
-                isDownloaded={downloadedPlanIds.has(plan.id)}
-                onViewPlan={handleViewOrEditPlan}
-                onAuditPlan={handleAuditPlan}
-                onEditPlan={handleViewOrEditPlan} // Assuming edit and view go to the same place for now
-                onDownloadPlan={handleDownloadPlan}
-              />
+          <ul className="divide-y divide-border">
+            {plans.map((plan, index) => (
+              <li key={plan.id}>
+                <button
+                  onClick={() => handleViewOrEditPlan(plan.id, plan.name)}
+                  className="flex items-center justify-between w-full px-6 py-4 text-left hover:bg-muted/50 focus:outline-none focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  aria-label={`Ver detalles del plano ${plan.name}`}
+                >
+                  <div className="flex-grow">
+                    <h3 className="text-md font-semibold text-card-foreground">{plan.name}</h3>
+                    {plan.clientName && <p className="text-sm text-muted-foreground mt-0.5">{plan.clientName}</p>}
+                    {plan.location && <p className="text-sm text-muted-foreground">{plan.location}</p>}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Última mod.: {plan.lastModified}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground ml-4 flex-shrink-0" />
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : (
-          <div className="text-center py-10">
+          <div className="text-center py-10 px-6">
             <ListChecks className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-2 text-lg font-medium text-foreground">No hay planos asignados</h3>
             <p className="mt-1 text-sm text-muted-foreground">
