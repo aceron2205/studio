@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, RefreshCw, Search, BarChartBig, Settings } from 'lucide-react'; // Added Settings icon
+import { Home, RefreshCw, Search, BarChartBig, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -11,7 +11,7 @@ const navItems = [
   { href: '/inventory', label: 'Reportes', icon: BarChartBig },
   { href: '#', icon: RefreshCw, isCentral: true, label: 'SyncAction' }, // Label for key, not displayed
   { href: '/search', label: 'Buscar', icon: Search },
-  { href: '/settings', label: 'Configuraciones', icon: Settings }, // Changed from Stats
+  { href: '/settings', label: 'Ajustes', icon: Settings }, // Changed label here
 ];
 
 export function MobileNav() {
