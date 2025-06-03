@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Plus, MapPin, Archive, ClipboardPlus, ChevronRight, CheckCircle2, Loader2, Clock, UserCircle } from 'lucide-react'; // Removed RefreshCw, SearchIcon as they were part of the other header
+import { Plus, MapPin, Archive, ClipboardPlus, ChevronRight, CheckCircle2, Loader2, Clock, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type React from 'react';
@@ -49,8 +49,6 @@ const mockRecentAudits: RecentAudit[] = [
 export default function HomePage() {
   const userName = "Usuario";
 
-  // Removed handleSyncClick as it was part of the other header
-
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
       {/* Header "Bienvenido" */}
@@ -74,7 +72,7 @@ export default function HomePage() {
         </Link>
       </header>
 
-      <main className="flex-grow p-4 md:p-6 space-y-8"> {/* Original spacing */}
+      <main className="flex-grow p-4 md:p-6 space-y-6">
         {/* Auditorías Recientes Section */}
         <section>
           <h2 className="text-xl font-semibold text-foreground mb-4">Auditorías Recientes</h2>
@@ -116,17 +114,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        <Separator className="my-6 md:my-8" /> {/* Original spacing */}
+        <Separator className="my-4 md:my-6" />
 
         {/* Más Section */}
         <section>
           <h2 className="text-xl font-semibold text-foreground mb-4">Más</h2>
           <div className="space-y-3">
-             <MoreLinkItem
-              href="/start-audit"
-              icon={Plus}
-              label="Iniciar Auditoría"
-            />
             <MoreLinkItem
               href="/view-plans"
               icon={MapPin}
