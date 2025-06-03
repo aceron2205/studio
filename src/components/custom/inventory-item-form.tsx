@@ -110,7 +110,7 @@ export function InventoryItemForm({
             {initialData?.articleName ? "Modifique los detalles del artículo." : "Complete los detalles del nuevo artículo de inventario."}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-grow pr-2 py-2"> {/* Removed overflow-y-auto */}
+        <div className="flex-grow pr-2 py-2 overflow-y-auto">
           <Form {...form}>
             <form className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
