@@ -53,7 +53,7 @@ export default function InventoryPage() {
       </div>
       <Button
         onClick={handleAddInventoryItem}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+        className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
         size="icon"
         aria-label="Agregar artículo al inventario"
       >
@@ -63,3 +63,4 @@ export default function InventoryPage() {
     </>
   );
 }
+
