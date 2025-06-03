@@ -71,20 +71,22 @@ export function InventoryItemForm({
   });
 
   React.useEffect(() => {
-    if (initialData) {
-      form.reset(initialData);
-    } else {
-      form.reset({ // Default for new item
-        articleName: "",
-        description: "",
-        stockQuantity: 0,
-        unit: "piezas",
-        barcode: "",
-        serialNumber: "",
-        binLocation: "",
-        suggestedSupplier: "",
-        lowStockThreshold: 10,
-      });
+    if (isOpen) { // Only reset form when dialog opens
+      if (initialData) {
+        form.reset(initialData);
+      } else {
+        form.reset({ // Default for new item
+          articleName: "",
+          description: "",
+          stockQuantity: 0,
+          unit: "piezas",
+          barcode: "",
+          serialNumber: "",
+          binLocation: "",
+          suggestedSupplier: "",
+          lowStockThreshold: 10,
+        });
+      }
     }
   }, [initialData, form, isOpen]);
 
@@ -92,11 +94,11 @@ export function InventoryItemForm({
   const onSubmit = (data: InventoryItemFormData) => {
     console.log("Inventory item data submitted:", data);
     onSave(data); // Call the passed onSave handler
-    form.reset(); // Reset form after submission
+    // form.reset(); // Reset form is now handled by useEffect on open
     onOpenChange(false); // Close dialog
     toast({
-      title: "Artículo Guardado",
-      description: `El artículo "${data.articleName}" ha sido guardado.`,
+      title: initialData?.articleName ? "Artículo Actualizado" : "Artículo Guardado",
+      description: `El artículo "${data.articleName}" ha sido ${initialData?.articleName ? 'actualizado' : 'guardado'}.`,
     });
   };
 
@@ -112,9 +114,39 @@ export function InventoryItemForm({
             {initialData?.articleName ? "Modifique los detalles del artículo." : "Complete los detalles del nuevo artículo de inventario."}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-grow overflow-y-auto pr-2">
+        <div className="flex-grow overflow-y-auto pr-2 py-2"> {/* Added py-2 for spacing */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
+            {/* Removed onSubmit from form tag as it's handled by the button */}
+            <form className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="stockQuantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cantidad en Stock</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unidad</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ej: piezas, kg" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="articleName"
@@ -145,34 +177,6 @@ export function InventoryItemForm({
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="stockQuantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantidad en Stock</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="0" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Unidad</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ej: piezas, kg, mts" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
               <FormField
                 control={form.control}
                 name="barcode"
@@ -204,7 +208,7 @@ export function InventoryItemForm({
                 name="binLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ubicación/Estante (Opcional)</FormLabel>
+                    <FormLabel>Ubicación/Estante (BIN)</FormLabel>
                     <FormControl>
                       <Input placeholder="Ej: Estante A-3, Bodega 2" {...field} />
                     </FormControl>
@@ -212,7 +216,7 @@ export function InventoryItemForm({
                   </FormItem>
                 )}
               />
-              <FormField
+               <FormField
                 control={form.control}
                 name="suggestedSupplier"
                 render={({ field }) => (
@@ -238,6 +242,7 @@ export function InventoryItemForm({
                   </FormItem>
                 )}
               />
+              {/* The submit button is in DialogFooter, so no need for it here inside the <form> body */}
             </form>
           </Form>
         </div>
@@ -247,12 +252,14 @@ export function InventoryItemForm({
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+          {/* The onClick here will trigger the form submission */}
+          <Button type="button" onClick={form.handleSubmit(onSubmit)}>
             <Save className="mr-2 h-4 w-4" />
-            Guardar Artículo
+            {initialData?.articleName ? "Actualizar Artículo" : "Guardar Artículo"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
