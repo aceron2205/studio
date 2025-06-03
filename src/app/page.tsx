@@ -2,13 +2,13 @@
 "use client";
 
 import Link from 'next/link';
-import { Plus, MapPin, Archive, ClipboardPlus, UserCircle, ChevronRight, CheckCircle2, Loader2, Clock } from 'lucide-react';
+import { Plus, MapPin, Archive, ClipboardPlus, ChevronRight, CheckCircle2, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type React from 'react';
 import { cn } from '@/lib/utils';
 
-// Helper component for items in the "Más" section
+// Helper component for items in the "More" section
 function MoreLinkItem({
   href,
   icon: Icon,
@@ -47,31 +47,29 @@ const mockRecentAudits: RecentAudit[] = [
 ];
 
 export default function HomePage() {
-  const userName = "Usuario"; // Mock user name
+  const userName = "User"; // Changed from "Usuario"
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      <header className="px-4 pt-10 pb-8 md:px-6 md:pt-12 md:pb-10">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Bienvenido, {userName}
-          </h1>
-          <Button variant="ghost" size="icon" aria-label="Perfil de Usuario">
-            <UserCircle className="h-8 w-8 text-primary" />
-          </Button>
-        </div>
+      <header className="bg-teal-600 text-white text-center p-8 md:p-12 rounded-b-xl shadow-md">
+        <h1 className="text-3xl sm:text-4xl font-bold">
+          Welcome, {userName}
+        </h1>
+      </header>
+
+      <div className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
         <Link href="/start-audit" passHref>
           <Button size="lg" className="w-full py-6 text-lg bg-primary hover:bg-primary/90 shadow-lg">
             <Plus className="mr-3 h-6 w-6" />
-            Iniciar Auditoría
+            Start Audit
           </Button>
         </Link>
-      </header>
+      </div>
 
       <main className="flex-grow p-4 md:p-6 space-y-8">
         {/* Auditorías Recientes Section */}
         <section>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Auditorías Recientes</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Recent Audits</h2>
           <div className="space-y-3">
             {mockRecentAudits.length > 0 ? (
               mockRecentAudits.map((audit) => (
@@ -104,7 +102,7 @@ export default function HomePage() {
               ))
             ) : (
               <p className="text-sm text-muted-foreground p-4 bg-card rounded-lg shadow-sm text-center">
-                No hay auditorías recientes para mostrar.
+                No recent audits to display.
               </p>
             )}
           </div>
@@ -114,22 +112,22 @@ export default function HomePage() {
 
         {/* Más Section */}
         <section>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Más</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">More</h2>
           <div className="space-y-3">
             <MoreLinkItem
               href="/view-plans"
               icon={MapPin}
-              label="Planos Asignados"
+              label="Assigned Plans"
             />
             <MoreLinkItem
               href="/inventory"
               icon={Archive}
-              label="Inventario"
+              label="Inventory"
             />
             <MoreLinkItem
               href="/create-plan"
               icon={ClipboardPlus}
-              label="Crear Nuevo Plan"
+              label="Create New Plan"
             />
           </div>
         </section>
