@@ -167,7 +167,7 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
         <>
           <Button onClick={handleToggleCamera} className="w-full" variant="outline">
             <Camera className="mr-2 h-5 w-5" />
-            {isCameraOpen ? "Cerrar Cámara" : "Escanear con Cámara"}
+            {isCameraOpen ? "Cerrar Escáner" : "Escanear Código de Barras/QR"}
           </Button>
 
           {hasCameraPermission === false && !isCameraOpen && (
