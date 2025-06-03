@@ -3,15 +3,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, RefreshCw, Search, BarChartBig } from 'lucide-react'; // Changed WalletCards to BarChartBig
+import { Home, RefreshCw, Search, BarChartBig, Settings } from 'lucide-react'; // Added Settings icon
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/inventory', label: 'Reportes', icon: BarChartBig }, // Changed label and icon
+  { href: '/inventory', label: 'Reportes', icon: BarChartBig },
   { href: '#', icon: RefreshCw, isCentral: true, label: 'SyncAction' }, // Label for key, not displayed
   { href: '/search', label: 'Buscar', icon: Search },
-  { href: '/view-plans', label: 'Stats', icon: BarChartBig }, // Note: Stats also uses BarChartBig, which is fine.
+  { href: '/settings', label: 'Configuraciones', icon: Settings }, // Changed from Stats
 ];
 
 export function MobileNav() {
