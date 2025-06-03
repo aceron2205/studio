@@ -1,9 +1,10 @@
 
-"use client"; // Add this directive
+"use client";
 
 import Link from 'next/link';
-import { Plus, MapPin, Archive, ClipboardPlus, CheckCircle2, Loader2, Clock, RefreshCw, Search as SearchIcon } from 'lucide-react';
+import { Plus, MapPin, Archive, ClipboardPlus, UserCircle, ChevronRight, CheckCircle2, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import type React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -20,11 +21,14 @@ function MoreLinkItem({
   return (
     <Link
       href={href}
-      className="flex items-center p-4 bg-card rounded-lg shadow-sm hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className="flex items-center justify-between p-4 bg-card rounded-lg shadow-sm hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       aria-label={label}
     >
-      <Icon className="h-6 w-6 text-primary mr-4 flex-shrink-0" />
-      <span className="text-md font-medium text-card-foreground">{label}</span>
+      <div className="flex items-center">
+        <Icon className="h-6 w-6 text-primary mr-4 flex-shrink-0" />
+        <span className="text-md font-medium text-card-foreground">{label}</span>
+      </div>
+      <ChevronRight className="h-5 w-5 text-muted-foreground" />
     </Link>
   );
 }
@@ -42,62 +46,27 @@ const mockRecentAudits: RecentAudit[] = [
   { id: 'audit-rec-3', clientName: 'Almacén Zeta', date: '28 de Julio, 2024', status: 'Pendiente' },
 ];
 
-// Mock stats for the new header
-const headerStats = {
-  programadas: 41,
-  completadas: 27,
-  pendientes: 3,
-};
-
 export default function HomePage() {
+  const userName = "Usuario"; // Mock user name
+
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      {/* New Header Start */}
-      <header className="bg-primary text-primary-foreground p-4 md:p-6 rounded-b-xl shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold sm:text-4xl">
-            Auditorías
+      <header className="px-4 pt-10 pb-8 md:px-6 md:pt-12 md:pb-10">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+            Bienvenido, {userName}
           </h1>
-          <div className="flex items-center space-x-3">
-            <button
-              aria-label="Sincronizar"
-              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-full p-1 hover:bg-primary-foreground/10 transition-colors"
-              onClick={() => console.log("Sync button clicked")} // Placeholder action
-            >
-              <RefreshCw className="h-6 w-6" />
-            </button>
-            <Link
-              href="/search"
-              aria-label="Buscar"
-              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-full p-1 hover:bg-primary-foreground/10 transition-colors"
-            >
-              <SearchIcon className="h-6 w-6" />
-            </Link>
-          </div>
+          <Button variant="ghost" size="icon" aria-label="Perfil de Usuario">
+            <UserCircle className="h-8 w-8 text-primary" />
+          </Button>
         </div>
-
-        <div className="flex justify-around text-sm font-medium text-primary-foreground/80 mb-6">
-          <span className="cursor-pointer hover:text-primary-foreground px-2 py-1">ESTA SEMANA</span>
-          <span className="cursor-pointer text-primary-foreground font-semibold border-b-2 border-primary-foreground px-2 py-1">ESTE MES</span>
-          <span className="cursor-pointer hover:text-primary-foreground px-2 py-1">MES PASADO</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p className="text-3xl font-bold">{headerStats.programadas}</p>
-            <p className="text-xs text-primary-foreground/90">Programadas</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold">{headerStats.completadas}</p>
-            <p className="text-xs text-primary-foreground/90">Completadas</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold">{headerStats.pendientes}</p>
-            <p className="text-xs text-primary-foreground/90">Pendientes</p>
-          </div>
-        </div>
+        <Link href="/start-audit" passHref>
+          <Button size="lg" className="w-full py-6 text-lg bg-primary hover:bg-primary/90 shadow-lg">
+            <Plus className="mr-3 h-6 w-6" />
+            Iniciar Auditoría
+          </Button>
+        </Link>
       </header>
-      {/* New Header End */}
 
       <main className="flex-grow p-4 md:p-6 space-y-8">
         {/* Auditorías Recientes Section */}
@@ -141,15 +110,12 @@ export default function HomePage() {
           </div>
         </section>
 
+        <Separator className="my-6 md:my-8" />
+
         {/* Más Section */}
         <section>
           <h2 className="text-xl font-semibold text-foreground mb-4">Más</h2>
           <div className="space-y-3">
-            <MoreLinkItem
-              href="/start-audit"
-              icon={Plus}
-              label="Iniciar Auditoría"
-            />
             <MoreLinkItem
               href="/view-plans"
               icon={MapPin}
