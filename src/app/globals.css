@@ -5,33 +5,33 @@
 
 @layer base {
   :root {
-    --background: 180 67% 97%; /* Soft White */
-    --foreground: 217 78% 12%; /* Navy */
+    --background: 0 0% 96%; /* Light Gray (Almost White) */
+    --foreground: 0 0% 10%; /* Very Dark Gray (Almost Black) */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 217 78% 12%; /* Navy */
+    --card-foreground: 0 0% 10%; /* Very Dark Gray */
 
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 217 78% 12%; /* Navy */
+    --popover-foreground: 0 0% 10%; /* Very Dark Gray */
 
-    --primary: 185 80% 29%; /* Mid Teal */
+    --primary: 0 75% 55%; /* Strong Red */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 178 48% 83%; /* Pale Blue */
-    --secondary-foreground: 217 78% 12%; /* Navy */
+    --secondary: 0 0% 90%; /* Light Gray */
+    --secondary-foreground: 0 0% 20%; /* Dark Gray */
 
-    --muted: 180 25% 90%; /* Lighter, slightly desaturated Soft White/Pale Blue base */
-    --muted-foreground: 217 30% 40%; /* Less intense Navy */
+    --muted: 0 0% 94%; /* Very Light Gray */
+    --muted-foreground: 0 0% 40%; /* Medium Gray */
 
-    --accent: 0 100% 71%; /* Hot Coral */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: 45 100% 50%; /* Bright Yellow */
+    --accent-foreground: 0 0% 10%; /* Very Dark Gray */
 
-    --destructive: 0 84.2% 60.2%; /* Default Red */
-    --destructive-foreground: 0 0% 98%; /* Default Light Text */
+    --destructive: 0 80% 50%; /* Intense Red for destructive actions */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 180 30% 85%; /* Slightly darker Soft White/Pale Blue base */
-    --input: 180 35% 88%; /* Similar to border for inputs */
-    --ring: 185 80% 29%; /* Mid Teal for focus rings */
+    --border: 0 0% 85%; /* Light Gray */
+    --input: 0 0% 88%; /* Slightly Lighter Gray */
+    --ring: 0 75% 55%; /* Primary Red for focus rings */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -40,7 +40,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.75rem; /* 12px */
 
-    /* Sidebar variables, kept for consistency but not primary focus of this change */
+    /* Sidebar variables, kept for consistency */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -52,33 +52,33 @@
   }
 
   .dark {
-    --background: 217 78% 12%; /* Navy */
-    --foreground: 180 67% 97%; /* Soft White */
+    --background: 0 0% 10%; /* Very Dark Gray (Almost Black) */
+    --foreground: 0 0% 95%; /* Light Gray (Almost White) */
 
-    --card: 217 60% 18%; /* Darker Navy, slightly lighter than background */
-    --card-foreground: 180 67% 97%; /* Soft White */
+    --card: 0 0% 15%; /* Dark Gray */
+    --card-foreground: 0 0% 95%; /* Light Gray */
 
-    --popover: 217 60% 18%; /* Darker Navy */
-    --popover-foreground: 180 67% 97%; /* Soft White */
+    --popover: 0 0% 15%; /* Dark Gray */
+    --popover-foreground: 0 0% 95%; /* Light Gray */
 
-    --primary: 185 70% 55%; /* Lighter Mid Teal */
-    --primary-foreground: 217 78% 12%; /* Navy for contrast */
+    --primary: 0 70% 60%; /* Brighter Red for dark mode */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 185 50% 30%; /* Darker Teal */
-    --secondary-foreground: 180 60% 85%; /* Light text on dark secondary */
+    --secondary: 0 0% 25%; /* Medium-Dark Gray */
+    --secondary-foreground: 0 0% 85%; /* Light Gray */
 
-    --muted: 217 40% 25%; /* Muted, darker Navy */
-    --muted-foreground: 180 30% 70%; /* Lighter, muted Soft White */
+    --muted: 0 0% 20%; /* Dark Gray */
+    --muted-foreground: 0 0% 60%; /* Medium-Light Gray */
 
-    --accent: 67 100% 50%; /* Neon Yellow */
-    --accent-foreground: 217 78% 12%; /* Navy for contrast on Neon Yellow */
+    --accent: 45 100% 55%; /* Bright Yellow (slightly lighter) */
+    --accent-foreground: 0 0% 10%; /* Very Dark Gray */
 
-    --destructive: 0 70% 50%; /* Desaturated/darker red for dark mode */
-    --destructive-foreground: 0 0% 98%; /* Default Light Text */
+    --destructive: 0 75% 50%; /* Red for destructive actions in dark mode */
+    --destructive-foreground: 0 0% 98%; /* Light Gray/White */
 
-    --border: 217 50% 28%; /* Visible border in dark mode */
-    --input: 217 50% 32%; /* Slightly lighter than border for inputs */
-    --ring: 185 70% 55%; /* Lighter Mid Teal for focus rings */
+    --border: 0 0% 30%; /* Dark Gray */
+    --input: 0 0% 25%; /* Slightly Lighter Gray */
+    --ring: 0 70% 60%; /* Primary Red for focus rings in dark mode */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -86,6 +86,7 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
+    /* Sidebar variables for dark mode, kept for consistency */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -103,6 +104,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Removed font-family: Arial, Helvetica, sans-serif; to use Geist from layout + tailwind config */
   }
 }
