@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Plus, MapPin, Archive, ClipboardPlus, ChevronRight, CheckCircle2, Loader2, Clock } from 'lucide-react';
+import { Plus, MapPin, Archive, ClipboardPlus, ChevronRight, CheckCircle2, Loader2, Clock, RefreshCw, Search as SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type React from 'react';
@@ -49,23 +49,81 @@ const mockRecentAudits: RecentAudit[] = [
 export default function HomePage() {
   const userName = "Usuario"; 
 
+  const handleSyncClick = () => {
+    // Placeholder for sync functionality
+    console.log("Sync button clicked");
+    // In a real app, you would trigger a sync process here
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      <header className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
-        <div className="text-center mb-6 md:mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-            Bienvenido, {userName}
-            </h1>
+      <header className="bg-primary text-primary-foreground p-4 md:p-6 rounded-b-xl shadow-md">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold sm:text-4xl">
+            Auditorías
+          </h1>
+          <div className="flex items-center space-x-3">
+            <button
+              aria-label="Sincronizar"
+              onClick={handleSyncClick}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-full p-1 hover:bg-primary-foreground/10 transition-colors"
+            >
+              <RefreshCw className="h-6 w-6" />
+            </button>
+            <Link
+              href="/search"
+              aria-label="Buscar"
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-full p-1 hover:bg-primary-foreground/10 transition-colors"
+            >
+              <SearchIcon className="h-6 w-6" />
+            </Link>
+          </div>
         </div>
-        <Link href="/start-audit" passHref>
-          <Button size="lg" className="w-full py-6 text-lg bg-primary hover:bg-primary/90 shadow-lg">
-            <Plus className="mr-3 h-6 w-6" />
-            Iniciar Auditoría
-          </Button>
-        </Link>
+
+        {/* Tabs Row */}
+        <div className="flex justify-around text-sm font-medium text-primary-foreground/80 mb-6">
+          {/* Placeholder for tab functionality - these are just visual for now */}
+          <span className="cursor-pointer hover:text-primary-foreground px-2 py-1">
+            ESTA SEMANA
+          </span>
+          <span className="cursor-pointer text-primary-foreground font-semibold border-b-2 border-primary-foreground px-2 py-1">
+            ESTE MES
+          </span>
+          <span className="cursor-pointer hover:text-primary-foreground px-2 py-1">
+            MES PASADO
+          </span>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p className="text-3xl font-bold">
+              41
+            </p>
+            <p className="text-xs text-primary-foreground/90">
+              Programadas
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold">
+              27
+            </p>
+            <p className="text-xs text-primary-foreground/90">
+              Completadas
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold">
+              3
+            </p>
+            <p className="text-xs text-primary-foreground/90">
+              Pendientes
+            </p>
+          </div>
+        </div>
       </header>
 
-      <main className="flex-grow p-4 md:p-6 space-y-8">
+      <main className="flex-grow p-4 md:p-6 space-y-6"> {/* Changed space-y-8 to space-y-6 */}
         {/* Auditorías Recientes Section */}
         <section>
           <h2 className="text-xl font-semibold text-foreground mb-4">Auditorías Recientes</h2>
@@ -107,12 +165,17 @@ export default function HomePage() {
           </div>
         </section>
 
-        <Separator className="my-6 md:my-8" />
+        <Separator className="my-4 md:my-6" /> {/* Changed my-6 md:my-8 to my-4 md:my-6 */}
 
         {/* Más Section */}
         <section>
           <h2 className="text-xl font-semibold text-foreground mb-4">Más</h2>
           <div className="space-y-3">
+             <MoreLinkItem
+              href="/start-audit"
+              icon={Plus}
+              label="Iniciar Auditoría"
+            />
             <MoreLinkItem
               href="/view-plans"
               icon={MapPin}
