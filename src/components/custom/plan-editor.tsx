@@ -200,7 +200,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
             value={currentPlanName}
             onChange={(e) => setCurrentPlanName(e.target.value)}
             placeholder="Nombre del Plano"
-            className="mt-2 max-w-md mx-auto text-center text-lg"
+            className="mt-2 max-w-md mx-auto text-center text-xl"
             aria-label="Nombre del Plano"
           />
         </div>
