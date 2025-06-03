@@ -47,29 +47,28 @@ const mockRecentAudits: RecentAudit[] = [
 ];
 
 export default function HomePage() {
-  const userName = "User"; // Changed from "Usuario"
+  const userName = "Usuario"; 
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans">
-      <header className="bg-teal-600 text-white text-center p-8 md:p-12 rounded-b-xl shadow-md">
-        <h1 className="text-3xl sm:text-4xl font-bold">
-          Welcome, {userName}
-        </h1>
-      </header>
-
-      <div className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+      <header className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+        <div className="text-center mb-6 md:mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Bienvenido, {userName}
+            </h1>
+        </div>
         <Link href="/start-audit" passHref>
           <Button size="lg" className="w-full py-6 text-lg bg-primary hover:bg-primary/90 shadow-lg">
             <Plus className="mr-3 h-6 w-6" />
-            Start Audit
+            Iniciar Auditoría
           </Button>
         </Link>
-      </div>
+      </header>
 
       <main className="flex-grow p-4 md:p-6 space-y-8">
         {/* Auditorías Recientes Section */}
         <section>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Recent Audits</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Auditorías Recientes</h2>
           <div className="space-y-3">
             {mockRecentAudits.length > 0 ? (
               mockRecentAudits.map((audit) => (
@@ -102,7 +101,7 @@ export default function HomePage() {
               ))
             ) : (
               <p className="text-sm text-muted-foreground p-4 bg-card rounded-lg shadow-sm text-center">
-                No recent audits to display.
+                No hay auditorías recientes para mostrar.
               </p>
             )}
           </div>
@@ -112,22 +111,22 @@ export default function HomePage() {
 
         {/* Más Section */}
         <section>
-          <h2 className="text-xl font-semibold text-foreground mb-4">More</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Más</h2>
           <div className="space-y-3">
             <MoreLinkItem
               href="/view-plans"
               icon={MapPin}
-              label="Assigned Plans"
+              label="Planos Asignados"
             />
             <MoreLinkItem
               href="/inventory"
               icon={Archive}
-              label="Inventory"
+              label="Inventario"
             />
             <MoreLinkItem
               href="/create-plan"
               icon={ClipboardPlus}
-              label="Create New Plan"
+              label="Crear Nuevo Plan"
             />
           </div>
         </section>
