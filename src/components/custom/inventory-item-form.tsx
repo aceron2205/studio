@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { PackagePlus, Save } from "lucide-react";
+import { PackagePlus, Save, ScanLine } from "lucide-react";
 
 const inventoryItemSchema = z.object({
   articleName: z.string().min(1, "El nombre del artículo es requerido."),
@@ -95,6 +95,16 @@ export function InventoryItemForm({
     toast({
       title: initialData?.articleName ? "Artículo Actualizado" : "Artículo Guardado",
       description: `El artículo "${data.articleName}" ha sido ${initialData?.articleName ? 'actualizado' : 'guardado'}.`,
+    });
+  };
+
+  const handleScanBarcode = () => {
+    // Simulate barcode scanning
+    const scannedBarcode = `SCAN-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    form.setValue("barcode", scannedBarcode);
+    toast({
+      title: "Código de Barras Escaneado",
+      description: `Código ${scannedBarcode} ingresado. (Simulado)`,
     });
   };
 
@@ -178,9 +188,14 @@ export function InventoryItemForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Código de Barras (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Escanear o ingresar código" {...field} />
-                    </FormControl>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Input placeholder="Escanear o ingresar código" {...field} className="flex-grow" />
+                      </FormControl>
+                      <Button type="button" variant="outline" size="icon" onClick={handleScanBarcode} aria-label="Escanear código de barras">
+                        <ScanLine className="h-5 w-5" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
