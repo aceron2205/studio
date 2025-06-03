@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={`${inter.variable} font-sans antialiased`}> {/* Updated class to use Inter and apply font-sans */}
+      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning={true}> {/* Updated class to use Inter and apply font-sans, and added suppressHydrationWarning */}
         <div className="min-h-screen pb-16 md:pb-0"> {/* Add padding-bottom for mobile to avoid overlap with MobileNav */}
           {children}
         </div>
