@@ -1,22 +1,32 @@
 
 "use client";
 
+import * as React from "react";
 import { InventoryTable } from "@/components/custom/inventory-table";
 import { Toaster } from "@/components/ui/toaster";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Archive, Plus } from "lucide-react"; // Changed PlusCircle to Plus
+import { ArrowLeft, Archive, Plus } from "lucide-react";
+import { InventoryItemForm, type InventoryItemFormData } from "@/components/custom/inventory-item-form";
 
 export default function InventoryPage() {
+  const [isAddItemFormOpen, setIsAddItemFormOpen] = React.useState(false);
+
   const handleAddInventoryItem = () => {
-    console.log("Add new inventory item FAB clicked");
-    // Placeholder for actual navigation or modal opening logic
+    setIsAddItemFormOpen(true);
+  };
+
+  const handleSaveNewItem = (data: InventoryItemFormData) => {
+    // Here you would typically send the data to your backend or update global state
+    console.log("New inventory item to save:", data);
+    // For now, we'll just close the form. The toast is handled in the form component.
+    // You might want to refresh the inventory list here if it's managed by this page's state.
   };
 
   return (
     <>
-      <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12 pb-20"> {/* Added pb-20 for FAB spacing */}
+      <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12 pb-20">
         <div className="w-full max-w-4xl">
           <Card className="shadow-lg">
             <CardHeader className="relative p-6 border-b">
@@ -47,7 +57,6 @@ export default function InventoryPage() {
             <CardContent className="p-6">
               <InventoryTable />
             </CardContent>
-            {/* CardFooter removed */}
           </Card>
         </div>
       </div>
@@ -59,8 +68,12 @@ export default function InventoryPage() {
       >
         <Plus className="h-7 w-7" />
       </Button>
+      <InventoryItemForm
+        isOpen={isAddItemFormOpen}
+        onOpenChange={setIsAddItemFormOpen}
+        onSave={handleSaveNewItem}
+      />
       <Toaster />
     </>
   );
 }
-
