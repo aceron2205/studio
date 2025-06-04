@@ -8,10 +8,10 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/inventory', label: 'Reportes', icon: BarChartBig },
+  { href: '/reports', label: 'Reportes', icon: BarChartBig }, // Changed href here
   { href: '#', icon: RefreshCw, isCentral: true, label: 'SyncAction' }, // Label for key, not displayed
   { href: '/search', label: 'Buscar', icon: Search },
-  { href: '/settings', label: 'Ajustes', icon: Settings }, // Changed label here
+  { href: '/settings', label: 'Ajustes', icon: Settings },
 ];
 
 export function MobileNav() {
