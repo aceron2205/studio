@@ -3,35 +3,35 @@
 
 import { WelcomeHeader } from '@/components/custom/welcome-header';
 import { MenuCard } from '@/components/custom/menu-card';
-import { Users, Search, Archive, RefreshCw } from 'lucide-react';
+import { ClipboardList, LayoutGrid, Search, Users } from 'lucide-react'; // Using different icons for this version
 
 export default function HomePage() {
   const userName = "Usuario"; // This can be dynamic in a real app
 
   const menuItems = [
     {
-      title: 'Gestión de Clientes',
-      icon: Users,
-      href: '/customers', // Placeholder, can be changed to actual route
-      description: 'Administra tus clientes y contactos.',
+      title: 'Iniciar Auditoría', // Changed from "Gestión de Clientes"
+      icon: Users, // Re-using Users icon, could be FileSearch or similar
+      href: '/start-audit', 
+      description: 'Comienza una nueva auditoría o continúa una existente.',
     },
     {
-      title: 'Buscador',
-      icon: Search,
-      href: '/search', // Existing route
-      description: 'Encuentra auditorías y clientes.',
+      title: 'Ver Planos Asignados', // Changed from "Buscador"
+      icon: LayoutGrid, // Using LayoutGrid, could be Map
+      href: '/view-plans',
+      description: 'Visualiza y gestiona los planos de ubicación.',
     },
     {
-      title: 'Inventario',
-      icon: Archive,
-      href: '/inventory', // Existing route
-      description: 'Consulta y gestiona repuestos.',
+      title: 'Crear Nuevo Plano', // Changed from "Inventario"
+      icon: Search, // Re-using Search, could be FilePlus
+      href: '/create-plan',
+      description: 'Diseña un nuevo plano de extintores.',
     },
     {
-      title: 'Sincronizar',
-      icon: RefreshCw,
-      href: '/sync', // Placeholder, can be changed to actual route
-      description: 'Actualiza datos con el servidor.',
+      title: 'Auditorías Recientes', // Restored
+      icon: ClipboardList,
+      href: '/reports', // Assuming reports page shows recent audits
+      description: 'Revisa informes de auditorías completadas.',
     },
   ];
 
