@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Camera, Send, AlertTriangle, ScanLine } from "lucide-react";
+import { BrowserMultiFormatReader, NotFoundException, type IScannerControls } from "@zxing/library";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -21,85 +22,121 @@ type ManualCodeFormData = z.infer<typeof ManualCodeSchema>;
 
 interface ScannerInterfaceProps {
   onCodeScanned: (code: string) => void;
-  showCamera?: boolean; // Prop to control if camera functionality is available/shown
+  showCamera?: boolean;
 }
 
 export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerInterfaceProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isCameraOpen, setIsCameraOpen] = React.useState(false);
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | null>(null);
-  const [simulatedScannedCode, setSimulatedScannedCode] = React.useState<string | null>(null); // For simulation
+  const [scannerError, setScannerError] = React.useState<string | null>(null);
+  const codeReaderRef = React.useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = React.useRef<IScannerControls | null>(null);
+  const [cameraStatus, setCameraStatus] = React.useState<string>("Inactiva");
+
 
   const form = useForm<ManualCodeFormData>({
     resolver: zodResolver(ManualCodeSchema),
     defaultValues: { code: "" },
   });
 
-  // Ref to check camera state in timeout
-  const isCameraOpenRef = React.useRef(isCameraOpen);
   React.useEffect(() => {
-    isCameraOpenRef.current = isCameraOpen;
-  }, [isCameraOpen]);
-
-  React.useEffect(() => {
-    // Cleanup camera stream on component unmount
+    codeReaderRef.current = new BrowserMultiFormatReader();
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
+      controlsRef.current?.stop();
+      codeReaderRef.current?.reset();
     };
   }, []);
 
-  const requestCameraPermission = async () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        setHasCameraPermission(true);
-        if (videoRef.current) videoRef.current.srcObject = stream;
-        return stream;
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-        setHasCameraPermission(false);
-        toast({ variant: "destructive", title: "Acceso a Cámara Denegado", description: "Por favor, habilita los permisos de cámara en la configuración de tu navegador." });
-        return null;
-      }
-    } else {
-      setHasCameraPermission(false);
-      toast({ variant: "destructive", title: "Cámara no Soportada", description: "Tu navegador no soporta acceso a la cámara." });
-      return null;
+  const stopCamera = React.useCallback(() => {
+    controlsRef.current?.stop();
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
-  };
+    setIsCameraOpen(false);
+    setCameraStatus("Inactiva");
+  }, []);
+
+
+  const startCamera = React.useCallback(async () => {
+    if (!codeReaderRef.current || !videoRef.current) return;
+    
+    setScannerError(null);
+    setHasCameraPermission(null);
+    setCameraStatus("Inicializando...");
+
+    try {
+      // Check for permissions first without immediately trying to get the stream
+      // This is a more robust way to check permission status
+      const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      if (permissionStatus.state === 'denied') {
+        toast({ variant: "destructive", title: "Acceso a Cámara Denegado", description: "Por favor, habilita los permisos de cámara en la configuración de tu navegador." });
+        setHasCameraPermission(false);
+        setIsCameraOpen(false);
+        setCameraStatus("Error de Permiso");
+        return;
+      }
+
+      // If not denied, try to get the stream (this will prompt if 'prompt' state)
+      // Listing devices requires permission, so this also acts as a permission check/prompt
+      await navigator.mediaDevices.getUserMedia({ video: true }); // Request permission if not granted
+      setHasCameraPermission(true);
+
+
+      setIsCameraOpen(true);
+      setCameraStatus("Buscando dispositivos...");
+
+      const videoInputDevices = await codeReaderRef.current.listVideoInputDevices();
+      if (videoInputDevices.length === 0) {
+        setScannerError("No se encontraron cámaras.");
+        setCameraStatus("Error: No hay cámaras");
+        setIsCameraOpen(false);
+        return;
+      }
+      
+      const selectedDeviceId = videoInputDevices[0].deviceId; // Use the first available camera
+      setCameraStatus("Cámara activa. Apunte al código...");
+
+      controlsRef.current = await codeReaderRef.current.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoRef.current,
+        (result, error, controls) => {
+          if (result) {
+            onCodeScanned(result.getText());
+            stopCamera();
+             toast({
+              title: "Código Escaneado",
+              description: `Detectado: ${result.getText()}`,
+            });
+          }
+          if (error && !(error instanceof NotFoundException)) {
+            console.error("Error de escaneo:", error);
+            setScannerError("Error durante el escaneo.");
+            // Do not stop camera on minor errors like NotFoundException, but maybe for others
+          }
+        }
+      );
+    } catch (error: any) {
+      console.error("Error al iniciar la cámara:", error);
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+        toast({ variant: "destructive", title: "Acceso a Cámara Denegado", description: "Por favor, habilita los permisos de cámara." });
+        setHasCameraPermission(false);
+        setCameraStatus("Error de Permiso");
+      } else {
+        toast({ variant: "destructive", title: "Error de Cámara", description: `No se pudo iniciar la cámara: ${error.message}` });
+        setHasCameraPermission(false); // Or null if uncertain
+        setCameraStatus("Error de Cámara");
+      }
+      setIsCameraOpen(false);
+    }
+  }, [onCodeScanned, stopCamera]);
+
 
   const handleToggleCamera = async () => {
     if (isCameraOpen) {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-      }
-      setIsCameraOpen(false);
+      stopCamera();
     } else {
-      const stream = await requestCameraPermission();
-      if (stream) {
-        setIsCameraOpen(true);
-        // Simulate a scan after a delay for demo purposes
-        setTimeout(() => {
-            if (isCameraOpenRef.current) { // Check if camera is still open via ref
-                const mockScan = `sim-cam-${Math.floor(Math.random() * 1000)}`;
-                setSimulatedScannedCode(mockScan);
-                onCodeScanned(mockScan);
-                // Ensure handleToggleCamera is called to close the camera
-                // Need to manage isCameraOpen state directly or ensure this runs correctly
-                if (videoRef.current && videoRef.current.srcObject) {
-                  const currentStream = videoRef.current.srcObject as MediaStream;
-                  currentStream.getTracks().forEach(track => track.stop());
-                  videoRef.current.srcObject = null;
-                }
-                setIsCameraOpen(false); // Explicitly set camera to closed
-            }
-        }, 3000);
-      }
+      await startCamera();
     }
   };
   
@@ -107,27 +144,14 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
   function onManualSubmit(data: ManualCodeFormData) {
     onCodeScanned(data.code);
     form.reset();
-    setSimulatedScannedCode(null); // Clear any simulated camera scan
+    stopCamera(); // Stop camera if it was open from a previous attempt
   }
   
-  // Effect for camera scanning logic (placeholder)
-  React.useEffect(() => {
-    if (isCameraOpen && videoRef.current && hasCameraPermission) {
-      // Placeholder: In a real scenario, you'd use a library like
-      // ZXing or QuaggaJS to process video frames from videoRef.current
-      // and detect barcodes. When a barcode is detected, call:
-      // onCodeScanned(detectedCode);
-      // setIsCameraOpen(false); // Optionally close camera
-      // For now, the simulation is in handleToggleCamera
-      console.log("Camera is open. Scanning logic (simulation) would be active.");
-    }
-  }, [isCameraOpen, hasCameraPermission]);
-
 
   return (
     <div className="space-y-4">
-      <Form {...form}> {/* This is FormProvider from ShadCN, providing context for react-hook-form */}
-        <div className="space-y-4"> {/* Replaced the <form> tag with a <div> */}
+      <Form {...form}>
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="code"
@@ -142,15 +166,15 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
-                          form.handleSubmit(onManualSubmit)(); // Trigger submission logic
+                          form.handleSubmit(onManualSubmit)();
                         }
                       }}
                     />
                     <Button 
-                      type="button" // Changed from "submit" to "button"
+                      type="button"
                       size="icon" 
                       aria-label="Procesar código manual"
-                      onClick={form.handleSubmit(onManualSubmit)} // Attach submit logic here
+                      onClick={form.handleSubmit(onManualSubmit)}
                     >
                       <Send className="h-5 w-5" />
                     </Button>
@@ -170,7 +194,7 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
             {isCameraOpen ? "Cerrar Escáner" : "Escanear Código de Barras/QR"}
           </Button>
 
-          {hasCameraPermission === false && !isCameraOpen && (
+          {hasCameraPermission === false && !isCameraOpen && ( // Only show if explicitly denied and camera is not trying to be open
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Permiso de Cámara Denegado</AlertTitle>
@@ -178,22 +202,24 @@ export function ScannerInterface({ onCodeScanned, showCamera = true }: ScannerIn
             </Alert>
           )}
           
-          <div className={cn("rounded-md overflow-hidden border bg-muted", isCameraOpen ? "block" : "hidden")}>
-            <video ref={videoRef} className="w-full aspect-video" autoPlay playsInline muted />
+          <div className={cn(
+              "rounded-md overflow-hidden border bg-muted",
+              isCameraOpen && hasCameraPermission ? "block" : "hidden"
+            )}>
+            <video ref={videoRef} className="w-full aspect-video" playsInline muted />
           </div>
           
           {isCameraOpen && hasCameraPermission && (
-            <p className="text-xs text-muted-foreground text-center">Apuntando cámara... (Simulando escaneo en 3 seg...)</p>
+            <p className="text-xs text-muted-foreground text-center">{cameraStatus}</p>
+          )}
+          {scannerError && (
+             <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Error de Escáner</AlertTitle>
+              <AlertDescription>{scannerError}</AlertDescription>
+            </Alert>
           )}
         </>
-      )}
-      
-      {simulatedScannedCode && (
-        <Alert>
-          <ScanLine className="h-4 w-4" />
-          <AlertTitle>Código Escaneado (Simulado)</AlertTitle>
-          <AlertDescription>Detectado vía cámara: {simulatedScannedCode}</AlertDescription>
-        </Alert>
       )}
     </div>
   );
