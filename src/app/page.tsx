@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from 'react'; // Added this line
 import Link from 'next/link';
 import { UserCircle, Plus, CheckCircle2, RefreshCw, Clock, MapPin, Archive, FilePlus2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
