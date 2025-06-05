@@ -1,47 +1,46 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 230 67% 94%; /* Very light blue (#E8EAF6) */
-    --foreground: 240 10% 10%; /* Dark Blue-Gray for contrast */
+    --background: 20 60% 96%; /* Very light warm gray, for better contrast with red/yellow */
+    --foreground: 20 10% 15%; /* Dark warm gray */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 240 10% 10%; /* Dark Blue-Gray */
+    --card-foreground: 20 10% 15%; /* Dark warm gray */
 
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 240 10% 10%; /* Dark Blue-Gray */
+    --popover-foreground: 20 10% 15%; /* Dark warm gray */
 
-    --primary: 231 48% 48%; /* Deep blue (#3F51B5) */
+    --primary: 0 80% 50%; /* Vibrant Red */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 230 50% 80%; /* Lighter blue for secondary, derived from background */
-    --secondary-foreground: 231 48% 30%; /* Darker primary for contrast */
+    --secondary: 180 50% 45%; /* Teal */
+    --secondary-foreground: 0 0% 100%; /* White for contrast on Teal */
 
-    --muted: 230 50% 88%; /* Even Lighter blue for muted */
-    --muted-foreground: 230 25% 45%; /* Muted blue-gray */
+    --muted: 20 50% 90%; /* Lighter warm gray */
+    --muted-foreground: 20 25% 45%; /* Muted warm gray */
 
-    --accent: 261 48% 63%; /* Muted purple (#9575CD) */
-    --accent-foreground: 0 0% 100%; /* White for contrast on purple */
+    --accent: 60 100% 50%; /* Bright Yellow */
+    --accent-foreground: 20 10% 10%; /* Dark Gray for contrast on Yellow */
 
-    --destructive: 0 80% 50%; /* Intense Red for destructive actions */
+    --destructive: 350 80% 55%; /* A distinct, slightly deeper red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 230 30% 80%; /* Light blue-gray border */
-    --input: 230 40% 85%; /* Slightly darker light blue for input */
-    --ring: 231 48% 48%; /* Primary blue for focus rings */
+    --border: 20 30% 80%; /* Light warm gray border */
+    --input: 20 40% 88%; /* Slightly darker light warm gray for input */
+    --ring: 0 80% 50%; /* Primary red for focus rings */
 
-    --chart-1: 231 48% 55%;
-    --chart-2: 261 48% 70%;
-    --chart-3: 210 48% 55%;
-    --chart-4: 231 48% 40%;
-    --chart-5: 261 48% 50%;
+    --chart-1: 0 70% 60%; /* Red-ish for charts */
+    --chart-2: 45 90% 55%; /* Orange-Yellow for charts */
+    --chart-3: 180 40% 50%; /* Muted Teal for charts */
+    --chart-4: 0 60% 40%; /* Darker Red */
+    --chart-5: 50 80% 45%; /* Darker Yellow-Orange */
     --radius: 0.75rem; /* 12px */
 
-    /* Sidebar variables, kept for consistency */
-    --sidebar-background: 230 60% 97%; /* Slightly off-white blue */
+    /* Sidebar variables, kept for consistency from original prompt */
+    --sidebar-background: 230 60% 97%; 
     --sidebar-foreground: 240 10% 20%;
     --sidebar-primary: 231 48% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -52,41 +51,41 @@
   }
 
   .dark {
-    --background: 230 20% 12%; /* Dark desaturated blue */
-    --foreground: 230 60% 95%; /* Very light blue (almost white) */
+    --background: 20 10% 10%; /* Very Dark warm gray */
+    --foreground: 20 60% 90%; /* Light warm gray */
 
-    --card: 230 20% 18%; /* Slightly lighter dark blue */
-    --card-foreground: 230 60% 95%; /* Very light blue */
+    --card: 20 10% 15%; /* Darker warm gray */
+    --card-foreground: 20 60% 90%; /* Light warm gray */
 
-    --popover: 230 20% 18%; /* Slightly lighter dark blue */
-    --popover-foreground: 230 60% 95%; /* Very light blue */
+    --popover: 20 10% 15%; /* Darker warm gray */
+    --popover-foreground: 20 60% 90%; /* Light warm gray */
 
-    --primary: 231 55% 65%; /* Brighter Deep blue for dark mode */
+    --primary: 0 75% 60%; /* Lighter, still vibrant Red for dark mode */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 230 30% 30%; /* Muted dark blue for secondary */
-    --secondary-foreground: 230 60% 85%; /* Lighter blue for contrast */
+    --secondary: 180 60% 65%; /* Lighter Teal for dark mode */
+    --secondary-foreground: 0 0% 5%; /* Dark for contrast on Lighter Teal */
 
-    --muted: 230 20% 25%; /* Darker Muted blue */
-    --muted-foreground: 230 40% 70%; /* Medium-light blue-gray */
+    --muted: 20 15% 25%; /* Darker Muted warm gray */
+    --muted-foreground: 20 40% 65%; /* Medium-light warm gray */
 
-    --accent: 261 55% 70%; /* Brighter Muted purple for dark mode */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: 60 100% 60%; /* Bright, slightly lighter Yellow for dark mode */
+    --accent-foreground: 20 10% 10%; /* Dark Gray for contrast on Yellow */
 
-    --destructive: 0 75% 60%; /* Brighter Red for destructive actions */
+    --destructive: 350 70% 65%; /* Lighter, distinct red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 230 20% 30%; /* Dark blue-gray border */
-    --input: 230 20% 28%; /* Slightly lighter dark blue for input */
-    --ring: 231 55% 65%; /* Primary blue for focus rings in dark mode */
+    --border: 20 15% 30%; /* Dark warm gray border */
+    --input: 20 15% 28%; /* Slightly lighter dark warm gray for input */
+    --ring: 0 75% 60%; /* Lighter red for focus rings in dark mode */
 
-    --chart-1: 231 55% 60%;
-    --chart-2: 261 55% 75%;
-    --chart-3: 210 55% 60%;
-    --chart-4: 231 55% 50%;
-    --chart-5: 261 55% 60%;
+    --chart-1: 0 65% 65%;
+    --chart-2: 45 85% 60%;
+    --chart-3: 180 50% 60%;
+    --chart-4: 0 55% 50%;
+    --chart-5: 50 75% 55%;
 
-    /* Sidebar variables for dark mode, kept for consistency */
+    /* Sidebar variables for dark mode, kept for consistency from original prompt */
     --sidebar-background: 230 20% 10%;
     --sidebar-foreground: 230 60% 90%;
     --sidebar-primary: 231 55% 65%;
