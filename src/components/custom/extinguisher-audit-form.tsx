@@ -401,44 +401,40 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
               )}
             />
             <div>
-              <FormLabel className="text-md font-semibold block mb-2">Fotos de Evidencia (Auditoría)</FormLabel>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsImageUploadDialogOpen(true)}
-                className="w-full sm:w-auto"
-              >
-                <Camera className="mr-2 h-4 w-4" />
-                Agregar Foto
-              </Button>
-              {photoEvidencePreview && (
-                <div className="mt-4 relative w-48 h-48 group">
-                  <img
-                    src={photoEvidencePreview}
-                    alt="Evidencia de auditoría"
-                    className="rounded-md object-cover w-full h-full"
-                    data-ai-hint="evidence photo"
-                  />
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={handleClearPhotoPreview}
-                    aria-label="Eliminar foto actual"
-                  >
-                    <XCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-              {!photoEvidencePreview && (
-                <div
-                  className="mt-3 w-full min-h-[120px] border-2 border-dashed border-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-4"
-                  data-ai-hint="photo evidence"
+              <FormLabel className="text-md font-semibold block mb-2">Fotos de Evidencia</FormLabel>
+              <div className="flex flex-wrap items-start gap-4">
+                {photoEvidencePreview && (
+                  <div className="relative w-48 h-48 group shrink-0">
+                    <img
+                      src={photoEvidencePreview}
+                      alt="Evidencia de auditoría"
+                      className="rounded-md object-cover w-full h-full"
+                      data-ai-hint="evidence photo"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={handleClearPhotoPreview}
+                      aria-label="Eliminar foto actual"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsImageUploadDialogOpen(true)}
+                  className="w-48 h-48 flex flex-col items-center justify-center border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary shrink-0"
+                  aria-label="Agregar o cambiar foto de evidencia"
                 >
-                  <Camera className="h-10 w-10 mb-2 opacity-50" />
-                  <span className="text-sm">Sin foto de evidencia</span>
-                </div>
-              )}
+                  <Camera className="h-10 w-10 mb-2" />
+                  <span className="text-sm text-center">
+                    {photoEvidencePreview ? "Cambiar Foto" : "Agregar Foto"}
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -550,4 +546,3 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     </>
   );
 }
-
