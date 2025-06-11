@@ -8,6 +8,7 @@ import { ArrowLeft, FileCheck } from "lucide-react"; // Icon for the page
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/components/custom/extinguisher-audit-form";
+import { useToast } from "@/hooks/use-toast"; // Added import
 
 // Mock data for PlanEditor's extinguishers - this should ideally come from a service or context
 // This is the same mock data used in edit-extinguisher and plan-editor for consistency
@@ -42,6 +43,7 @@ interface AuditExtinguisherPageProps {
 export default function AuditExtinguisherPage({ params: paramsPromise }: AuditExtinguisherPageProps) {
   const router = useRouter();
   const { planId, extinguisherId } = use(paramsPromise);
+  const { toast } = useToast(); // Initialized toast
 
   const [initialExtinguisherData, setInitialExtinguisherData] = React.useState<Partial<ExtinguisherAuditFormData> | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -71,6 +73,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
           cilindroMangueraBoquillas: "P",
           alturaAdecuada: "P",
           accesoLibre: "P",
+          photoEvidenceDataUrls: [], // Initialize as empty array for multi-image
         });
       } else {
         setError(`Extinguidor con ID ${extinguisherId} no encontrado en el plano ${planId}.`);
@@ -82,7 +85,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
       }
       setLoading(false);
     }, 500);
-  }, [planId, extinguisherId]);
+  }, [planId, extinguisherId, toast]); // Added toast to dependency array
 
   const handleSubmitSuccess = (data: ExtinguisherAuditFormData) => {
     console.log("Datos de la auditoría del extinguidor guardados (simulado):", data);
