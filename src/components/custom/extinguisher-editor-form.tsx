@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Trash2, Camera, XCircle } from "lucide-react";
+import { Save, Trash2, Camera, XCircle, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +43,7 @@ const ExtinguisherSchema = z.object({
   accesoLibre: z.string().optional(),
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
   observacionesGenerales: z.string().optional(),
-  photoEvidenceDataUrl: z.array(z.string()).optional(),
+  photoEvidenceDataUrl: z.array(z.string()).optional(), // To store an array of image data URIs
 });
 
 export type ExtinguisherFormData = z.infer<typeof ExtinguisherSchema>;
@@ -102,13 +102,13 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     },
   });
 
-  const handleImagesSelected = (dataUrls: string[]) => {
-    setPhotoEvidencePreviews(prevPreviews => {
-      const newPreviews = [...prevPreviews, ...dataUrls];
-      form.setValue("photoEvidenceDataUrl", newPreviews);
-      return newPreviews;
-    });
-    // setIsImageUploadDialogOpen(false); // Dialog stays open
+  const handleImagesSelected = (newDataUrls: string[]) => {
+    const currentUrls = form.getValues("photoEvidenceDataUrl") || [];
+    const updatedUrls = [...currentUrls, ...newDataUrls];
+    setPhotoEvidencePreviews(updatedUrls);
+    form.setValue("photoEvidenceDataUrl", updatedUrls);
+    // Keep dialog open, user will close it explicitly
+    // setIsImageUploadDialogOpen(false);
   };
 
   const handleRemovePhoto = (indexToRemove: number) => {
@@ -289,60 +289,48 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
                 )}
               />
 
-              {/* Photo Evidence Section */}
-              <div className="pt-2 space-y-3">
-                <FormLabel className="text-md font-semibold block">Fotos de Evidencia</FormLabel>
-
-                <div className="flex flex-wrap gap-4 items-start">
-                  {photoEvidencePreviews.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 flex-grow">
-                      {photoEvidencePreviews.map((src, index) => (
-                        <div key={index} className="relative group w-24 h-24 sm:w-32 sm:h-32 rounded-md overflow-hidden" data-ai-hint="evidence photo">
-                          <img
-                            src={src}
-                            alt={`Evidencia ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 rounded-full flex items-center justify-center z-10"
-                            onClick={() => handleRemovePhoto(index)}
-                            aria-label={`Eliminar imagen ${index + 1}`}
-                          >
-                            <XCircle className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                   <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsImageUploadDialogOpen(true)}
-                    className="w-24 h-24 sm:w-32 sm:h-32 flex flex-col items-center justify-center border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary shrink-0"
-                    aria-label="Agregar foto de evidencia"
-                  >
-                    <Camera className="h-8 w-8 mb-1 sm:h-10 sm:w-10" />
-                    <span className="text-xs sm:text-sm text-center">
-                      {photoEvidencePreviews.length > 0 ? "Agregar Más" : "Agregar Foto"}
-                    </span>
-                  </Button>
-
-                  {photoEvidencePreviews.length === 0 && (
-                    <div
-                      className="mt-2 w-full min-h-[120px] border-2 border-dashed border-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-4 flex-grow"
-                      data-ai-hint="photo gallery"
-                    >
-                      <Camera className="h-10 w-10 mb-2 opacity-50" />
-                      <span className="text-sm">Sin foto de evidencia</span>
-                    </div>
-                  )}
-                </div>
+              {/* Photo Evidence Section - Standardized */}
+              <div className="pt-2 space-y-4">
+                <FormLabel className="text-md font-semibold block mb-2">Fotos de Evidencia ({photoEvidencePreviews.length})</FormLabel>
+                
                 {photoEvidencePreviews.length > 0 && (
-                     <Button onClick={handleClearAllPhotos} className="w-full sm:w-auto mt-2" variant="outline" type="button">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" data-ai-hint="evidence photo gallery">
+                    {photoEvidencePreviews.map((previewUrl, index) => (
+                      <div key={index} className="relative w-full aspect-square group shrink-0">
+                        <img
+                          src={previewUrl}
+                          alt={`Evidencia ${index + 1}`}
+                          className="rounded-md object-cover w-full h-full"
+                          data-ai-hint="evidence photo"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          type="button"
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full flex items-center justify-center z-10" // Always visible
+                          onClick={() => handleRemovePhoto(index)}
+                          aria-label={`Eliminar imagen ${index + 1}`}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsImageUploadDialogOpen(true)}
+                  className="w-full flex items-center justify-center border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary"
+                  aria-label="Agregar más fotos de evidencia"
+                >
+                  <PlusCircle className="h-5 w-5 mr-2" />
+                  Agregar Foto
+                </Button>
+
+                {photoEvidencePreviews.length > 0 && (
+                     <Button onClick={handleClearAllPhotos} className="w-full sm:w-auto" variant="outline" type="button">
                         Eliminar todas las fotos
                       </Button>
                 )}
