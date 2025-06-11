@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle } from "lucide-react";
+import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,7 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { ImageUploadDialog } from "./image-upload-dialog"; // Import the dialog
+import { ImageUploadDialog } from "./image-upload-dialog";
 
 const ExtinguisherAuditSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
@@ -45,7 +45,7 @@ const ExtinguisherAuditSchema = z.object({
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
   observacionesGenerales: z.string().optional(),
   articulosReemplazadosNotas: z.string().optional(),
-  photoEvidenceDataUrl: z.string().optional(), // To store the image data URI
+  photoEvidenceDataUrls: z.array(z.string()).optional(), // Changed to array
 });
 
 export type ExtinguisherAuditFormData = z.infer<typeof ExtinguisherAuditSchema>;
@@ -131,7 +131,7 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 4;
   const [isImageUploadDialogOpen, setIsImageUploadDialogOpen] = React.useState(false);
-  const [photoEvidencePreview, setPhotoEvidencePreview] = React.useState<string | null>(initialData.photoEvidenceDataUrl || null);
+  const [photoEvidencePreviews, setPhotoEvidencePreviews] = React.useState<string[]>(initialData.photoEvidenceDataUrls || []);
 
 
   const form = useForm<ExtinguisherAuditFormData>({
@@ -154,22 +154,42 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       cargaExtintores: initialData.cargaExtintores || "",
       observacionesGenerales: initialData.observacionesGenerales || "",
       articulosReemplazadosNotas: initialData.articulosReemplazadosNotas || "",
-      photoEvidenceDataUrl: initialData.photoEvidenceDataUrl || "",
+      photoEvidenceDataUrls: initialData.photoEvidenceDataUrls || [], // Initialize as array
     },
   });
 
-  const handleImageSelected = (dataUrl: string) => {
-    setPhotoEvidencePreview(dataUrl);
-    form.setValue("photoEvidenceDataUrl", dataUrl); // Store in form state
-    setIsImageUploadDialogOpen(false); // Close dialog after selection
+  // Handles newly selected/captured images from the dialog
+  const handleImagesSelected = (newDataUrls: string[]) => {
+    const currentUrls = form.getValues("photoEvidenceDataUrls") || [];
+    const updatedUrls = [...currentUrls, ...newDataUrls];
+    setPhotoEvidencePreviews(updatedUrls);
+    form.setValue("photoEvidenceDataUrls", updatedUrls);
+    // Keep dialog open, user will close it explicitly
+    // setIsImageUploadDialogOpen(false); 
   };
 
-  const handleClearPhotoPreview = () => {
-    setPhotoEvidencePreview(null);
-    form.setValue("photoEvidenceDataUrl", "");
+  const handleRemovePhoto = (indexToRemove: number) => {
+    const updatedPreviews = photoEvidencePreviews.filter((_, index) => index !== indexToRemove);
+    setPhotoEvidencePreviews(updatedPreviews);
+    form.setValue("photoEvidenceDataUrls", updatedPreviews);
+  };
+
+  const handleClearAllPhotos = () => {
+    setPhotoEvidencePreviews([]);
+    form.setValue("photoEvidenceDataUrls", []);
   };
 
   const handleNext = async () => {
+    // Trigger validation for current step's fields if needed, or for all fields on final step
+    const isValid = await form.trigger(); // Can pass specific field names for current step if desired
+    if (!isValid && currentStep < totalSteps) {
+        toast({
+            variant: "destructive",
+            title: "Campos Incompletos",
+            description: "Por favor, complete todos los campos requeridos en este paso antes de continuar.",
+        });
+        return;
+    }
     if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -200,6 +220,7 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       description: `El extinguidor ID: ${extinguisherId} ha sido marcado para baja. (Simulado)`,
       variant: "destructive",
     });
+    // Potentially navigate or update state after this
   };
 
   const handleQuickAction = (action: 'Bueno' | 'Recargar' | 'Reemplazar') => {
@@ -207,6 +228,9 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       title: `Acción Rápida: ${action}`,
       description: `Se ha registrado la acción "${action}" para este extinguidor. (Simulado)`,
     });
+    // Here you might pre-fill some fields based on the action
+    // For example, 'Recargar' could set 'cargaExtintores' to 'Pendiente Recarga'
+    // 'Bueno' could set checklist items to 'C' (Conforme)
   };
 
 
@@ -401,38 +425,41 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
               )}
             />
             <div>
-              <FormLabel className="text-md font-semibold block mb-2">Fotos de Evidencia</FormLabel>
-              <div className="flex flex-wrap items-start gap-4">
-                {photoEvidencePreview && (
-                  <div className="relative w-48 h-48 group shrink-0">
-                    <img
-                      src={photoEvidencePreview}
-                      alt="Evidencia de auditoría"
-                      className="rounded-md object-cover w-full h-full"
-                      data-ai-hint="evidence photo"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={handleClearPhotoPreview}
-                      aria-label="Eliminar foto actual"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </Button>
+              <FormLabel className="text-md font-semibold block mb-2">Fotos de Evidencia ({photoEvidencePreviews.length})</FormLabel>
+              <div className="space-y-4">
+                {photoEvidencePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" data-ai-hint="evidence photo gallery">
+                    {photoEvidencePreviews.map((previewUrl, index) => (
+                      <div key={index} className="relative w-full aspect-square group shrink-0">
+                        <img
+                          src={previewUrl}
+                          alt={`Evidencia de auditoría ${index + 1}`}
+                          className="rounded-md object-cover w-full h-full"
+                          data-ai-hint="evidence photo"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          type="button"
+                          className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={() => handleRemovePhoto(index)}
+                          aria-label={`Eliminar foto ${index + 1}`}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <Button
+                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsImageUploadDialogOpen(true)}
-                  className="w-48 h-48 flex flex-col items-center justify-center border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary shrink-0"
-                  aria-label="Agregar o cambiar foto de evidencia"
+                  className="w-full flex items-center justify-center border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary"
+                  aria-label="Agregar más fotos de evidencia"
                 >
-                  <Camera className="h-10 w-10 mb-2" />
-                  <span className="text-sm text-center">
-                    {photoEvidencePreview ? "Cambiar Foto" : "Agregar Foto"}
-                  </span>
+                  <PlusCircle className="h-5 w-5 mr-2" />
+                  Agregar Foto
                 </Button>
               </div>
             </div>
@@ -539,10 +566,13 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       <ImageUploadDialog
         isOpen={isImageUploadDialogOpen}
         onOpenChange={setIsImageUploadDialogOpen}
-        onImageSelected={handleImageSelected}
-        imagePreview={photoEvidencePreview}
-        onClearPreview={handleClearPhotoPreview}
+        onImagesSelected={handleImagesSelected}
+        imagePreviews={photoEvidencePreviews}
+        onRemoveImage={handleRemovePhoto}
+        onClearAllImages={handleClearAllPhotos}
       />
     </>
   );
 }
+
+    
