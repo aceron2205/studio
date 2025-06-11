@@ -43,7 +43,7 @@ const ExtinguisherSchema = z.object({
   accesoLibre: z.string().optional(),
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
   observacionesGenerales: z.string().optional(),
-  photoEvidenceDataUrl: z.array(z.string()).optional(), // Changed to array of strings
+  photoEvidenceDataUrl: z.array(z.string()).optional(),
 });
 
 export type ExtinguisherFormData = z.infer<typeof ExtinguisherSchema>;
@@ -75,7 +75,6 @@ interface ExtinguisherEditorFormProps {
 
 export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguisherId, isNew = false }: ExtinguisherEditorFormProps) {
   const [isImageUploadDialogOpen, setIsImageUploadDialogOpen] = React.useState(false);
-  // This state will now hold an array of image data URLs
   const [photoEvidencePreviews, setPhotoEvidencePreviews] = React.useState<string[]>(
     Array.isArray(initialData.photoEvidenceDataUrl) ? initialData.photoEvidenceDataUrl : []
   );
@@ -103,26 +102,23 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
     },
   });
 
-  // NEW/UPDATED FUNCTION: handleImagesSelected now receives an array of dataUrls
   const handleImagesSelected = (dataUrls: string[]) => {
     setPhotoEvidencePreviews(prevPreviews => {
-      const newPreviews = [...prevPreviews, ...dataUrls]; // Append new images
-      form.setValue("photoEvidenceDataUrl", newPreviews); // Store the updated array in form state
+      const newPreviews = [...prevPreviews, ...dataUrls];
+      form.setValue("photoEvidenceDataUrl", newPreviews);
       return newPreviews;
     });
-    // setIsImageUploadDialogOpen(false); // Dialog stays open until explicitly closed by user
+    // setIsImageUploadDialogOpen(false); // Dialog stays open
   };
 
-  // NEW FUNCTION: Handle removing a single photo
   const handleRemovePhoto = (indexToRemove: number) => {
     setPhotoEvidencePreviews(prevPreviews => {
       const updatedPreviews = prevPreviews.filter((_, index) => index !== indexToRemove);
-      form.setValue("photoEvidenceDataUrl", updatedPreviews); // Update form state
+      form.setValue("photoEvidenceDataUrl", updatedPreviews);
       return updatedPreviews;
     });
   };
 
-  // NEW FUNCTION: Handle clearing all photos
   const handleClearAllPhotos = () => {
     setPhotoEvidencePreviews([]);
     form.setValue("photoEvidenceDataUrl", []);
@@ -297,10 +293,9 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
               <div className="pt-2 space-y-3">
                 <FormLabel className="text-md font-semibold block">Fotos de Evidencia</FormLabel>
 
-                <div className="flex flex-wrap gap-4 items-start"> {/* Changed to items-start for better alignment */}
-                  {/* Display current photo evidence */}
-                  {photoEvidencePreviews.length > 0 && ( // Check if there are photos before rendering the grid
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 flex-grow"> {/* flex-grow to take available space */}
+                <div className="flex flex-wrap gap-4 items-start">
+                  {photoEvidencePreviews.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 flex-grow">
                       {photoEvidencePreviews.map((src, index) => (
                         <div key={index} className="relative group w-24 h-24 sm:w-32 sm:h-32 rounded-md overflow-hidden" data-ai-hint="evidence photo">
                           <img
@@ -309,10 +304,10 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
                             className="w-full h-full object-cover"
                           />
                           <Button
-                            type="button" // Ensure it doesn't submit form
+                            type="button"
                             variant="destructive"
                             size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10"
+                            className="absolute top-1 right-1 h-6 w-6 rounded-full flex items-center justify-center z-10"
                             onClick={() => handleRemovePhoto(index)}
                             aria-label={`Eliminar imagen ${index + 1}`}
                           >
@@ -323,9 +318,8 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
                     </div>
                   )}
 
-                   {/* Button to open the image upload dialog */}
                    <Button
-                    type="button" // Ensure it doesn't submit form
+                    type="button"
                     variant="outline"
                     onClick={() => setIsImageUploadDialogOpen(true)}
                     className="w-24 h-24 sm:w-32 sm:h-32 flex flex-col items-center justify-center border-2 border-dashed text-muted-foreground hover:border-primary hover:text-primary shrink-0"
@@ -333,11 +327,11 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
                   >
                     <Camera className="h-8 w-8 mb-1 sm:h-10 sm:w-10" />
                     <span className="text-xs sm:text-sm text-center">
-                      {photoEvidencePreviews.length > 0 ? "Agregar/Cambiar" : "Agregar Foto"}
+                      {photoEvidencePreviews.length > 0 ? "Agregar Más" : "Agregar Foto"}
                     </span>
                   </Button>
 
-                  {photoEvidencePreviews.length === 0 && ( // Only show if no photos
+                  {photoEvidencePreviews.length === 0 && (
                     <div
                       className="mt-2 w-full min-h-[120px] border-2 border-dashed border-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-4 flex-grow"
                       data-ai-hint="photo gallery"
@@ -402,10 +396,10 @@ export function ExtinguisherEditorForm({ initialData, onSubmitSuccess, extinguis
       <ImageUploadDialog
         isOpen={isImageUploadDialogOpen}
         onOpenChange={setIsImageUploadDialogOpen}
-        onImagesSelected={handleImagesSelected} // Pass the new handler for multiple images
-        imagePreviews={photoEvidencePreviews}    // Pass the array of previews
-        onRemoveImage={handleRemovePhoto}        // Pass the new remove handler
-        onClearAllImages={handleClearAllPhotos}  // Pass the new clear all handler
+        onImagesSelected={handleImagesSelected}
+        imagePreviews={photoEvidencePreviews}
+        onRemoveImage={handleRemovePhoto}
+        onClearAllImages={handleClearAllPhotos}
       />
     </>
   );
