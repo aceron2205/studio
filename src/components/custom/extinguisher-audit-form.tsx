@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks } from "lucide-react";
+import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { ImageUploadDialog } from "./image-upload-dialog"; // Import the dialog
 
 const ExtinguisherAuditSchema = z.object({
   ubicacion: z.string().min(1, "La ubicación es requerida"),
@@ -44,7 +45,7 @@ const ExtinguisherAuditSchema = z.object({
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
   observacionesGenerales: z.string().optional(),
   articulosReemplazadosNotas: z.string().optional(),
-  // photoEvidence: z.any().optional(), // Placeholder for future photo data
+  photoEvidenceDataUrl: z.string().optional(), // To store the image data URI
 });
 
 export type ExtinguisherAuditFormData = z.infer<typeof ExtinguisherAuditSchema>;
@@ -129,10 +130,14 @@ const AuditStepper = ({ currentStep, totalSteps }: { currentStep: number; totalS
 export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguisherId }: ExtinguisherAuditFormProps) {
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 4;
+  const [isImageUploadDialogOpen, setIsImageUploadDialogOpen] = React.useState(false);
+  const [photoEvidencePreview, setPhotoEvidencePreview] = React.useState<string | null>(initialData.photoEvidenceDataUrl || null);
+
 
   const form = useForm<ExtinguisherAuditFormData>({
     resolver: zodResolver(ExtinguisherAuditSchema),
     defaultValues: {
+      ...initialData,
       ubicacion: initialData.ubicacion || "",
       capacidadLibras: initialData.capacidadLibras || "",
       modelo: initialData.modelo || "",
@@ -149,16 +154,22 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       cargaExtintores: initialData.cargaExtintores || "",
       observacionesGenerales: initialData.observacionesGenerales || "",
       articulosReemplazadosNotas: initialData.articulosReemplazadosNotas || "",
+      photoEvidenceDataUrl: initialData.photoEvidenceDataUrl || "",
     },
   });
 
-  const handleNext = async () => {
-    // Optional: Trigger validation for current step's fields
-    // const fieldsToValidate: (keyof ExtinguisherAuditFormData)[] = [];
-    // if (currentStep === 1) fieldsToValidate.push('ubicacion', 'capacidadLibras', ...);
-    // const isValid = await form.trigger(fieldsToValidate);
-    // if (!isValid) return;
+  const handleImageSelected = (dataUrl: string) => {
+    setPhotoEvidencePreview(dataUrl);
+    form.setValue("photoEvidenceDataUrl", dataUrl); // Store in form state
+    setIsImageUploadDialogOpen(false); // Close dialog after selection
+  };
 
+  const handleClearPhotoPreview = () => {
+    setPhotoEvidencePreview(null);
+    form.setValue("photoEvidenceDataUrl", "");
+  };
+
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -182,14 +193,6 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     onSubmitSuccess(data);
   }
 
-  const handleAddPhotoEvidence = () => {
-    console.log("Botón 'Agregar Fotos de Evidencia' clickeado. Funcionalidad no implementada.");
-    toast({
-        title: "Funcionalidad Pendiente",
-        description: "La carga de fotos aún no está implementada.",
-    });
-  };
-
   const confirmDarDeBaja = () => {
     console.log(`Confirmado dar de baja extinguidor: ${extinguisherId} desde el formulario de auditoría.`);
     toast({
@@ -204,8 +207,6 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       title: `Acción Rápida: ${action}`,
       description: `Se ha registrado la acción "${action}" para este extinguidor. (Simulado)`,
     });
-    // Future: Implement logic to update form fields based on action
-    // For example, for 'Bueno', set all checklist items to 'C'
   };
 
 
@@ -404,20 +405,40 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleAddPhotoEvidence}
+                onClick={() => setIsImageUploadDialogOpen(true)}
                 className="w-full sm:w-auto"
               >
                 <Camera className="mr-2 h-4 w-4" />
-                Agregar Fotos
+                {photoEvidencePreview ? "Cambiar Foto" : "Agregar Foto"}
               </Button>
-              <div
-                className="mt-3 w-full min-h-[120px] border-2 border-dashed border-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-4"
-                data-ai-hint="photo evidence"
-              >
-                <Camera className="h-10 w-10 mb-2 opacity-50" />
-                <span className="text-sm">Previsualización de Fotos de Auditoría</span>
-                <span className="text-xs">(Aquí se mostrarán las fotos cargadas)</span>
-              </div>
+              {photoEvidencePreview && (
+                <div className="mt-4 relative w-48 h-48 group">
+                  <img
+                    src={photoEvidencePreview}
+                    alt="Evidencia de auditoría"
+                    className="rounded-md object-cover w-full h-full"
+                    data-ai-hint="evidence photo"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={handleClearPhotoPreview}
+                    aria-label="Eliminar foto actual"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              {!photoEvidencePreview && (
+                <div
+                  className="mt-3 w-full min-h-[120px] border-2 border-dashed border-muted rounded-md flex flex-col items-center justify-center text-muted-foreground p-4"
+                  data-ai-hint="photo evidence"
+                >
+                  <Camera className="h-10 w-10 mb-2 opacity-50" />
+                  <span className="text-sm">Sin foto de evidencia</span>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -438,87 +459,95 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
 
 
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl text-center flex items-center justify-center gap-2">
-           {/* Icon is now part of the step description below */}
-          Auditoría de Extinguidor
-        </CardTitle>
-        <CardDescription className="text-center">Siga los pasos para completar la auditoría del extinguidor.</CardDescription>
-      </CardHeader>
-      <Form {...form}>
-        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col h-full">
-          <CardContent className="space-y-4 p-4 md:p-6 flex-grow">
-            <AuditStepper currentStep={currentStep} totalSteps={totalSteps} />
-            <div className="text-center my-3">
-                <h3 className="text-lg font-semibold text-primary flex items-center justify-center">
-                    {currentStepIcon()}
-                    Paso {currentStep}: {stepTitles[currentStep]}
-                </h3>
-            </div>
-            <div className="min-h-[250px] py-4"> {/* Added min-height to content area */}
-                {renderStepContent()}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 border-t mt-auto space-y-3 sm:space-y-0 sm:space-x-2 p-4 md:p-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className="w-full sm:w-auto"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Anterior
-            </Button>
-            
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                {currentStep === totalSteps && (
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        className="w-full sm:w-auto order-first sm:order-none"
-                    >
-                        <Trash2 className="mr-2 h-5 w-5" />
-                        Dar de baja
-                    </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                        Esta acción marcará el extinguidor para darlo de baja. Esto se reflejará en el reporte de auditoría. No podrás deshacer esta acción fácilmente.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDarDeBaja}>
-                        Confirmar Baja
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-                )}
-                <Button
-                    type="button"
-                    size="lg"
-                    onClick={handleNext}
-                    disabled={form.formState.isSubmitting}
-                    className="w-full sm:w-auto"
-                >
-                {currentStep === totalSteps ? (
-                    <> <Save className="mr-2 h-5 w-5" /> {form.formState.isSubmitting ? "Guardando..." : "Guardar Auditoría"} </>
-                ) : (
-                    <> {form.formState.isSubmitting ? "Procesando..." : "Siguiente"} <ArrowRight className="ml-2 h-4 w-4" /> </>
-                )}
-                </Button>
-            </div>
-          </CardFooter>
-        </form>
-      </Form>
-    </Card>
+    <>
+      <Card className="w-full shadow-lg">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl text-center flex items-center justify-center gap-2">
+            Auditoría de Extinguidor
+          </CardTitle>
+          <CardDescription className="text-center">Siga los pasos para completar la auditoría del extinguidor.</CardDescription>
+        </CardHeader>
+        <Form {...form}>
+          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col h-full">
+            <CardContent className="space-y-4 p-4 md:p-6 flex-grow">
+              <AuditStepper currentStep={currentStep} totalSteps={totalSteps} />
+              <div className="text-center my-3">
+                  <h3 className="text-lg font-semibold text-primary flex items-center justify-center">
+                      {currentStepIcon()}
+                      Paso {currentStep}: {stepTitles[currentStep]}
+                  </h3>
+              </div>
+              <div className="min-h-[250px] py-4">
+                  {renderStepContent()}
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 border-t mt-auto space-y-3 sm:space-y-0 sm:space-x-2 p-4 md:p-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="w-full sm:w-auto"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Anterior
+              </Button>
+              
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  {currentStep === totalSteps && (
+                  <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                      <Button
+                          type="button"
+                          variant="destructive"
+                          className="w-full sm:w-auto order-first sm:order-none"
+                      >
+                          <Trash2 className="mr-2 h-5 w-5" />
+                          Dar de baja
+                      </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                      <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                          Esta acción marcará el extinguidor para darlo de baja. Esto se reflejará en el reporte de auditoría. No podrás deshacer esta acción fácilmente.
+                          </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={confirmDarDeBaja}>
+                          Confirmar Baja
+                          </AlertDialogAction>
+                      </AlertDialogFooter>
+                      </AlertDialogContent>
+                  </AlertDialog>
+                  )}
+                  <Button
+                      type="button"
+                      size="lg"
+                      onClick={handleNext}
+                      disabled={form.formState.isSubmitting}
+                      className="w-full sm:w-auto"
+                  >
+                  {currentStep === totalSteps ? (
+                      <> <Save className="mr-2 h-5 w-5" /> {form.formState.isSubmitting ? "Guardando..." : "Guardar Auditoría"} </>
+                  ) : (
+                      <> {form.formState.isSubmitting ? "Procesando..." : "Siguiente"} <ArrowRight className="ml-2 h-4 w-4" /> </>
+                  )}
+                  </Button>
+              </div>
+            </CardFooter>
+          </form>
+        </Form>
+      </Card>
+      <ImageUploadDialog
+        isOpen={isImageUploadDialogOpen}
+        onOpenChange={setIsImageUploadDialogOpen}
+        onImageSelected={handleImageSelected}
+        imagePreview={photoEvidencePreview}
+        onClearPreview={handleClearPhotoPreview}
+      />
+    </>
   );
 }
 
