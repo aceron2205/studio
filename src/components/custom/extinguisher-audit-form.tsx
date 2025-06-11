@@ -409,7 +409,7 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                 className="w-full sm:w-auto"
               >
                 <Camera className="mr-2 h-4 w-4" />
-                {photoEvidencePreview ? "Cambiar Foto" : "Agregar Foto"}
+                Agregar Foto
               </Button>
               {photoEvidencePreview && (
                 <div className="mt-4 relative w-48 h-48 group">

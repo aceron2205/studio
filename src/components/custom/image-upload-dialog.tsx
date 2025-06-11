@@ -55,7 +55,7 @@ export function ImageUploadDialog({
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = () => {
         onImageSelected(reader.result as string);
@@ -77,7 +77,7 @@ export function ImageUploadDialog({
     setHasCameraPermission(null);
     try {
       const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      if (permissionStatus.state === 'denied') {
+      if (permissionStatus.state === 'denied' || permissionStatus.state === 'prompt') {
         setCameraError("Camera permission denied. Please enable it in your browser settings.");
         setHasCameraPermission(false);
         return;
@@ -114,7 +114,7 @@ export function ImageUploadDialog({
       onOpenChange(false);
     } else {
       toast({ variant: "destructive", title: "Capture Error", description: "Could not capture photo." });
-    }
+    }  
   };
   
   const handleDialogClose = (open: boolean) => {
@@ -129,19 +129,19 @@ export function ImageUploadDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{showCameraView ? "Capture Photo" : "Add Image Evidence"}</DialogTitle>
+        <DialogHeader className={cn(showCameraView && "flex flex-row items-center justify-between")}>
+          <DialogTitle>{showCameraView ? "Capturar Foto" : "Agregar Evidencia"}</DialogTitle>
           {!showCameraView && (
-            <DialogDescription>
-              Choose an image from your gallery or capture a new one with your camera.
+            <DialogDescription data-ai-hint="Dialog description for adding image evidence">
+              Selecciona una foto de tu galería o toma una nueva con tu cámara.
             </DialogDescription>
           )}
         </DialogHeader>
 
         {cameraError && (
           <Alert variant="destructive" className="my-4">
-            <Camera className="h-4 w-4" />
-            <AlertTitle>Camera Error</AlertTitle>
+            <Camera className="h-4 w-4" data-ai-hint="camera icon" />
+            <AlertTitle data-ai-hint="Camera error title">Error de la Cámara</AlertTitle>
             <AlertDescription>{cameraError}</AlertDescription>
           </Alert>
         )}
@@ -150,13 +150,13 @@ export function ImageUploadDialog({
           <div className="space-y-4 py-4">
             {imagePreview && onClearPreview && (
               <div className="relative group">
-                <img src={imagePreview} alt="Current evidence" className="rounded-md max-h-60 w-auto mx-auto" data-ai-hint="evidence photo" />
+                <img src={imagePreview} alt="Evidencia actual" className="rounded-md max-h-60 w-auto mx-auto" data-ai-hint="evidence photo" />
                 <Button
                   variant="destructive"
                   size="icon"
                   className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={onClearPreview}
-                  aria-label="Remove current image"
+                  aria-label="Eliminar imagen actual"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -164,7 +164,7 @@ export function ImageUploadDialog({
             )}
             <Button onClick={handleChooseFromGallery} variant="outline" className="w-full">
               <ImageIcon className="mr-2 h-5 w-5" />
-              Choose from Gallery
+              Elegir de la Galería
             </Button>
             <Input
               type="file"
@@ -176,7 +176,7 @@ export function ImageUploadDialog({
             />
             <Button onClick={handleOpenCamera} className="w-full">
               <Camera className="mr-2 h-5 w-5" />
-              Capture with Camera
+              Capturar con la Cámara
             </Button>
           </div>
         ) : (
@@ -193,28 +193,34 @@ export function ImageUploadDialog({
             <canvas ref={canvasRef} className="hidden"></canvas>
             {hasCameraPermission === false && (
                  <Alert variant="destructive">
-                    <Camera className="h-4 w-4" />
-                    <AlertTitle>Camera Access Required</AlertTitle>
+                    <Camera className="h-4 w-4" data-ai-hint="camera icon" />
+                    <AlertTitle data-ai-hint="Camera access required title">Se requiere acceso a la cámara</AlertTitle>
                     <AlertDescription>
-                        Please allow camera access to use this feature. You might need to enable it in your browser settings.
+                        Por favor, permita el acceso a la cámara para usar esta función. Es posible que deba habilitarlo en la configuración de su navegador.
                     </AlertDescription>
                  </Alert>
             )}
             {hasCameraPermission && (
-                <Button onClick={handleCapturePhoto} className="w-full" disabled={!cameraStream}>
-                Capture Photo
-                </Button>
+               <div className="flex justify-center">
+                   <Button
+                       onClick={handleCapturePhoto}
+                       className="rounded-full h-16 w-16"
+                       size="icon"
+                       disabled={!cameraStream}
+                       data-ai-hint="Capture photo button"
+                   ></Button>
+               </div>
             )}
             <Button onClick={() => { stopCamera(); setShowCameraView(false); }} variant="outline" className="w-full">
-              <ArrowLeft className="mr-2 h-5 w-5" />
-              Back to Options
+              <ArrowLeft className="mr-2 h-5 w-5" data-ai-hint="back arrow icon" />
+              Elegir otra opción
             </Button>
           </div>
         )}
         
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button type="button" variant="ghost">
+            <Button type="button" variant="ghost" data-ai-hint="cancel button">
               Cancel
             </Button>
           </DialogClose>
