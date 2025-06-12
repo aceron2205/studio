@@ -5,11 +5,12 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle, PlusCircle } from "lucide-react";
+import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle, PlusCircle, Building, Calendar, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,11 +29,28 @@ import {
 import { cn } from "@/lib/utils";
 import { ImageUploadDialog } from "./image-upload-dialog";
 
+const mmYYYYFormat = /^(0[1-9]|1[0-2])-\d{4}$/;
+const mmYYYYMessage = "Formato debe ser MM-YYYY (ej: 06-2024)";
+
 const ExtinguisherAuditSchema = z.object({
-  ubicacion: z.string().min(1, "La ubicación es requerida"),
-  capacidadLibras: z.string().min(1, "La capacidad es requerida"),
-  modelo: z.string().min(1, "El modelo es requerido"),
-  agenteExtintor: z.string().min(1, "El agente extintor es requerido"),
+  // Fields for Step 1 - General Info (some might be pre-filled, some editable during audit)
+  ubicacion: z.string().min(1, "La ubicación es requerida.").optional(),
+  capacidadLibras: z.string().min(1, "La capacidad es requerida.").optional(),
+  agenteExtintor: z.string().min(1, "El agente extintor es requerido.").optional(),
+  modelo: z.string().min(1, "El modelo es requerido.").optional(),
+  fabricacionDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }),
+  ultimoServicioDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }),
+  pruebaHidrostaticaDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }),
+  cargaExtintores: z.string().min(1, "El estado de carga es requerido"), // This was already part of the schema for audit specific state
+
+  // Fields for Step 1 - Audit Questions
+  ubicacionDesignado: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para la ubicación." }),
+  visibleSinObstrucciones: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para la visibilidad." }),
+  manometroZonaVerde: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para el manómetro." }),
+  pasadorSelloIntactos: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para el pasador y sello." }),
+  danosFisicos: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para daños físicos." }),
+  
+  // Fields for Step 2 - Checklist
   instrucciones: z.string().optional(),
   calcomaniasPlacas: z.string().optional(),
   selloSeguridad: z.string().optional(),
@@ -40,12 +58,12 @@ const ExtinguisherAuditSchema = z.object({
   pinturaBuenEstado: z.string().optional(),
   cilindroMangueraBoquillas: z.string().optional(),
   alturaAdecuada: z.string().optional(),
-  indicadorPresion: z.string().min(1, "El estado del indicador de presión es requerido"),
   accesoLibre: z.string().optional(),
-  cargaExtintores: z.string().min(1, "El estado de carga es requerido"),
+  
+  // Fields for Step 3 & 4
   observacionesGenerales: z.string().optional(),
   articulosReemplazadosNotas: z.string().optional(),
-  photoEvidenceDataUrls: z.array(z.string()).optional(), // Changed to array
+  photoEvidenceDataUrls: z.array(z.string()).optional(),
 });
 
 export type ExtinguisherAuditFormData = z.infer<typeof ExtinguisherAuditSchema>;
@@ -137,11 +155,19 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
   const form = useForm<ExtinguisherAuditFormData>({
     resolver: zodResolver(ExtinguisherAuditSchema),
     defaultValues: {
-      ...initialData,
       ubicacion: initialData.ubicacion || "",
       capacidadLibras: initialData.capacidadLibras || "",
-      modelo: initialData.modelo || "",
       agenteExtintor: initialData.agenteExtintor || "",
+      modelo: initialData.modelo || "",
+      fabricacionDate: initialData.fabricacionDate || "",
+      ultimoServicioDate: initialData.ultimoServicioDate || "",
+      pruebaHidrostaticaDate: initialData.pruebaHidrostaticaDate || "",
+      cargaExtintores: initialData.cargaExtintores || "Pendiente Chequeo",
+      ubicacionDesignado: initialData.ubicacionDesignado || "N/A",
+      visibleSinObstrucciones: initialData.visibleSinObstrucciones || "N/A",
+      manometroZonaVerde: initialData.manometroZonaVerde || "N/A",
+      pasadorSelloIntactos: initialData.pasadorSelloIntactos || "N/A",
+      danosFisicos: initialData.danosFisicos || "N/A",
       instrucciones: initialData.instrucciones || "P",
       calcomaniasPlacas: initialData.calcomaniasPlacas || "P",
       selloSeguridad: initialData.selloSeguridad || "P",
@@ -149,23 +175,42 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       pinturaBuenEstado: initialData.pinturaBuenEstado || "P",
       cilindroMangueraBoquillas: initialData.cilindroMangueraBoquillas || "P",
       alturaAdecuada: initialData.alturaAdecuada || "P",
-      indicadorPresion: initialData.indicadorPresion || "",
       accesoLibre: initialData.accesoLibre || "P",
-      cargaExtintores: initialData.cargaExtintores || "",
       observacionesGenerales: initialData.observacionesGenerales || "",
       articulosReemplazadosNotas: initialData.articulosReemplazadosNotas || "",
-      photoEvidenceDataUrls: initialData.photoEvidenceDataUrls || [], // Initialize as array
+      photoEvidenceDataUrls: initialData.photoEvidenceDataUrls || [], 
     },
   });
+  
+  const pruebaHidrostaticaDateValue = form.watch("pruebaHidrostaticaDate");
+  const [showVencePronto, setShowVencePronto] = React.useState(false);
 
-  // Handles newly selected/captured images from the dialog
+  React.useEffect(() => {
+    if (pruebaHidrostaticaDateValue && mmYYYYFormat.test(pruebaHidrostaticaDateValue)) {
+      const [monthStr, yearStr] = pruebaHidrostaticaDateValue.split('-');
+      const month = parseInt(monthStr, 10);
+      const year = parseInt(yearStr, 10);
+      // Use last day of the month for comparison to be safe
+      const hydroDate = new Date(year, month, 0); 
+      const currentDate = new Date();
+      currentDate.setHours(0,0,0,0); // Normalize current date to start of day
+
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(currentDate.getMonth() + 6);
+      sixMonthsFromNow.setHours(0,0,0,0);
+
+      setShowVencePronto(hydroDate <= sixMonthsFromNow && hydroDate >= currentDate);
+    } else {
+      setShowVencePronto(false);
+    }
+  }, [pruebaHidrostaticaDateValue]);
+
+
   const handleImagesSelected = (newDataUrls: string[]) => {
     const currentUrls = form.getValues("photoEvidenceDataUrls") || [];
     const updatedUrls = [...currentUrls, ...newDataUrls];
     setPhotoEvidencePreviews(updatedUrls);
     form.setValue("photoEvidenceDataUrls", updatedUrls);
-    // Keep dialog open, user will close it explicitly
-    // setIsImageUploadDialogOpen(false); 
   };
 
   const handleRemovePhoto = (indexToRemove: number) => {
@@ -179,9 +224,9 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     form.setValue("photoEvidenceDataUrls", []);
   };
 
+
   const handleNext = async () => {
-    // Trigger validation for current step's fields if needed, or for all fields on final step
-    const isValid = await form.trigger(); // Can pass specific field names for current step if desired
+    const isValid = await form.trigger(); 
     if (!isValid && currentStep < totalSteps) {
         toast({
             variant: "destructive",
@@ -220,39 +265,56 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       description: `El extinguidor ID: ${extinguisherId} ha sido marcado para baja. (Simulado)`,
       variant: "destructive",
     });
-    // Potentially navigate or update state after this
   };
-
-  const handleQuickAction = (action: 'Bueno' | 'Recargar' | 'Reemplazar') => {
-    toast({
-      title: `Acción Rápida: ${action}`,
-      description: `Se ha registrado la acción "${action}" para este extinguidor. (Simulado)`,
-    });
-    // Here you might pre-fill some fields based on the action
-    // For example, 'Recargar' could set 'cargaExtintores' to 'Pendiente Recarga'
-    // 'Bueno' could set checklist items to 'C' (Conforme)
-  };
-
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 1: // Información General y Estado Rápido
+      case 1:
         return (
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="ubicacion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ubicación</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Oficina principal, pasillo..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="mb-4 p-3 bg-muted/50 rounded-md border border-border">
+              <h3 className="text-lg font-semibold text-primary flex items-center"><ShieldAlert className="w-5 h-5 mr-2"/>ID del Equipo: {extinguisherId}</h3>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-700 -mb-2">Datos Generales del Extinguidor</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <FormField
+                control={form.control}
+                name="ubicacion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Building className="w-4 h-4 mr-1 text-muted-foreground"/>Ubicación</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: Oficina principal..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="agenteExtintor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Agente Extintor</FormLabel>
+                     <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar agente" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {agenteExtintorOptions.map(option => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="capacidadLibras"
@@ -279,48 +341,63 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="agenteExtintor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Agente Extintor</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+            </div>
+
+            <div className="pt-2">
+              <h4 className="text-lg font-semibold text-gray-700 mb-3 flex items-center"><Calendar className="w-5 h-5 mr-2 text-muted-foreground"/>Fechas Clave</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                <FormField
+                  control={form.control}
+                  name="fabricacionDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fabricación</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar agente" />
-                        </SelectTrigger>
+                        <Input placeholder="MM-YYYY" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {agenteExtintorOptions.map(option => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="indicadorPresion"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Indicador de Presión</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: En verde, Baja, Alta, N/A" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ultimoServicioDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Último Servicio</FormLabel>
+                      <FormControl>
+                        <Input placeholder="MM-YYYY" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="pruebaHidrostaticaDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center">Prueba Hidrostática
+                        {showVencePronto && (
+                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                VENCE PRONTO
+                            </span>
+                        )}
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="MM-YYYY" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+             <FormField
                 control={form.control}
                 name="cargaExtintores"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className="md:col-span-2 pt-2">
                     <FormLabel>Estado de Carga / Próxima Recarga</FormLabel>
                     <FormControl>
                       <Input placeholder="Ej: Cargado (MM/AAAA), Vencido (MM/AAAA)" {...field} />
@@ -329,18 +406,77 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   </FormItem>
                 )}
               />
+
+            <div className="space-y-4 pt-6">
+              <h2 className="text-lg font-semibold text-gray-800">1. Ubicación y Acceso (Auditoría)</h2>
+              <FormField control={form.control} name="ubicacionDesignado" render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-base font-medium text-gray-700">¿Está en su lugar designado?</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
+                      </RadioGroup></FormControl><FormMessage />
+                  </FormItem>)} />
+              <FormField control={form.control} name="visibleSinObstrucciones" render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-base font-medium text-gray-700">¿Está visible y sin obstrucciones?</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
+                      </RadioGroup></FormControl><FormMessage />
+                  </FormItem>)} />
             </div>
-            <div>
-              <FormLabel className="text-md font-semibold mb-2 block">Acciones Rápidas</FormLabel>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={() => handleQuickAction('Bueno')}>Bueno</Button>
-                <Button type="button" variant="outline" onClick={() => handleQuickAction('Recargar')}>Recargar</Button>
-                <Button type="button" variant="outline" onClick={() => handleQuickAction('Reemplazar')}>Reemplazar</Button>
-              </div>
+            <div className="space-y-4 pt-4">
+              <h2 className="text-lg font-semibold text-gray-800">2. Estado Operativo (Auditoría)</h2>
+              <FormField control={form.control} name="manometroZonaVerde" render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-base font-medium text-gray-700">¿Está el manómetro en la zona verde?</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
+                      </RadioGroup></FormControl><FormMessage />
+                  </FormItem>)} />
+              <FormField control={form.control} name="pasadorSelloIntactos" render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-base font-medium text-gray-700">¿Están el pasador y el sello de seguridad intactos?</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
+                      </RadioGroup></FormControl><FormMessage />
+                  </FormItem>)} />
+            </div>
+            <div className="space-y-4 pt-4">
+              <h2 className="text-lg font-semibold text-gray-800">3. Condición Física (Auditoría)</h2>
+              <FormField control={form.control} name="danosFisicos" render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-base font-medium text-gray-700">¿Tiene algún daño físico evidente (golpes, corrosión, fugas)?</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
+                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
+                      </RadioGroup></FormControl><FormMessage />
+                  </FormItem>)} />
+            </div>
+            <div className="pt-4">
+              <FormField control={form.control} name="observacionesGenerales" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium text-gray-700">Observaciones Adicionales de Auditoría</FormLabel>
+                    <FormControl><Textarea placeholder="Anotaciones adicionales sobre la inspección..." className="min-h-[100px] bg-white rounded-md border border-gray-200 shadow-sm" {...field} /></FormControl><FormMessage />
+                  </FormItem>)} />
             </div>
           </div>
         );
-      case 2: // Lista de Verificación
+
+      case 2: 
         return (
           <div>
             <FormLabel className="text-md font-semibold mb-3 block text-center">Revisión de Componentes y Estado</FormLabel>
@@ -378,7 +514,7 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
             </div>
           </div>
         );
-      case 3: // Artículos Reemplazados
+      case 3: 
         return (
           <div>
             <FormField
@@ -404,18 +540,18 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
             </Button>
           </div>
         );
-      case 4: // Evidencia y Observaciones Finales
+      case 4: 
         return (
           <div className="space-y-6">
              <FormField
               control={form.control}
-              name="observacionesGenerales"
+              name="observacionesGenerales" // This is duplicated, consider if Step 1 obs are general and these are audit-specific
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Observaciones Generales de la Auditoría</FormLabel>
+                  <FormLabel>Observaciones Generales de la Auditoría (Paso 4)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Anotaciones adicionales sobre la inspección de este extinguidor..."
+                      placeholder="Anotaciones finales sobre la inspección de este extinguidor..."
                       className="resize-y min-h-[80px]"
                       {...field}
                     />
@@ -461,6 +597,11 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   <PlusCircle className="h-5 w-5 mr-2" />
                   Agregar Foto
                 </Button>
+                {photoEvidencePreviews.length > 0 && (
+                     <Button onClick={handleClearAllPhotos} className="w-full sm:w-auto mt-2" variant="outline" type="button">
+                        Eliminar todas las fotos
+                      </Button>
+                )}
               </div>
             </div>
           </div>
@@ -574,5 +715,3 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     </>
   );
 }
-
-    

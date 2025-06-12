@@ -8,28 +8,40 @@ import { ArrowLeft, FileCheck } from "lucide-react"; // Icon for the page
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/components/custom/extinguisher-audit-form";
-import { useToast } from "@/hooks/use-toast"; // Added import
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data for PlanEditor's extinguishers - this should ideally come from a service or context
 // This is the same mock data used in edit-extinguisher and plan-editor for consistency
-const mockPlanExtinguishers: Record<string, Array<{ id: string; type: string; capacity: string; location_description: string; model?: string; pressure_indicator?: string; charge_status?: string; last_revision_date?: string; }>> = {
+const mockPlanExtinguishers: Record<string, Array<{ 
+  id: string; 
+  type: string; 
+  capacity: string; 
+  location_description: string; 
+  model?: string; 
+  pressure_indicator?: string; 
+  charge_status?: string; 
+  last_revision_date?: string;
+  fabricacionDate?: string;
+  ultimoServicioDate?: string;
+  pruebaHidrostaticaDate?: string;
+}>> = {
   'plan-alpha': [
-    { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)' },
-    { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)' },
+    { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', fabricacionDate: '01-2020', ultimoServicioDate: '01-2024', pruebaHidrostaticaDate: '01-2025' },
+    { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', fabricacionDate: '05-2019', ultimoServicioDate: '11-2023', pruebaHidrostaticaDate: '11-2028' },
   ],
   'plan-beta': [
-    { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)' },
+    { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)', fabricacionDate: '02-2021', ultimoServicioDate: '03-2024', pruebaHidrostaticaDate: '03-2026' },
   ],
   'plan-gamma': [
-    { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga'},
-    { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)'},
+    { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', fabricacionDate: '07-2018', ultimoServicioDate: '08-2023', pruebaHidrostaticaDate: '08-2024' }, // Example: Vence pronto this year
+    { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', fabricacionDate: '03-2022', ultimoServicioDate: '05-2024', pruebaHidrostaticaDate: '05-2027'},
   ],
   // Fallback for direct extinguisher IDs if they are passed as planId in some contexts
-  'ext-1': [{ id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)' }],
-  'ext-2': [{ id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)' }],
-  'ext-3': [{ id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)' }],
-  'ext-4': [{ id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga'}],
-  'ext-5': [{ id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)'}],
+  'ext-1': [{ id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', fabricacionDate: '01-2020', ultimoServicioDate: '01-2024', pruebaHidrostaticaDate: '01-2025' }],
+  'ext-2': [{ id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', fabricacionDate: '05-2019', ultimoServicioDate: '11-2023', pruebaHidrostaticaDate: '11-2028' }],
+  'ext-3': [{ id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)', fabricacionDate: '02-2021', ultimoServicioDate: '03-2024', pruebaHidrostaticaDate: '03-2026' }],
+  'ext-4': [{ id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', fabricacionDate: '07-2018', ultimoServicioDate: '08-2023', pruebaHidrostaticaDate: '08-2024'}], // Example: Vence pronto this year
+  'ext-5': [{ id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', fabricacionDate: '03-2022', ultimoServicioDate: '05-2024', pruebaHidrostaticaDate: '05-2027'}],
 };
 
 
@@ -43,7 +55,7 @@ interface AuditExtinguisherPageProps {
 export default function AuditExtinguisherPage({ params: paramsPromise }: AuditExtinguisherPageProps) {
   const router = useRouter();
   const { planId, extinguisherId } = use(paramsPromise);
-  const { toast } = useToast(); // Initialized toast
+  const { toast } = useToast(); 
 
   const [initialExtinguisherData, setInitialExtinguisherData] = React.useState<Partial<ExtinguisherAuditFormData> | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -60,11 +72,21 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
         setInitialExtinguisherData({
           ubicacion: extinguisher.location_description,
           capacidadLibras: extinguisher.capacity,
-          agenteExtintor: extinguisher.type,
+          agenteExtintor: extinguisher.type, // This will be used to prefill 'agenteExtintor' in the form
           modelo: extinguisher.model || "Modelo Desconocido",
-          indicadorPresion: extinguisher.pressure_indicator || "Pendiente",
+          fabricacionDate: extinguisher.fabricacionDate || "",
+          ultimoServicioDate: extinguisher.ultimoServicioDate || "",
+          pruebaHidrostaticaDate: extinguisher.pruebaHidrostaticaDate || "",
+          // Audit specific fields (already in schema)
           cargaExtintores: extinguisher.charge_status || "Pendiente Chequeo",
-          // Default checklist items to "P" (Pendiente) if not present in mock
+          // Default checklist items to "P" (Pendiente) if not present in mock for audit specific questions
+          // Radio button questions from step 1:
+          ubicacionDesignado: "N/A", // Default values for audit questions
+          visibleSinObstrucciones: "N/A",
+          manometroZonaVerde: "N/A",
+          pasadorSelloIntactos: "N/A",
+          danosFisicos: "N/A",
+          // Select checklist items from step 2:
           instrucciones: "P",
           calcomaniasPlacas: "P",
           selloSeguridad: "P",
@@ -73,7 +95,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
           cilindroMangueraBoquillas: "P",
           alturaAdecuada: "P",
           accesoLibre: "P",
-          photoEvidenceDataUrls: [], // Initialize as empty array for multi-image
+          photoEvidenceDataUrls: [], 
         });
       } else {
         setError(`Extinguidor con ID ${extinguisherId} no encontrado en el plano ${planId}.`);
@@ -85,7 +107,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
       }
       setLoading(false);
     }, 500);
-  }, [planId, extinguisherId, toast]); // Added toast to dependency array
+  }, [planId, extinguisherId, toast]);
 
   const handleSubmitSuccess = (data: ExtinguisherAuditFormData) => {
     console.log("Datos de la auditoría del extinguidor guardados (simulado):", data);
@@ -94,7 +116,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
         description: `La auditoría para el extinguidor ${extinguisherId} ha sido guardada.`,
         variant: "default"
     });
-    router.back(); // Go back to the plan view or previous screen
+    router.back(); 
   };
 
   if (loading) {
