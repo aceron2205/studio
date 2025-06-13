@@ -44,11 +44,13 @@ const ExtinguisherAuditSchema = z.object({
   cargaExtintores: z.string().min(1, "El estado de carga es requerido"), // This was already part of the schema for audit specific state
 
   // Fields for Step 1 - Audit Questions
-  ubicacionDesignado: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para la ubicación." }),
-  visibleSinObstrucciones: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para la visibilidad." }),
-  manometroZonaVerde: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para el manómetro." }),
-  pasadorSelloIntactos: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para el pasador y sello." }),
-  danosFisicos: z.enum(["Sí", "No", "N/A"], { required_error: "Seleccione una opción para daños físicos." }),
+  ubicacionDesignado: z.enum(["Sí", "No"], { required_error: "Seleccione una opción para la ubicación." }),
+  visibleSinObstrucciones: z.enum(["Sí", "No"], { required_error: "Seleccione una opción para la visibilidad." }),
+  manometroZonaVerde: z.enum(["Sí", "No"], { required_error: "Seleccione una opción para el manómetro." }),
+  pasadorSelloIntactos: z.enum(["Sí", "No"], { required_error: "Seleccione una opción para el pasador y sello." }),
+  danosFisicos: z.enum(["Sí", "No"
+    
+  ], { required_error: "Seleccione una opción para daños físicos." }),
   
   // Fields for Step 2 - Checklist
   instrucciones: z.string().optional(),
@@ -163,11 +165,11 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       ultimoServicioDate: initialData.ultimoServicioDate || "",
       pruebaHidrostaticaDate: initialData.pruebaHidrostaticaDate || "",
       cargaExtintores: initialData.cargaExtintores || "Pendiente Chequeo",
-      ubicacionDesignado: initialData.ubicacionDesignado || "N/A",
-      visibleSinObstrucciones: initialData.visibleSinObstrucciones || "N/A",
-      manometroZonaVerde: initialData.manometroZonaVerde || "N/A",
-      pasadorSelloIntactos: initialData.pasadorSelloIntactos || "N/A",
-      danosFisicos: initialData.danosFisicos || "N/A",
+      ubicacionDesignado: initialData.ubicacionDesignado || "",
+      visibleSinObstrucciones: initialData.visibleSinObstrucciones || "",
+      manometroZonaVerde: initialData.manometroZonaVerde || "",
+      pasadorSelloIntactos: initialData.pasadorSelloIntactos || "",
+      danosFisicos: initialData.danosFisicos || "",
       instrucciones: initialData.instrucciones || "P",
       calcomaniasPlacas: initialData.calcomaniasPlacas || "P",
       selloSeguridad: initialData.selloSeguridad || "P",
@@ -271,141 +273,79 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
-            <div className="mb-4 p-3 bg-muted/50 rounded-md border border-border">
-              <h3 className="text-lg font-semibold text-primary flex items-center"><ShieldAlert className="w-5 h-5 mr-2"/>ID del Equipo: {extinguisherId}</h3>
+<div className="space-y-6">
+            {/* ID del Equipo - Encabezado más simple */}
+            <div className="mb-4 flex items-center justify-between text-lg font-semibold text-gray-800">
+                <span className="flex items-center text-primary">
+                    <ShieldAlert className="w-5 h-5 mr-2"/>ID del Equipo:
+                </span>
+                <span className="font-bold">EXT-001-A</span> {/* Placeholder */}
             </div>
 
             <h3 className="text-xl font-semibold text-gray-700 -mb-2">Datos Generales del Extinguidor</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-              <FormField
-                control={form.control}
-                name="ubicacion"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center"><Building className="w-4 h-4 mr-1 text-muted-foreground"/>Ubicación</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Oficina principal..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="agenteExtintor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Agente Extintor</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar agente" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {agenteExtintorOptions.map(option => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="capacidadLibras"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Capacidad</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: 10 lbs, 5 kg" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="modelo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modelo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Amerex B402" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm"> {/* Reducido gap-y y font-size */}
+
+              {/* Cliente y Sitio - Diseño compacto, ocupa 2 columnas en pantallas pequeñas (PRIMERO) */}
+              <div className="flex justify-between items-center py-1 border-b border-gray-100 col-span-1 md:col-span-2">
+                <span className="font-medium text-gray-700">Cliente / Sitio:</span>
+                <span className="font-normal text-gray-800">Emerson / Planta Reynosa</span> {/* Placeholder */}
+              </div>
+
+              {/* Ubicación - Diseño compacto (SEGUNDO) */}
+              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                <span className="flex items-center font-medium text-gray-700">Ubicación:</span>
+                <span className="font-normal text-gray-800">Entrada Principal, Almacén</span> {/* Placeholder */}
+              </div>
+
+              {/* Agente Extintor - Diseño compacto */}
+              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                <span className="font-medium text-gray-700">Agente Extintor:</span>
+                <span className="font-normal text-gray-800">Polvo Químico Seco (ABC)</span> {/* Placeholder */}
+              </div>
+
+              {/* Capacidad - Diseño compacto */}
+              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                <span className="font-medium text-gray-700">Capacidad:</span>
+                <span className="font-normal text-gray-800">10 lbs</span> {/* Placeholder */}
+              </div>
+
+              {/* Modelo - Diseño compacto */}
+              <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                <span className="font-medium text-gray-700">Modelo:</span>
+                <span className="font-normal text-gray-800">Amerex B402</span> {/* Placeholder */}
+              </div>
             </div>
+
 
             <div className="pt-2">
               <h4 className="text-lg font-semibold text-gray-700 mb-3 flex items-center"><Calendar className="w-5 h-5 mr-2 text-muted-foreground"/>Fechas Clave</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-                <FormField
-                  control={form.control}
-                  name="fabricacionDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fabricación</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MM-YYYY" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="ultimoServicioDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Último Servicio</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MM-YYYY" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="pruebaHidrostaticaDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center">Prueba Hidrostática
-                        {showVencePronto && (
-                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                                VENCE PRONTO
-                            </span>
-                        )}
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="MM-YYYY" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm"> {/* Ajustado a 2 columnas para fechas, reducido gap-y */}
+                {/* Fabricación - Diseño compacto */}
+                <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  <span className="font-medium text-gray-700">Fabricación:</span>
+                  <span className="font-normal text-gray-800">10-2020</span> {/* Placeholder */}
+                </div>
+
+                {/* Último Servicio - Diseño compacto */}
+                <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  <span className="font-medium text-gray-700">Último Servicio:</span>
+                  <span className="font-normal text-gray-800">05-2024</span> {/* Placeholder */}
+                </div>
+
+                {/* Prueba Hidrostática - Diseño compacto con alerta */}
+                <div className="flex justify-between items-center py-1 border-b border-gray-100 col-span-1 md:col-span-2"> {/* Ocupa toda la línea para la alerta */}
+                  <span className="font-medium text-gray-700">Prueba Hidrostática:</span>
+                  <span className="font-normal text-gray-800 flex items-center">
+                    06-2025 {/* Placeholder */}
+                    {true && ( // Mantengo el 'true' para que veas el VENCE PRONTO con el placeholder
+                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                            VENCE PRONTO
+                        </span>
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
-             <FormField
-                control={form.control}
-                name="cargaExtintores"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2 pt-2">
-                    <FormLabel>Estado de Carga / Próxima Recarga</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Cargado (MM/AAAA), Vencido (MM/AAAA)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
             <div className="space-y-4 pt-6">
               <h2 className="text-lg font-semibold text-gray-800">1. Ubicación y Acceso (Auditoría)</h2>
@@ -413,20 +353,18 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   <FormItem className="space-y-2">
                     <FormLabel className="text-base font-medium text-gray-700">¿Está en su lugar designado?</FormLabel>
                     <FormControl>
-                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row flex-wrap justify-around space-x-4">
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
-                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
                       </RadioGroup></FormControl><FormMessage />
                   </FormItem>)} />
               <FormField control={form.control} name="visibleSinObstrucciones" render={({ field }) => (
                   <FormItem className="space-y-2">
                     <FormLabel className="text-base font-medium text-gray-700">¿Está visible y sin obstrucciones?</FormLabel>
                     <FormControl>
-                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row flex-wrap justify-around space-x-4">
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
-                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
                       </RadioGroup></FormControl><FormMessage />
                   </FormItem>)} />
             </div>
@@ -436,20 +374,18 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   <FormItem className="space-y-2">
                     <FormLabel className="text-base font-medium text-gray-700">¿Está el manómetro en la zona verde?</FormLabel>
                     <FormControl>
-                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row flex-wrap justify-around space-x-4">
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
-                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
                       </RadioGroup></FormControl><FormMessage />
                   </FormItem>)} />
               <FormField control={form.control} name="pasadorSelloIntactos" render={({ field }) => (
                   <FormItem className="space-y-2">
                     <FormLabel className="text-base font-medium text-gray-700">¿Están el pasador y el sello de seguridad intactos?</FormLabel>
                     <FormControl>
-                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row flex-wrap justify-around space-x-4">
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
-                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
                       </RadioGroup></FormControl><FormMessage />
                   </FormItem>)} />
             </div>
@@ -459,10 +395,9 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   <FormItem className="space-y-2">
                     <FormLabel className="text-base font-medium text-gray-700">¿Tiene algún daño físico evidente (golpes, corrosión, fugas)?</FormLabel>
                     <FormControl>
-                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
+                      <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row flex-wrap justify-around space-x-4">
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="Sí" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">Sí</FormLabel></FormItem>
                         <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="No" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">No</FormLabel></FormItem>
-                        <FormItem className="flex items-center space-x-2 p-3 bg-white rounded-md border border-gray-200 shadow-sm"><FormControl><RadioGroupItem value="N/A" /></FormControl><FormLabel className="font-normal flex-grow text-gray-800">N/A</FormLabel></FormItem>
                       </RadioGroup></FormControl><FormMessage />
                   </FormItem>)} />
             </div>
