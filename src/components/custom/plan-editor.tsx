@@ -125,11 +125,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
     router.push(`/audit-extinguisher/${planId}/${extinguisherId}`);
   };
 
-  const handleEditExtinguisher = (extinguisherId: string) => {
-    console.log(`Editando extinguidor: ${extinguisherId} desde plan ${planId}`);
-    router.push(`/edit-extinguisher/${planId}/${extinguisherId}`);
-  };
-
+ 
   const handleCodeScannedToAdd = (code: string) => {
     const newExtId = `ext-scan-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
     const knownData = mockKnownScannableExtinguishers[code.toUpperCase()] || mockKnownScannableExtinguishers[code];
@@ -263,8 +259,6 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                     <ExtinguisherActionsDropdown
                       extinguisherId={ext.id}
                       extinguisherType={`${ext.type} (${ext.capacity})`}
-                      onAudit={handleAuditExtinguisher}
-                      onEdit={handleEditExtinguisher}
                       onDelete={handleDeleteExtinguisher}
                     />
                   </div>

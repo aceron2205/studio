@@ -117,9 +117,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
     router.push(`/audit-extinguisher/${itemId}/${extId}`);
   };
 
-  const handleEditExtinguisher = (extId: string) => {
-    router.push(`/edit-extinguisher/${itemId}/${extId}`);
-  };
 
   const handleDeleteScannedExtinguisher = (extinguisherId: string, extinguisherType: string) => {
     console.log(`Solicitud de baja para extinguidor ${extinguisherId} (${extinguisherType}) desde BarcodeScanner.`);
@@ -256,7 +253,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                                 extinguisherId={ext.id}
                                 extinguisherType={`${displayExt.type} (${displayExt.capacity})`}
                                 onAudit={() => handleAuditExtinguisher(ext.id)}
-                                onEdit={() => handleEditExtinguisher(ext.id)}
                                 onDelete={() => handleDeleteScannedExtinguisher(ext.id, `${displayExt.type} (${displayExt.capacity})`)}
                             />
                         </div>

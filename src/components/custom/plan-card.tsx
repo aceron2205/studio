@@ -29,7 +29,6 @@ interface PlanCardProps {
   isDownloaded: boolean;
   onViewPlan: (planId: string, planName: string) => void;
   onAuditPlan: (planId: string, planName: string) => void;
-  onEditPlan: (planId: string, planName: string) => void;
   onDownloadPlan: (planId: string, planName: string) => void;
 }
 

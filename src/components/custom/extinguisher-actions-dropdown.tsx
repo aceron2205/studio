@@ -26,7 +26,6 @@ interface ExtinguisherActionsDropdownProps {
   extinguisherId: string;
   extinguisherType: string; // For messages, e.g., "Polvo Químico Seco (ABC)"
   onAudit: (extinguisherId: string) => void;
-  onEdit: (extinguisherId: string) => void;
   onDelete: (extinguisherId: string) => void;
 }
 
@@ -34,7 +33,6 @@ export function ExtinguisherActionsDropdown({
   extinguisherId,
   extinguisherType,
   onAudit,
-  onEdit,
   onDelete,
 }: ExtinguisherActionsDropdownProps) {
   return (
@@ -49,10 +47,6 @@ export function ExtinguisherActionsDropdown({
           <DropdownMenuItem onClick={() => onAudit(extinguisherId)}>
             <FileCheck className="mr-2 h-4 w-4" />
             Auditar
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(extinguisherId)}>
-            <Edit3 className="mr-2 h-4 w-4" />
-            Editar
           </DropdownMenuItem>
           <AlertDialogTrigger asChild>
             <DropdownMenuItem
