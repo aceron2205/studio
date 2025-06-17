@@ -90,32 +90,20 @@ export default function AuditScanPage({ params: paramsPromise }: AuditScanPagePr
   const extinguishersForAuditedItem = mockDataForAuditableItems[itemId]?.extinguishers || [];
   const auditedItemName = mockDataForAuditableItems[itemId]?.name || `Elemento ${itemId}`;
 
-  const backButtonNode = (
-    <Link href="/" passHref>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Volver al Inicio"
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6" // Adjusted for p-6 header
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
-    </Link>
-  );
+  // The backButtonNode is no longer needed here if ProcessHeader handles its own back button
+  // and overrideTitle is always passed from this page.
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
+    <div className="flex flex-col justify-start min-h-screen bg-background">
       <div className="w-full">
         <BarcodeScanner
             itemId={itemId}
             extinguishersForPlan={extinguishersForAuditedItem}
             overrideTitle={auditedItemName}
-            overrideBackButton={backButtonNode}
+            // overrideBackButton prop is effectively unused by BarcodeScanner when overrideTitle is present
         />
       </div>
       <Toaster />
     </div>
   );
 }
-
-    
