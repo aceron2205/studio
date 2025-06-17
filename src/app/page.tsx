@@ -5,7 +5,6 @@ import * as React from 'react'; // Added this line
 import Link from 'next/link';
 import { UserCircle, Plus, CheckCircle2, RefreshCw, Clock, MapPin, Archive, FilePlus2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 

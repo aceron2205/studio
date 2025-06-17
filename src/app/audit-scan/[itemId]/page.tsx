@@ -105,7 +105,7 @@ export default function AuditScanPage({ params: paramsPromise }: AuditScanPagePr
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
-      <div className="w-full max-w-md">
+      <div className="w-full">
         <BarcodeScanner
             itemId={itemId}
             extinguishersForPlan={extinguishersForAuditedItem}

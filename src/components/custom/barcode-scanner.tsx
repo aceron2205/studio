@@ -2,11 +2,10 @@
 "use client";
 
 import * as React from "react";
-import { List, ShieldCheck, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react"; // Removed FileCheck, Edit3
+import { List, ShieldCheck, Tag, Building, Thermometer, BatteryCharging, Calendar, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -17,7 +16,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown"; // Import the new component
+import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown";
+import ProcessHeader from "./process-header"; // Import ProcessHeader
 
 
 export interface ExtinguisherDataForAccordion {
@@ -43,7 +43,7 @@ interface BarcodeScannerProps {
   itemId: string;
   extinguishersForPlan?: ExtinguisherDataForAccordion[];
   overrideTitle?: string;
-  overrideBackButton?: React.ReactNode;
+  overrideBackButton?: React.ReactNode; // This will be unused if overrideTitle is present
 }
 
 const detailedMockExtinguishers: Record<string, ExtinguisherDataForAccordion> = {
@@ -123,13 +123,9 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
     toast({
         title: "Acción Registrada",
         description: `La solicitud de baja para el extinguidor ${extinguisherType} (${extinguisherId}) ha sido registrada. (Simulado)`,
-        variant: "default", // Or "destructive" if you want to emphasize it
+        variant: "default",
     });
-    // Note: BarcodeScanner does not modify extinguishersForPlan directly.
-    // This action would typically be handled by a parent component managing the state.
   };
-
-  const auditedCountInList = extinguishersForPlan.filter(ext => auditedExtinguisherIds.has(ext.id)).length;
 
   const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
     value ? (
@@ -142,44 +138,31 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
   );
 
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader className={cn(
-        "relative border-b",
-        overrideTitle ? "p-6" : "p-4 text-center"
-      )}>
-        {overrideTitle ? (
-          <>
-            {overrideBackButton}
-            <div className="w-full text-center">
-              <CardTitle className="text-xl font-semibold text-primary px-12 truncate" title={overrideTitle}>
-                {overrideTitle}
-              </CardTitle>
-            </div>
-          </>
-        ) : (
-          <>
-            <CardTitle className="text-xl text-primary flex items-center justify-center gap-2">
+    <div className="w-full">
+      {overrideTitle ? (
+        <ProcessHeader title={overrideTitle} />
+      ) : (
+        <div className={cn("relative pb-4 px-4 text-center")}>
+          <div className="flex flex-col items-center justify-center gap-2">
+            <h1 className="text-xl text-primary flex items-center gap-2">
               <List className="h-6 w-6" />
               Escanear Extinguidor
-            </CardTitle>
-            <CardDescription className="mt-1">
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
               Ingresa un código manualmente o usa la cámara.
               {extinguishersForPlan.length > 0 ? " Abajo puedes ver los extinguidores de este plano." : ""}
-            </CardDescription>
-          </>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-6 p-6">
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-6 p-4 sm:p-6">
         <ScannerInterface onCodeScanned={handleCodeProcessed} />
 
         {extinguishersForPlan && extinguishersForPlan.length > 0 && (
           <>
             <Separator />
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                <List className="h-5 w-5" />
-                Extintores en este Plano ({auditedCountInList}/{extinguishersForPlan.length})
-              </h3>
               <Accordion type="single" collapsible className="w-full space-y-2" value={openAccordionItem} onValueChange={setOpenAccordionItem}>
                 {extinguishersForPlan.map((ext) => {
                   const isAudited = auditedExtinguisherIds.has(ext.id);
@@ -187,7 +170,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                   const isCurrentOpen = openAccordionItem === ext.id;
 
                   return (
-                    <AccordionItem value={ext.id} key={ext.id} className="border rounded-lg shadow-sm bg-card overflow-hidden" data-radix-accordion-item>
+                    <AccordionItem value={ext.id} key={ext.id} className="border rounded-md bg-background overflow-hidden" data-radix-accordion-item>
                        <AccordionTrigger asChild>
                          <div
                            role="button"
@@ -198,14 +181,14 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                              }
                              setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
                            }}
-                           onKeyDown={(e) => {
+                           onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
                              if (e.key === 'Enter' || e.key === ' ') {
                                if ((e.target as HTMLElement).closest('[data-radix-dropdown-menu-trigger]')) {
                                  return;
                                }
                                e.preventDefault();
                                setOpenAccordionItem(isCurrentOpen ? undefined : ext.id);
-                             }
+                              }
                            }}
                            className={cn(
                              "flex items-center justify-between w-full p-3 cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -264,9 +247,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
             </div>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
-
-    

@@ -24,7 +24,7 @@ export function PlanCreator() {
 
   const handleCreateNewPlan = () => {
     console.log("Iniciando creación de nuevo plano/auditoría...");
-    router.push('/new-audit-form');
+    router.push('/new-extinguisher-form');
   };
 
   const handleNavigateToEdit = (planId: string, planName: string) => {
@@ -76,7 +76,7 @@ export function PlanCreator() {
       <CardContent className="space-y-8 p-6">
         <div>
           <h3 className="text-xl font-semibold mb-3 text-card-foreground">
-            Comenzar un Nuevo Diseño/Auditoría
+            Comenzar un Nuevo Plano
           </h3>
           <Button
             onClick={handleCreateNewPlan}
@@ -84,7 +84,7 @@ export function PlanCreator() {
             size="lg"
           >
             <FilePlus2 className="mr-2 h-5 w-5" />
-            Crear Nuevo Plano / Auditoría
+            Crear Nuevo Plano
           </Button>
           <p className="text-sm text-muted-foreground mt-2">
             Inicia el registro detallado y la distribución de extintores para una nueva área o cliente.
@@ -107,7 +107,6 @@ export function PlanCreator() {
                   isDownloaded={false}  // No download state managed here
                   onViewPlan={handleNavigateToEdit}
                   onAuditPlan={handleAuditPlanPlaceholder} // Placeholder action
-                  onEditPlan={handleNavigateToEdit}
                   onDownloadPlan={handleDownloadPlanPlaceholder} // Placeholder action
                 />
               ))}

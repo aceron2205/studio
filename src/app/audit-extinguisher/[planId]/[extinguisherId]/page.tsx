@@ -8,6 +8,7 @@ import { ArrowLeft, FileCheck } from "lucide-react"; // Icon for the page
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/components/custom/extinguisher-audit-form";
+import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data for PlanEditor's extinguishers - this should ideally come from a service or context
@@ -78,23 +79,23 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
           ultimoServicioDate: extinguisher.ultimoServicioDate || "",
           pruebaHidrostaticaDate: extinguisher.pruebaHidrostaticaDate || "",
           // Audit specific fields (already in schema)
-          cargaExtintores: extinguisher.charge_status || "Pendiente Chequeo",
+          cargaExtintores: extinguisher.charge_status || "",
           // Default checklist items to "P" (Pendiente) if not present in mock for audit specific questions
           // Radio button questions from step 1:
-          ubicacionDesignado: "N/A", // Default values for audit questions
-          visibleSinObstrucciones: "N/A",
-          manometroZonaVerde: "N/A",
-          pasadorSelloIntactos: "N/A",
-          danosFisicos: "N/A",
+          ubicacionDesignado: undefined, // Default values for audit questions
+          visibleSinObstrucciones: undefined,
+          manometroZonaVerde: undefined,
+          pasadorSelloIntactos: undefined,
+          danosFisicos: undefined,
           // Select checklist items from step 2:
-          instrucciones: "P",
-          calcomaniasPlacas: "P",
-          selloSeguridad: "P",
-          pinPasador: "P",
-          pinturaBuenEstado: "P",
-          cilindroMangueraBoquillas: "P",
-          alturaAdecuada: "P",
-          accesoLibre: "P",
+          instrucciones: undefined,
+          calcomaniasPlacas: undefined,
+          selloSeguridad: undefined,
+          pinPasador: undefined,
+          pinturaBuenEstado: undefined,
+          cilindroMangueraBoquillas: undefined,
+          alturaAdecuada: undefined,
+          accesoLibre: undefined,
           photoEvidenceDataUrls: [], 
         });
       } else {
@@ -155,6 +156,17 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
              Auditar Extinguidor
           </h1>
         </div>
+        {/* Render the ExtinguisherInfoBlock component */}
+        <ExtinguisherInfoBlock
+          extinguisherId={extinguisherId}
+          data={{
+            ubicacion: initialExtinguisherData.ubicacion,
+            agenteExtintor: initialExtinguisherData.agenteExtintor,
+            capacidadLibras: initialExtinguisherData.capacidadLibras,
+            modelo: initialExtinguisherData.modelo,
+          }}
+          showVencePronto={initialExtinguisherData.pruebaHidrostaticaDate === '08-2024'}
+        />
         <ExtinguisherAuditForm
             initialData={initialExtinguisherData}
             onSubmitSuccess={handleSubmitSuccess}

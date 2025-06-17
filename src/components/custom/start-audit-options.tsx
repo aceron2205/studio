@@ -2,10 +2,9 @@
 "use client";
 
 import * as React from "react";
-import esLocaleData from "date-fns/locale/es"; // Changed import
+import { es } from 'date-fns/locale';
 import { format, isSameDay } from "date-fns";
 import { FilePlus2, ArrowLeft, ChevronDown, ChevronUp, CalendarIcon, Loader2, Check } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -85,7 +84,7 @@ export function StartAuditOptions() {
 
   const handleStartNewAudit = () => {
     console.log("Starting new unscheduled audit - navigating to new audit form");
-    router.push('/new-audit-form'); // Navigate to the form for unscheduled/new plan audits
+    router.push('/new-extinguisher-form'); // Navigate to the form for unscheduled/new plan audits
   };
 
   const displayedAudits = mockPendingAudits.slice(0, visibleAuditsCount);
@@ -117,62 +116,57 @@ export function StartAuditOptions() {
     : [];
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="relative p-6">
+ <div className="w-full mx-auto space-y-8">
+ <div className="relative py-6 px-4 sm:px-6 flex justify-center items-center">
         <Link href="/" passHref>
           <Button
             variant="ghost"
             size="icon"
             aria-label="Volver al Inicio"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div className="w-full text-center">
-          <CardTitle className="text-2xl font-semibold text-primary">
+ <h1 className="text-2xl font-bold text-primary">
             Iniciar Auditoría
-          </CardTitle>
-          <CardDescription className="mt-1">
+ </h1>
+ <p className="mt-1 text-muted-foreground text-sm">
             Selecciona una auditoría programada o crea una nueva.
-          </CardDescription>
+ </p>
         </div>
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 sm:right-6">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Seleccionar vista">
-                <CalendarIcon className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Tipo de Vista</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setViewMode("list")}>
-                Lista
-                {viewMode === "list" && <span className="ml-auto text-xs">✓</span>}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewMode("calendar")}>
-                Calendario
-                {viewMode === "calendar" && <span className="ml-auto text-xs">✓</span>}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-8 pt-6">
-        {viewMode === "list" && (
-          <div>
+ <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+ <DropdownMenu>
+ <DropdownMenuTrigger asChild>
+ <Button variant="outline" size="icon" aria-label="Seleccionar vista">
+ <CalendarIcon className="h-5 w-5" />
+ </Button>
+ </DropdownMenuTrigger>
+ <DropdownMenuContent align="end">
+ <DropdownMenuLabel>Tipo de Vista</DropdownMenuLabel>
+ <DropdownMenuSeparator />
+ <DropdownMenuItem onClick={() => setViewMode("list")}>
+ Lista
+ {viewMode === "list" && <span className="ml-auto text-xs">✓</span>}
+ </DropdownMenuItem>
+ <DropdownMenuItem onClick={() => setViewMode("calendar")}>
+ Calendario
+ {viewMode === "calendar" && <span className="ml-auto text-xs">✓</span>}
+ </DropdownMenuItem>
+ </DropdownMenuContent>
+ </DropdownMenu>
+ </div>
+ </div>
+ <div className="px-4 sm:px-6 space-y-6">
+ {viewMode === "list" && (
+ <div>
             {mockPendingAudits.length > 0 ? (
-              <div className="space-y-4">
-                {displayedAudits.map((audit) => (
+ <div className="space-y-4">
+ {displayedAudits.map((audit) => (
                   <ScheduledAuditListItem
                     key={`list-${audit.id}`}
-                    audit={audit}
-                    locale={esLocaleData} 
-                    onAudit={handleStartScheduledAudit}
-                    onDownload={handleDownloadAudit}
-                    isDownloading={downloadingAuditIds.has(audit.id)}
-                    isDownloaded={downloadedAuditIds.has(audit.id)}
+ audit={audit} locale={es} onAudit={handleStartScheduledAudit} onDownload={handleDownloadAudit} isDownloading={downloadingAuditIds.has(audit.id)} isDownloaded={downloadedAuditIds.has(audit.id)}
                   />
                 ))}
               </div>
@@ -182,33 +176,32 @@ export function StartAuditOptions() {
               </p>
             )}
             {mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && displayedAudits.length < mockPendingAudits.length && (
-              <div className="mt-4 text-center">
+ <div className="mt-4 text-center">
                 <Button variant="outline" onClick={toggleExpand} className="w-full sm:w-auto">
                   <ChevronDown className="mr-2 h-4 w-4" />
                   Ver más auditorías
                 </Button>
               </div>
             )}
-            {isExpanded && displayedAudits.length === mockPendingAudits.length && mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && (
-                 <div className="mt-4 text-center">
-                    <Button variant="outline" onClick={toggleExpand} className="w-full sm:w-auto">
-                        <ChevronUp className="mr-2 h-4 w-4" />
+ {isExpanded && displayedAudits.length === mockPendingAudits.length && mockPendingAudits.length > INITIAL_AUDITS_TO_SHOW && (
+ <div className="mt-4 text-center">
+ <Button variant="outline" onClick={toggleExpand} className="w-full sm:w-auto">
+ <ChevronUp className="mr-2 h-4 w-4" />
                         Ver menos auditorías
-                    </Button>
-                 </div>
+ </Button>
+ </div>
             )}
-          </div>
+ </div>
         )}
-
-        {viewMode === "calendar" && (
-          <div className="space-y-6">
+ {viewMode === "calendar" && (
+ <div className="space-y-6">
             <div className="flex justify-center">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md border shadow"
-                locale={esLocaleData} 
+                locale={es} 
                 ISOWeek
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersStyles={{
@@ -221,22 +214,17 @@ export function StartAuditOptions() {
                 }}
               />
             </div>
-            {selectedDate && (
-              <div>
+ {selectedDate && (
+ <div>
                 <h4 className="text-lg font-semibold mb-4 text-center text-primary">
-                  Auditorías para el {format(selectedDate, "PPP", { locale: esLocaleData })}
+                  Auditorías para el {format(selectedDate, "PPP", { locale: es })}
                 </h4>
                 {auditsForSelectedDay.length > 0 ? (
-                  <div className="space-y-4">
-                    {auditsForSelectedDay.map((audit) => (
+ <div className="space-y-4">
+ {auditsForSelectedDay.map((audit) => (
                       <ScheduledAuditListItem
                         key={`cal-${audit.id}`}
-                        audit={audit}
-                        locale={esLocaleData} 
-                        onAudit={handleStartScheduledAudit}
-                        onDownload={handleDownloadAudit}
-                        isDownloading={downloadingAuditIds.has(audit.id)}
-                        isDownloaded={downloadedAuditIds.has(audit.id)}
+ audit={audit} locale={es} onAudit={handleStartScheduledAudit} onDownload={handleDownloadAudit} isDownloading={downloadingAuditIds.has(audit.id)} isDownloaded={downloadedAuditIds.has(audit.id)}
                       />
                     ))}
                   </div>
@@ -247,12 +235,10 @@ export function StartAuditOptions() {
                 )}
               </div>
             )}
-          </div>
+ </div>
         )}
-
-        <Separator />
-
-        <div>
+ <Separator />
+ <div className="py-4"> {/* Added padding here */}
           <h3 className="text-xl font-semibold mb-4 text-card-foreground">
             O Iniciar una Auditoría Nueva (No Programada)
           </h3>
@@ -268,7 +254,7 @@ export function StartAuditOptions() {
             Perfecto para auditorías no planificadas o de seguimiento inmediato. Se abrirá el formulario de nuevo plano/auditoría.
           </p>
         </div>
-      </CardContent>
-    </Card>
+ </div>
+ </div>
   );
 }

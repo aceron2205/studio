@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle, PlusCircle, Building, Calendar, ShieldAlert } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -28,6 +27,9 @@ import {
 import { cn } from "@/lib/utils";
 import { ImageUploadDialog } from "./image-upload-dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+
 
 const mmYYYYFormat = /^(0[1-9]|1[0-2])-\d{4}$/;
 const mmYYYYMessage = "Formato debe ser MM-YYYY (ej: 06-2024)";
@@ -50,8 +52,6 @@ const ExtinguisherAuditSchema = z.object({
   manometroZonaVerde: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   pasadorSelloIntactos: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   danosFisicos: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
-  
-  // Fields for Step 2 - Checklist (now Sí/No radio buttons)
   instrucciones: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   calcomaniasPlacas: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   selloSeguridad: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
@@ -60,9 +60,18 @@ const ExtinguisherAuditSchema = z.object({
   cilindroMangueraBoquillas: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   alturaAdecuada: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   accesoLibre: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
-  
-  // Fields for Step 3 & 4
-  observacionesGenerales: z.string().optional(), // This is used in step 1 and step 4, consider distinct fields if necessary
+  observacionesGenerales: z.string().optional(),
+  articulosReemplazados: z.object({
+    sello: z.boolean().optional().default(false),
+    pasador: z.boolean().optional().default(false),
+    etiqueta: z.boolean().optional().default(false),
+    correaManguera: z.boolean().optional().default(false),
+    manguera: z.boolean().optional().default(false),
+    manometro: z.boolean().optional().default(false),
+    soporte: z.boolean().optional().default(false),
+    recargaAgente: z.boolean().optional().default(false),
+    extintorCompleto: z.boolean().optional().default(false),
+  }).optional(),
   articulosReemplazadosNotas: z.string().optional(),
   photoEvidenceDataUrls: z.array(z.string()).optional(),
 });
@@ -80,10 +89,22 @@ const checklistFormItems = [
     { name: "accesoLibre" as const, label: "Acceso libre de obstrucciones" },
 ];
 
+const replaceableItems = [
+  { id: "sello" as const, label: "Sello de Seguridad (Precinto)" },
+  { id: "pasador" as const, label: "Pasador de Seguridad (Pin)" },
+  { id: "etiqueta" as const, label: "Etiqueta de Servicio Anual" },
+  { id: "correaManguera" as const, label: "Correa o Seguro de Manguera" },
+  { id: "manguera" as const, label: "Manguera y/o Boquilla" },
+  { id: "manometro" as const, label: "Manómetro de Presión" },
+  { id: "soporte" as const, label: "Soporte de Montaje (Gancho)" },
+  { id: "recargaAgente" as const, label: "Recarga de Agente Extintor" },
+  { id: "extintorCompleto" as const, label: "Extintor Completo" },
+];
+
 const stepTitles: Record<number, string> = {
   1: "Información General y Estado",
-  2: "Lista de Verificación Detallada", // Updated Step 2 title
-  3: "Artículos Reemplazados",
+  2: "Lista de Verificación Detallada",
+  3: "Artículos Reemplazados y Servicios",
   4: "Evidencia y Observaciones",
 };
 
@@ -92,6 +113,7 @@ interface ExtinguisherAuditFormProps {
   initialData: Partial<ExtinguisherAuditFormData>;
   onSubmitSuccess: (data: ExtinguisherAuditFormData) => void;
   extinguisherId: string;
+  onStepChange?: (currentStep: number, totalSteps: number) => void;
 }
 
 const AuditStepper = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => {
@@ -131,11 +153,11 @@ const AuditStepper = ({ currentStep, totalSteps }: { currentStep: number; totalS
 // Helper function to process initial values for radio groups
 const getInitialRadioValue = (value: string | undefined) => {
   if (value === "Sí" || value === "No") return value;
-  return ""; // Default to empty string if initial value is not Sí/No (e.g., "P" or "N/A")
+  return undefined; // Default to undefined if initial value is not Sí/No (e.g., "P" or "N/A")
 };
 
 
-export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguisherId }: ExtinguisherAuditFormProps) {
+export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguisherId, onStepChange }: ExtinguisherAuditFormProps) {
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 4;
   const [isImageUploadDialogOpen, setIsImageUploadDialogOpen] = React.useState(false);
@@ -144,37 +166,13 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
 
   const form = useForm<ExtinguisherAuditFormData>({
     resolver: zodResolver(ExtinguisherAuditSchema),
-    defaultValues: {
-      ubicacion: initialData.ubicacion || "",
-      capacidadLibras: initialData.capacidadLibras || "",
-      agenteExtintor: initialData.agenteExtintor || "",
-      modelo: initialData.modelo || "",
-      fabricacionDate: initialData.fabricacionDate || "",
-      ultimoServicioDate: initialData.ultimoServicioDate || "",
-      pruebaHidrostaticaDate: initialData.pruebaHidrostaticaDate || "",
-      cargaExtintores: initialData.cargaExtintores || "Pendiente Chequeo",
-      // Step 1 Radio Questions
-      ubicacionDesignado: getInitialRadioValue(initialData.ubicacionDesignado),
-      visibleSinObstrucciones: getInitialRadioValue(initialData.visibleSinObstrucciones),
-      manometroZonaVerde: getInitialRadioValue(initialData.manometroZonaVerde),
-      pasadorSelloIntactos: getInitialRadioValue(initialData.pasadorSelloIntactos),
-      danosFisicos: getInitialRadioValue(initialData.danosFisicos),
-      // Step 2 Radio Questions (formerly checklist)
-      instrucciones: getInitialRadioValue(initialData.instrucciones),
-      calcomaniasPlacas: getInitialRadioValue(initialData.calcomaniasPlacas),
-      selloSeguridad: getInitialRadioValue(initialData.selloSeguridad),
-      pinPasador: getInitialRadioValue(initialData.pinPasador),
-      pinturaBuenEstado: getInitialRadioValue(initialData.pinturaBuenEstado),
-      cilindroMangueraBoquillas: getInitialRadioValue(initialData.cilindroMangueraBoquillas),
-      alturaAdecuada: getInitialRadioValue(initialData.alturaAdecuada),
-      accesoLibre: getInitialRadioValue(initialData.accesoLibre),
-      // Other fields
-      observacionesGenerales: initialData.observacionesGenerales || "",
-      articulosReemplazadosNotas: initialData.articulosReemplazadosNotas || "",
-      photoEvidenceDataUrls: initialData.photoEvidenceDataUrls || [], 
-    },
-  });
+    defaultValues: initialData,
+});
   
+  React.useEffect(() => {
+    onStepChange?.(currentStep, totalSteps);
+  }, [currentStep, totalSteps, onStepChange]);
+
   const pruebaHidrostaticaDateValue = form.watch("pruebaHidrostaticaDate");
   const [showVencePronto, setShowVencePronto] = React.useState(false);
 
@@ -219,7 +217,7 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
   const stepFields: Record<number, (keyof ExtinguisherAuditFormData)[]> = {
     1: ["ubicacion", "capacidadLibras", "agenteExtintor", "modelo", "fabricacionDate", "ultimoServicioDate", "pruebaHidrostaticaDate", "cargaExtintores", "ubicacionDesignado", "visibleSinObstrucciones", "manometroZonaVerde", "pasadorSelloIntactos", "danosFisicos", "observacionesGenerales"],
     2: ["instrucciones", "calcomaniasPlacas", "selloSeguridad", "pinPasador", "pinturaBuenEstado", "cilindroMangueraBoquillas", "alturaAdecuada", "accesoLibre"],
-    3: ["articulosReemplazadosNotas"],
+    3: ["articulosReemplazados", "articulosReemplazadosNotas"],
     4: ["photoEvidenceDataUrls", "observacionesGenerales"], // Note: observacionesGenerales can be in step 1 and 4.
   };
 
@@ -291,14 +289,14 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                   value={field.value || ""}
                   className="flex space-x-4"
                 >
-                  <FormItem className="flex items-center space-x-2">
-                    <RadioGroupItem value="Sí" id={`${field.name}-si`} />
-                    <Label htmlFor={`${field.name}-si`} className="font-normal text-foreground">Sí</Label>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2">
-                    <RadioGroupItem value="No" id={`${field.name}-no`} />
-                    <Label htmlFor={`${field.name}-no`} className="font-normal text-foreground">No</Label>
-                  </FormItem>
+   <FormItem className="flex items-center space-x-2">
+    <RadioGroupItem value="Sí" id={`${field.name}-si`} />
+    <Label htmlFor={`${field.name}-si`} className="font-normal text-foreground">Sí</Label>
+  </FormItem>
+  <FormItem className="flex items-center space-x-2">
+    <RadioGroupItem value="No" id={`${field.name}-no`} />
+    <Label htmlFor={`${field.name}-no`} className="font-normal text-foreground">No</Label>
+  </FormItem>
                 </RadioGroup>
               </FormControl>
             </div>
@@ -369,39 +367,99 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
         );
 
       case 2: 
-        return (
-          <div className="space-y-1">
-            {checklistFormItems.map(checkItem => (
-              renderRadioGroupField(checkItem.name, checkItem.label)
-            ))}
-          </div>
-        );
-      case 3: 
-        return (
-          <div>
+      return (
+        <div className="space-y-1">
+          {checklistFormItems.map(checkItem => (
             <FormField
+              key={checkItem.name} // <-- Se añade la KEY para solucionar el aviso de React
               control={form.control}
-              name="articulosReemplazadosNotas"
+              name={checkItem.name}
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-foreground">Notas sobre Artículos Reemplazados</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Detallar manómetros, mangueras, sellos, agente extintor, etc., que fueron reemplazados..."
-                      className="resize-y min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
+                <FormItem className="py-3 border-b last:border-b-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <FormLabel className="text-base text-foreground mb-2 sm:mb-0 sm:flex-1 sm:pr-4">
+                      {checkItem.label}
+                    </FormLabel>
+                    <div className="flex items-center space-x-6">
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value || ""}
+                          className="flex space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2">
+                            <RadioGroupItem value="Sí" id={`${field.name}-si`} />
+                            <Label htmlFor={`${field.name}-si`} className="font-normal text-foreground">Sí</Label>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2">
+                            <RadioGroupItem value="No" id={`${field.name}-no`} />
+                            <Label htmlFor={`${field.name}-no`} className="font-normal text-foreground">No</Label>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                    </div>
+                  </div>
+                  <FormMessage className="mt-1 sm:ml-[calc(50%+1rem)]" /> 
                 </FormItem>
               )}
             />
-            <Button type="button" variant="outline" className="mt-4 w-full sm:w-auto" onClick={() => toast({ title: "Funcionalidad Pendiente", description: "Agregar artículos detalladamente aún no está implementado."})}>
-              <Wrench className="mr-2 h-4 w-4" />
-              Añadir Artículo Reemplazado (Detallado)
-            </Button>
+          ))}
+        </div>
+      );
+      case 3: 
+      return (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-base font-semibold text-foreground mb-4">
+              Marque los artículos que fueron reemplazados o los servicios realizados:
+            </h3>
+            <div className="space-y-3">
+              
+              {/* Este código usa <Checkbox>, que es la herramienta correcta para este tipo de datos */}
+              {replaceableItems.map((item) => (
+                <FormField
+                  key={item.id}
+                  control={form.control}
+                  name={`articulosReemplazados.${item.id}`} // Se conecta a cada propiedad booleana
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-3 rounded-md border bg-background/50">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal text-foreground text-sm cursor-pointer">
+                       {item.label}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
           </div>
-        );
+    
+          {/* El campo para las notas adicionales se mantiene igual */}
+          <FormField
+            control={form.control}
+            name="articulosReemplazadosNotas"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-medium text-foreground">Notas Adicionales del Servicio</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Añada detalles específicos sobre el servicio realizado, piezas, etc..."
+                    className="resize-y min-h-[100px] bg-background rounded-md border"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      );
+
       case 4: 
         return (
           <div className="space-y-6">
@@ -487,8 +545,8 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
   return (
     <>
       <Card className="w-full shadow-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl text-center flex items-center justify-center gap-2 text-primary">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-xl text-center flex items-center justify-center gap-2 text-primary mb-2">
             Auditoría de Extinguidor
           </CardTitle>
           <CardDescription className="text-center">Siga los pasos para completar la auditoría del extinguidor.</CardDescription>
@@ -496,11 +554,11 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
         <Form {...form}>
           <form onSubmit={(e) => e.preventDefault()} className="flex flex-col h-full">
             <CardContent className="space-y-4 p-4 md:p-6 flex-grow">
-              <AuditStepper currentStep={currentStep} totalSteps={totalSteps} />
+             
               <div className="text-center my-3">
                   <h3 className="text-lg font-semibold text-primary flex items-center justify-center">
                       {currentStepIcon()}
-                      Paso {currentStep}: {stepTitles[currentStep]}
+                       {stepTitles[currentStep]}
                   </h3>
               </div>
               <div className="min-h-[250px] py-4">

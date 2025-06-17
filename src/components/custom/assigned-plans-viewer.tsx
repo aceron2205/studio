@@ -36,46 +36,43 @@ export function AssignedPlansViewer() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader className="relative p-6 border-b">
-        <Link href="/" passHref>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Volver al Inicio"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
+ <div className="w-full">
+ <div className="relative py-6 border-b px-4 sm:px-6 lg:px-8">
+ <Link href="/" passHref>
+ <Button
+ variant="ghost"
+ size="icon"
+ aria-label="Volver al Inicio"
+ className="absolute left-4 top-1/2 transform -translate-y-1/2"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-        </Link>
-        <div className="pl-10 text-left"> {/* Adjusted padding to make space for back button */}
-          <CardTitle className="text-2xl font-bold text-foreground">
-            Planos Asignados
-          </CardTitle>
-          {/* CardDescription removed to match new UI */}
-        </div>
-      </CardHeader>
+ </Link>
+ <h1 className="text-2xl font-bold text-foreground text-center">
+ Planos Asignados
+ </h1>
+ </div>
 
-      <CardContent className="p-0"> {/* Removed padding from CardContent for full-width list items */}
-        {plans.length > 0 ? (
-          <ul className="divide-y divide-border">
-            {plans.map((plan, index) => (
-              <li key={plan.id}>
-                <button
-                  onClick={() => handleViewOrEditPlan(plan.id, plan.name)}
-                  className="flex items-center justify-between w-full px-6 py-4 text-left hover:bg-muted/50 focus:outline-none focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                  aria-label={`Ver detalles del plano ${plan.name}`}
-                >
-                  <div className="flex-grow">
-                    <h3 className="text-md font-semibold text-card-foreground">{plan.name}</h3>
-                    {plan.clientName && <p className="text-sm text-muted-foreground mt-0.5">{plan.clientName}</p>}
-                    {plan.location && <p className="text-sm text-muted-foreground">{plan.location}</p>}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Última mod.: {plan.lastModified}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground ml-4 flex-shrink-0" />
-                </button>
+ <div className="p-4 sm:p-6 lg:p-8">
+ {plans.length > 0 ? (
+ <ul className="divide-y divide-border">
+ {plans.map((plan) => (
+ <li key={plan.id}>
+ <button
+ onClick={() => handleViewOrEditPlan(plan.id, plan.name)}
+ className="flex items-center justify-between w-full py-4 text-left hover:bg-muted/50 focus:outline-none focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-md px-2 -mx-2"
+ aria-label={`Ver detalles del plano ${plan.name}`}
+ >
+ <div className="flex-grow">
+ <h3 className="text-md font-semibold text-foreground">{plan.name}</h3>
+ {plan.clientName && <p className="text-sm text-muted-foreground mt-0.5">{plan.clientName}</p>}
+ {plan.location && <p className="text-sm text-muted-foreground">{plan.location}</p>}
+ <p className="text-xs text-muted-foreground mt-1">
+ Última mod.: {plan.lastModified}
+ </p>
+ </div>
+ <ChevronRight className="h-5 w-5 text-muted-foreground ml-4 flex-shrink-0" />
+ </button>
               </li>
             ))}
           </ul>
@@ -88,7 +85,7 @@ export function AssignedPlansViewer() {
             </p>
           </div>
         )}
-      </CardContent>
-    </Card>
+ </div>
+ </div>
   );
 }

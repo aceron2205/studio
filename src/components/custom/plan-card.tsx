@@ -38,7 +38,6 @@ export function PlanCard({
   isDownloaded,
   onViewPlan,
   onAuditPlan,
-  onEditPlan,
   onDownloadPlan,
 }: PlanCardProps) {
 
@@ -93,10 +92,6 @@ export function PlanCard({
               <DropdownMenuItem onClick={() => onAuditPlan(plan.id, plan.name)}>
                 <FileCheck className="mr-2 h-4 w-4" />
                 Auditar
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEditPlan(plan.id, plan.name)}>
-                <Edit3 className="mr-2 h-4 w-4" />
-                Editar
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

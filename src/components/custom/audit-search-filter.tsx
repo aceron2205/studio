@@ -3,12 +3,11 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import esLocaleData from "date-fns/locale/es"; // Import Spanish locale using default import
+import { es } from "date-fns/locale/es"; // Import Spanish locale using default import
 import { SearchIcon, ListFilter, ArrowLeft } from "lucide-react"; 
 import Link from "next/link"; // Import Link
 
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -25,30 +24,27 @@ export function AuditSearchFilter() {
   // For now, the input is just a UI element.
 
   return (
-    <Card className="w-full max-w-lg mx-auto shadow-lg">
-      <CardHeader className="flex flex-row items-center gap-3">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-row items-center gap-3 mb-8">
         <Link href="/" passHref>
           <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <CardTitle className="text-2xl font-semibold text-primary flex items-center gap-2">
+        <h1 className="text-3xl font-bold text-primary flex items-center gap-2">
           <SearchIcon className="w-6 h-6" />
           Búsqueda de Clientes
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-6">
-          <Label htmlFor="generalSearchInput" className="text-sm font-medium">Búsqueda Rápida</Label>
-          <div className="relative mt-1">
+        </h1>
+      </div>
+
+      <div className="mb-8">
+        <div className="relative">
             <Input
               id="generalSearchInput"
               placeholder="Nombre de cliente, fecha, ubicación..."
-              className="pr-10" // Padding right for the icon
+              className="pl-10 pr-4 py-2 border rounded-md w-full"
             />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <ListFilter className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-            </div>
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           </div>
         </div>
 
@@ -62,12 +58,12 @@ export function AuditSearchFilter() {
                 <li key={client.id}>
                   <Link
                     href={`/edit-plan/new?name=${encodeURIComponent(`Plano para ${client.name}`)}`}
-                    className="block p-4 border rounded-lg shadow-sm bg-card hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="block p-4 border rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     aria-label={`Crear nuevo plano para ${client.name}`}
                   >
                     <h4 className="font-semibold text-md text-card-foreground">{client.name}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: esLocaleData })}
+                      Auditoría Programada: {format(new Date(client.scheduledAudit), "PPP", { locale: es })}
                     </p>
                     <p className="text-sm text-muted-foreground">Ubicación: {client.location}</p>
                     <p className="text-sm text-muted-foreground">Extintores Pendientes: {client.pendingExtinguishers}</p>
@@ -79,8 +75,6 @@ export function AuditSearchFilter() {
             <p className="text-muted-foreground text-center">No se encontraron clientes.</p>
           )}
         </div>
-
-      </CardContent>
-    </Card>
+    </div>
   );
 }
