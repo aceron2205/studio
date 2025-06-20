@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle, PlusCircle, Building, Calendar, ShieldAlert } from "lucide-react";
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
@@ -37,15 +36,15 @@ const requiredRadioMessage = "Seleccione una opción.";
 
 const ExtinguisherAuditSchema = z.object({
   // Fields for Step 1 - General Info (some might be pre-filled, some editable during audit)
-  ubicacion: z.string().min(1, "La ubicación es requerida.").optional(),
-  capacidadLibras: z.string().min(1, "La capacidad es requerida.").optional(),
-  agenteExtintor: z.string().min(1, "El agente extintor es requerido.").optional(),
-  modelo: z.string().min(1, "El modelo es requerido.").optional(),
-  fabricacionDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }),
-  ultimoServicioDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }),
-  pruebaHidrostaticaDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }),
-  cargaExtintores: z.string().min(1, "El estado de carga es requerido"), 
-
+  ubicacion: z.string().min(1, "La ubicación es requerida.").optional(), // Made optional
+  capacidadLibras: z.string().min(1, "La capacidad es requerida.").optional(), // Made optional
+  agenteExtintor: z.string().min(1, "El agente extintor es requerido.").optional(), // Made optional
+  modelo: z.string().min(1, "El modelo es requerido.").optional(), // Made optional
+  fabricacionDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }), // Made optional
+  ultimoServicioDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }), // Made optional
+  pruebaHidrostaticaDate: z.string().optional().refine(val => !val || mmYYYYFormat.test(val), { message: mmYYYYMessage }), // Made optional
+  cargaExtintores: z.string().min(1, "El estado de carga es requerido").optional(), // Made optional
+  
   // Fields for Step 1 - Audit Questions (now styled like wireframe)
   ubicacionDesignado: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
   visibleSinObstrucciones: z.enum(["Sí", "No"], { required_error: requiredRadioMessage }),
@@ -116,42 +115,9 @@ interface ExtinguisherAuditFormProps {
   onStepChange?: (currentStep: number, totalSteps: number) => void;
 }
 
-const AuditStepper = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => {
-  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
-  return (
-    <div className="flex items-center justify-center space-x-2 sm:space-x-4 my-4 px-2">
-      {steps.map((step, index) => (
-        <React.Fragment key={step}>
-          <div className="flex flex-col items-center">
-            <div
-              className={cn(
-                "w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all duration-300 ease-in-out",
-                currentStep === step
-                  ? "bg-primary text-primary-foreground border-primary scale-110"
-                  : currentStep > step
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-muted border-border text-muted-foreground"
-              )}
-            >
-              {currentStep > step ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step}
-            </div>
-          </div>
-          {index < totalSteps - 1 && (
-            <div
-              className={cn(
-                "flex-1 h-1 rounded transition-all duration-300 ease-in-out",
-                currentStep > step + 0.5 ? "bg-green-600" : currentStep > step ? "bg-green-600/50" : "bg-border"
-              )}
-            />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-};
 
 // Helper function to process initial values for radio groups
-const getInitialRadioValue = (value: string | undefined) => {
+export const getInitialRadioValue = (value: string | undefined) => {
   if (value === "Sí" || value === "No") return value;
   return undefined; // Default to undefined if initial value is not Sí/No (e.g., "P" or "N/A")
 };
@@ -215,7 +181,7 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
   };
 
   const stepFields: Record<number, (keyof ExtinguisherAuditFormData)[]> = {
-    1: ["ubicacion", "capacidadLibras", "agenteExtintor", "modelo", "fabricacionDate", "ultimoServicioDate", "pruebaHidrostaticaDate", "cargaExtintores", "ubicacionDesignado", "visibleSinObstrucciones", "manometroZonaVerde", "pasadorSelloIntactos", "danosFisicos", "observacionesGenerales"],
+    1: ["ubicacionDesignado", "visibleSinObstrucciones", "manometroZonaVerde", "pasadorSelloIntactos", "danosFisicos"],
     2: ["instrucciones", "calcomaniasPlacas", "selloSeguridad", "pinPasador", "pinturaBuenEstado", "cilindroMangueraBoquillas", "alturaAdecuada", "accesoLibre"],
     3: ["articulosReemplazados", "articulosReemplazadosNotas"],
     4: ["photoEvidenceDataUrls", "observacionesGenerales"], // Note: observacionesGenerales can be in step 1 and 4.
@@ -274,7 +240,20 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     });
   };
 
-  const renderRadioGroupField = (name: keyof ExtinguisherAuditFormData, label: string) => (
+  type RadioGroupFieldName = 
+    | "ubicacionDesignado"
+    | "visibleSinObstrucciones"
+    | "manometroZonaVerde"
+    | "pasadorSelloIntactos"
+    | "danosFisicos"
+    | "instrucciones"
+    | "calcomaniasPlacas"
+    | "selloSeguridad"
+    | "pinPasador"
+    | "pinturaBuenEstado"
+    | "cilindroMangueraBoquillas"
+    | "alturaAdecuada" | "accesoLibre";
+  const renderRadioGroupField = (name: RadioGroupFieldName, label: string) => (
     <FormField
       control={form.control}
       name={name}
@@ -312,41 +291,6 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
       case 1:
         return (
           <div className="space-y-6">
-            <div className="mb-4 flex items-center justify-between text-lg">
-                <span className="flex items-center text-primary font-semibold">
-                    <ShieldAlert className="w-5 h-5 mr-2"/>ID del Equipo:
-                </span>
-                <span className="font-bold text-foreground">{extinguisherId}</span>
-            </div>
-
-            <h3 className="text-lg font-semibold text-muted-foreground -mb-2">Datos Generales del Extinguidor</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-              <div className="flex justify-between items-center py-1.5 border-b"><span className="font-medium text-muted-foreground">Cliente / Sitio:</span><span className="text-foreground">{form.getValues("ubicacion") || "N/A"}</span></div>
-              <div className="flex justify-between items-center py-1.5 border-b"><span className="font-medium text-muted-foreground">Ubicación Específica:</span><span className="text-foreground">{form.getValues("ubicacion") || "N/A"}</span></div>
-              <div className="flex justify-between items-center py-1.5 border-b"><span className="font-medium text-muted-foreground">Agente Extintor:</span><span className="text-foreground">{form.getValues("agenteExtintor") || "N/A"}</span></div>
-              <div className="flex justify-between items-center py-1.5 border-b"><span className="font-medium text-muted-foreground">Capacidad:</span><span className="text-foreground">{form.getValues("capacidadLibras") || "N/A"}</span></div>
-              <div className="flex justify-between items-center py-1.5 border-b md:col-span-2"><span className="font-medium text-muted-foreground">Modelo:</span><span className="text-foreground">{form.getValues("modelo") || "N/A"}</span></div>
-            </div>
-
-            <div className="pt-2">
-              <h4 className="text-lg font-semibold text-muted-foreground mb-2 flex items-center"><Calendar className="w-5 h-5 mr-2"/>Fechas Clave</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                <div className="flex justify-between items-center py-1.5 border-b"><span className="font-medium text-muted-foreground">Fabricación:</span><span className="text-foreground">{form.getValues("fabricacionDate") || "N/A"}</span></div>
-                <div className="flex justify-between items-center py-1.5 border-b"><span className="font-medium text-muted-foreground">Último Servicio:</span><span className="text-foreground">{form.getValues("ultimoServicioDate") || "N/A"}</span></div>
-                <div className="flex justify-between items-center py-1.5 border-b md:col-span-2">
-                  <span className="font-medium text-muted-foreground">Prueba Hidrostática:</span>
-                  <span className="text-foreground flex items-center">
-                    {form.getValues("pruebaHidrostaticaDate") || "N/A"}
-                    {showVencePronto && (
-                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                            VENCE PRONTO
-                        </span>
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
             <div className="space-y-1 pt-4">
                 <h3 className="text-lg font-semibold text-muted-foreground mb-2">Inspección Rápida</h3>
                 {renderRadioGroupField("ubicacionDesignado", "¿Está en su lugar designado?")}
@@ -397,6 +341,8 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
+                      <div className="pt-4">
+            </div>
                     </div>
                   </div>
                   <FormMessage className="mt-1 sm:ml-[calc(50%+1rem)]" /> 
@@ -544,86 +490,77 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
 
   return (
     <>
-      <Card className="w-full shadow-lg">
-        <CardHeader className="pb-0">
-          <CardTitle className="text-xl text-center flex items-center justify-center gap-2 text-primary mb-2">
-            Auditoría de Extinguidor
-          </CardTitle>
-          <CardDescription className="text-center">Siga los pasos para completar la auditoría del extinguidor.</CardDescription>
-        </CardHeader>
-        <Form {...form}>
-          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col h-full">
-            <CardContent className="space-y-4 p-4 md:p-6 flex-grow">
-             
-              <div className="text-center my-3">
-                  <h3 className="text-lg font-semibold text-primary flex items-center justify-center">
-                      {currentStepIcon()}
-                       {stepTitles[currentStep]}
-                  </h3>
-              </div>
-              <div className="min-h-[250px] py-4">
-                  {renderStepContent()}
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 border-t mt-auto space-y-3 sm:space-y-0 sm:space-x-2 p-4 md:p-6 bg-muted/30">
-              <Button
+      <Form {...form}>
+        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col h-full">
+          <div className="space-y-4 flex-grow">
+            <div className="text-center my-3">
+                <h3 className="text-lg font-semibold text-primary flex items-center justify-center">
+                    {currentStepIcon()}
+                     {stepTitles[currentStep]}
+                </h3>
+            </div>
+            <div className="min-h-[250px] py-4">
+                {renderStepContent()}
+            </div>
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 border-t mt-auto space-y-3 sm:space-y-0 sm:space-x-2 bg-muted/30">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className="w-full sm:w-auto"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Anterior
+            </Button>
+            
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {currentStep === totalSteps && (
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        className="w-full sm:w-auto order-first sm:order-none"
+                    >
+                        <Trash2 className="mr-2 h-5 w-5" />
+                        Dar de baja
+                    </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        Esta acción marcará el extinguidor para darlo de baja. Esto se reflejará en el reporte de auditoría. No podrás deshacer esta acción fácilmente.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDarDeBaja}>
+                        Confirmar Baja
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                )}
+                <Button
                 type="button"
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentStep === 1}
-                className="w-full sm:w-auto"
+                  size="lg"
+                  onClick={handleNext}
+                  disabled={form.formState.isSubmitting}
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Anterior
-              </Button>
-              
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  {currentStep === totalSteps && (
-                  <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                      <Button
-                          type="button"
-                          variant="destructive"
-                          className="w-full sm:w-auto order-first sm:order-none"
-                      >
-                          <Trash2 className="mr-2 h-5 w-5" />
-                          Dar de baja
-                      </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                      <AlertDialogHeader>
-                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                          Esta acción marcará el extinguidor para darlo de baja. Esto se reflejará en el reporte de auditoría. No podrás deshacer esta acción fácilmente.
-                          </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={confirmDarDeBaja}>
-                          Confirmar Baja
-                          </AlertDialogAction>
-                      </AlertDialogFooter>
-                      </AlertDialogContent>
-                  </AlertDialog>
-                  )}
-                  <Button
-                      type="button"
-                      size="lg"
-                      onClick={handleNext}
-                      disabled={form.formState.isSubmitting}
-                      className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-                  >
-                  {currentStep === totalSteps ? (
-                      <> <Save className="mr-2 h-5 w-5" /> {form.formState.isSubmitting ? "Guardando..." : "Guardar Auditoría"} </>
-                  ) : (
-                      <> {form.formState.isSubmitting ? "Procesando..." : "Siguiente"} <ArrowRight className="ml-2 h-4 w-4" /> </>
-                  )}
-                  </Button>
-              </div>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+                {currentStep === totalSteps ? (
+                    <> <Save className="mr-2 h-5 w-5" /> {form.formState.isSubmitting ? "Guardando..." : "Guardar Auditoría"} </>
+                ) : (
+                    <> {form.formState.isSubmitting ? "Procesando..." : "Siguiente"} <ArrowRight className="ml-2 h-4 w-4" /> </>
+                )}
+                </Button>
+            </div>
+          </div>
+        </form>
+      </Form>
       <ImageUploadDialog
         isOpen={isImageUploadDialogOpen}
         onOpenChange={setIsImageUploadDialogOpen}

@@ -18,85 +18,56 @@ import {
 } from "@/components/ui/accordion";
 import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown";
 import ProcessHeader from "./process-header"; // Import ProcessHeader
+import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock"; // Import ExtinguisherInfoBlock
+
+// NEW IMPORTS: Using centralized data types and mocks
+import { mockPlanExtinguishers } from "@/mocks/extinguisherMocks"; // Import the main mock data
+import { ExtinguisherData } from "@/types/extinguisher"; // Import ExtinguisherData - this is the core type for extinguisher properties
 
 
-export interface ExtinguisherDataForAccordion {
-  id: string;
-  type: string;
-  capacity: string;
-  location_description: string;
-  model?: string;
-  pressure_indicator?: string;
-  charge_status?: string;
-  last_revision_date?: string;
-  instrucciones?: string;
-  calcomaniasPlacas?: string;
-  selloSeguridad?: string;
-  pinPasador?: string;
-  pinturaBuenEstado?: string;
-  cilindroMangueraBoquillas?: string;
-  alturaAdecuada?: string;
-  accesoLibre?: string;
-}
+// Helper to flatten mockPlanExtinguishers for easy lookup by ID
+const allExtinguishersFlat: Record<string, ExtinguisherData> = Object.values(mockPlanExtinguishers).flat().reduce((acc, ext) => {
+    // Cast 'ext' to ExtinguisherData if mockPlanExtinguishers contains slightly different types
+    acc[ext.id] = ext as ExtinguisherData; 
+    return acc;
+}, {} as Record<string, ExtinguisherData>);
+
+
+// REMOVED: ExtinguisherDataForAccordion interface, it's no longer needed
+
 
 interface BarcodeScannerProps {
   itemId: string;
-  extinguishersForPlan?: ExtinguisherDataForAccordion[];
+  // UPDATED: extinguishersForPlan now expects ExtinguisherData
+  extinguishersForPlan?: ExtinguisherData[];
   overrideTitle?: string;
-  overrideBackButton?: React.ReactNode; // This will be unused if overrideTitle is present
+  overrideBackButton?: React.ReactNode; 
 }
-
-const detailedMockExtinguishers: Record<string, ExtinguisherDataForAccordion> = {
-  'ext-1': { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', last_revision_date: '2024-01-15' },
-  'ext-2': { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', last_revision_date: '2023-11-20' },
-  'ext-3': { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)', last_revision_date: '2024-03-10' },
-  'ext-4': { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', last_revision_date: '2023-08-01' },
-  'ext-5': { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', last_revision_date: '2024-05-05' },
-};
-
-const mockExtinguisherDataFor123: ExtinguisherDataForAccordion = {
-  id: 'sim-ext-123',
-  location_description: 'Entrada Principal (Escaneado 123)',
-  capacity: '10 lbs',
-  type: 'Polvo Químico Seco (ABC)',
-  model: 'ABC-10-Scan-123',
-  pressure_indicator: 'En Verde',
-  charge_status: 'Cargado (01/2024)',
-  instrucciones: "C", calcomaniasPlacas: "C", selloSeguridad: "C", pinPasador: "C",
-  pinturaBuenEstado: "C", cilindroMangueraBoquillas: "C", alturaAdecuada: "C", accesoLibre: "C",
-  last_revision_date: '2024-01-01'
-};
 
 export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitle, overrideBackButton }: BarcodeScannerProps) {
   const router = useRouter();
   const [openAccordionItem, setOpenAccordionItem] = React.useState<string | undefined>();
   const [auditedExtinguisherIds, setAuditedExtinguisherIds] = React.useState<Set<string>>(new Set());
 
+
+  // REMOVED: detailedMockExtinguishers and mockExtinguisherDataFor123 are no longer used here.
+  // The logic below has been updated to use allExtinguishersFlat directly.
+
   const handleCodeProcessed = (code: string) => {
-    let foundExtinguisher: ExtinguisherDataForAccordion | undefined;
-    if (code === "123") {
-      foundExtinguisher = mockExtinguisherDataFor123;
-    } else if (code.startsWith("sim-cam-")) {
-      foundExtinguisher = {
-        id: code,
-        location_description: `Ubicación Simulada Cámara (${code})`,
-        capacity: '5 kg',
-        type: 'CO2 (Simulado Cámara)',
-        model: `MODEL-${code}`,
-        pressure_indicator: 'En Verde',
-        charge_status: 'Cargado (Simulado)',
-        last_revision_date: new Date().toISOString().split('T')[0],
-      };
-      if (!detailedMockExtinguishers[code]) {
-        detailedMockExtinguishers[code] = foundExtinguisher;
-      }
+    let foundExtinguisher: ExtinguisherData | undefined;
+
+    // First, try to find in the extinguishers passed for the current plan
+    foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === code.toLowerCase());
+
+    // If not found in current plan's extinguishers, try the global flat map
+    if (!foundExtinguisher) {
+      foundExtinguisher = allExtinguishersFlat[code.toLowerCase()];
     }
-    else {
-      foundExtinguisher = extinguishersForPlan.find(ext => ext.id.toLowerCase() === code.toLowerCase());
-      if (!foundExtinguisher) {
-        foundExtinguisher = detailedMockExtinguishers[code.toLowerCase()];
-      }
-    }
+
+    // REMOVED: The special mock codes for scanning (123 and sim-cam-) are removed from here.
+    // If you need to add new mock extinguishers via scanning in the future,
+    // they should be consistently added to the mockPlanExtinguishers directly in
+    // src/mocks/extinguisherMocks.ts or handled through a proper backend integration.
 
     if (foundExtinguisher) {
       toast({ title: "Código Procesado", description: `Extinguidor: ${foundExtinguisher.id}. Detalles en la lista de abajo.` });
@@ -127,16 +98,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
     });
   };
 
-  const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
-    value ? (
-      <div className="flex items-start text-sm py-1">
-        <Icon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground flex-shrink-0" />
-        <span className="font-medium text-muted-foreground">{label}:&nbsp;</span>
-        <span className="text-foreground break-words">{value}</span>
-      </div>
-    ) : null
-  );
-
   return (
     <div className="w-full">
       {overrideTitle ? (
@@ -164,9 +125,10 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
             <Separator />
             <div className="space-y-4">
               <Accordion type="single" collapsible className="w-full space-y-2" value={openAccordionItem} onValueChange={setOpenAccordionItem}>
-                {extinguishersForPlan.map((ext) => {
+                {extinguishersForPlan.map((ext: ExtinguisherData) => { // Explicitly typed 'ext'
                   const isAudited = auditedExtinguisherIds.has(ext.id);
-                  const displayExt = detailedMockExtinguishers[ext.id] || ext;
+                  // 'displayExt' is simply 'ext' here as 'ext' should already be full ExtinguisherData
+                  const displayExt: ExtinguisherData = ext;
                   const isCurrentOpen = openAccordionItem === ext.id;
 
                   return (
@@ -198,11 +160,11 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                            <div className="flex items-center gap-3 flex-grow overflow-hidden">
                              <ShieldCheck className={cn("h-6 w-6 flex-shrink-0", isAudited ? "text-green-500" : "text-primary")} />
                              <div className="flex-grow overflow-hidden text-left">
-                               <p className="font-medium text-sm text-card-foreground truncate" title={`${displayExt.type} - ${displayExt.capacity}`}>
-                                 {displayExt.type} - {displayExt.capacity}
+                               <p className="font-medium text-sm text-card-foreground truncate" title={`${displayExt.agenteExtintor} - ${displayExt.capacidadLibras}`}>
+                                 {displayExt.agenteExtintor} - {displayExt.capacidadLibras}
                                </p>
-                               <p className="text-xs text-muted-foreground truncate" title={displayExt.location_description}>
-                                 {displayExt.location_description}
+                               <p className="text-xs text-muted-foreground truncate" title={displayExt.ubicacion}>
+                                 {displayExt.ubicacion}
                                </p>
                              </div>
                            </div>
@@ -221,22 +183,32 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
                        </AccordionTrigger>
 
                       <AccordionContent className="p-4 bg-muted/30">
-                        <div className="space-y-1 mb-4">
-                          <DetailItem icon={Tag} label="ID Extinguidor" value={displayExt.id} />
-                          <DetailItem icon={Building} label="Ubicación Detallada" value={displayExt.location_description} />
-                          <DetailItem icon={Tag} label="Tipo Agente" value={displayExt.type} />
-                          <DetailItem icon={Tag} label="Capacidad" value={displayExt.capacity} />
-                          <DetailItem icon={Tag} label="Modelo" value={displayExt.model} />
-                          <DetailItem icon={Thermometer} label="Indicador Presión" value={displayExt.pressure_indicator} />
-                          <DetailItem icon={BatteryCharging} label="Estado Carga" value={displayExt.charge_status} />
-                          <DetailItem icon={Calendar} label="Última Revisión" value={displayExt.last_revision_date} />
+                        <div className="mb-4">
+                          <ExtinguisherInfoBlock
+                            data={{
+                              id: displayExt.id,
+                              cliente: displayExt.cliente, // Assuming cliente exists on displayExt or is handled
+                              edificio: displayExt.edificio, // Assuming edificio exists on displayExt or is handled
+                              ubicacion: displayExt.ubicacion,
+                              agenteExtintor: displayExt.agenteExtintor,
+                              capacidadLibras: displayExt.capacidadLibras,
+                              modelo: displayExt.modelo,
+                              fabricacionDate: displayExt.fabricacionDate, // Assuming fabricacionDate exists
+                              ultimoServicioDate: displayExt.ultimoServicioDate,
+                              pruebaHidrostaticaDate: displayExt.pruebaHidrostaticaDate, // Assuming pruebaHidrostaticaDate exists
+                              pressure_indicator: displayExt.pressure_indicator,
+                              charge_status: displayExt.charge_status,
+                            }}
+                            showVencePronto={false}
+                          />
                         </div>
+
                         <div className="flex justify-end pt-3 mt-3 border-t border-border">
                             <ExtinguisherActionsDropdown
                                 extinguisherId={ext.id}
-                                extinguisherType={`${displayExt.type} (${displayExt.capacity})`}
+                                extinguisherType={`${displayExt.agenteExtintor} (${displayExt.capacidadLibras})`}
                                 onAudit={() => handleAuditExtinguisher(ext.id)}
-                                onDelete={() => handleDeleteScannedExtinguisher(ext.id, `${displayExt.type} (${displayExt.capacity})`)}
+                                onDelete={() => handleDeleteScannedExtinguisher(ext.id, `${displayExt.agenteExtintor} (${displayExt.capacidadLibras})`)}
                             />
                         </div>
                       </AccordionContent>

@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, FilePlus2, Edit3, MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -10,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { PlanCard, type Plan as PlanCardData } from "./plan-card"; // Import PlanCard
 import { toast } from "@/hooks/use-toast"; // Import toast for placeholder actions
+import { ArrowLeft, FilePlus2, Edit3, MapPin } from "lucide-react";
 
 // Mock data for existing plans - adapted to fit PlanCardData structure more closely
 const mockExistingPlans: PlanCardData[] = [
@@ -50,53 +50,55 @@ export function PlanCreator() {
 
 
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader className="relative p-6">
-        <Link href="/" passHref>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Volver al Inicio"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 sm:left-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div className="w-full text-center">
-          <CardTitle className="text-2xl font-semibold text-primary flex items-center justify-center gap-2">
-            <MapPin className="h-6 w-6" />
-            Planos de Ubicación
-          </CardTitle>
-          <CardDescription className="mt-1">
-            Crea un nuevo plano o continúa trabajando en uno existente.
-          </CardDescription>
+    <div className="w-full"> {/* Outer div replacing Card */}
+      <header className="relative p-4 md:p-6 border-b"> {/* Header section */}
+        <div className="flex items-center justify-center relative">
+          <Link href="/" passHref>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Volver al Inicio"
+              className="absolute left-0 top-1/2 transform -translate-y-1/2"
+            >
+              <ArrowLeft className="h-5 w-5 text-foreground" />
+            </Button>
+          </Link>
+          <div className="w-full text-center">
+            <h1 className="text-2xl font-semibold text-foreground flex items-center justify-center gap-2">
+              <MapPin className="h-6 w-6 text-primary" />
+              Planos de Ubicación
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Crea un nuevo plano o continúa trabajando en uno existente.
+            </p>
+          </div>
         </div>
-      </CardHeader>
+      </header>
 
-      <CardContent className="space-y-8 p-6">
-        <div>
-          <h3 className="text-xl font-semibold mb-3 text-card-foreground">
+      <main className="p-4 md:p-6 space-y-8"> {/* Main content replacing CardContent */}
+        <section> {/* Section for new plan */}
+          <h2 className="text-xl font-semibold text-foreground mb-3">
             Comenzar un Nuevo Plano
-          </h3>
+          </h2>
           <Button
             onClick={handleCreateNewPlan}
             className="w-full md:w-auto"
             size="lg"
           >
             <FilePlus2 className="mr-2 h-5 w-5" />
-            Crear Nuevo Plano
+            Crear Nuevo Plano de Ubicación
           </Button>
           <p className="text-sm text-muted-foreground mt-2">
             Inicia el registro detallado y la distribución de extintores para una nueva área o cliente.
           </p>
-        </div>
+        </section>
 
         <Separator />
 
-        <div>
-          <h3 className="text-xl font-semibold mb-6 text-card-foreground">
+        <section> {/* Section for existing plans */}
+          <h2 className="text-xl font-semibold text-foreground mb-6">
             Continuar Plano Existente
-          </h3>
+          </h2>
           {existingPlansData.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {existingPlansData.map((plan) => (
@@ -116,8 +118,8 @@ export function PlanCreator() {
               No tienes planos visuales guardados.
             </p>
           )}
-        </div>
-      </CardContent>
-    </Card>
+        </section>
+      </main>
+    </div>
   );
 }

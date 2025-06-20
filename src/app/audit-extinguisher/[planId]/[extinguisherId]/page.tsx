@@ -1,49 +1,17 @@
-
 "use client";
 
 import * as React from "react";
 import { use } from 'react';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileCheck } from "lucide-react"; // Icon for the page
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
+
+// Importaciones unificadas
 import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/components/custom/extinguisher-audit-form";
 import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock";
-import { useToast } from "@/hooks/use-toast";
-
-// Mock data for PlanEditor's extinguishers - this should ideally come from a service or context
-// This is the same mock data used in edit-extinguisher and plan-editor for consistency
-const mockPlanExtinguishers: Record<string, Array<{ 
-  id: string; 
-  type: string; 
-  capacity: string; 
-  location_description: string; 
-  model?: string; 
-  pressure_indicator?: string; 
-  charge_status?: string; 
-  last_revision_date?: string;
-  fabricacionDate?: string;
-  ultimoServicioDate?: string;
-  pruebaHidrostaticaDate?: string;
-}>> = {
-  'plan-alpha': [
-    { id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', fabricacionDate: '01-2020', ultimoServicioDate: '01-2024', pruebaHidrostaticaDate: '01-2025' },
-    { id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', fabricacionDate: '05-2019', ultimoServicioDate: '11-2023', pruebaHidrostaticaDate: '11-2028' },
-  ],
-  'plan-beta': [
-    { id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)', fabricacionDate: '02-2021', ultimoServicioDate: '03-2024', pruebaHidrostaticaDate: '03-2026' },
-  ],
-  'plan-gamma': [
-    { id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', fabricacionDate: '07-2018', ultimoServicioDate: '08-2023', pruebaHidrostaticaDate: '08-2024' }, // Example: Vence pronto this year
-    { id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', fabricacionDate: '03-2022', ultimoServicioDate: '05-2024', pruebaHidrostaticaDate: '05-2027'},
-  ],
-  // Fallback for direct extinguisher IDs if they are passed as planId in some contexts
-  'ext-1': [{ id: 'ext-1', type: 'Polvo Químico Seco (ABC)', capacity: '10 lbs', location_description: 'Entrada principal, junto a recepción', model: 'Amerex B402', pressure_indicator: 'En Verde', charge_status: 'Cargado (01/2024)', fabricacionDate: '01-2020', ultimoServicioDate: '01-2024', pruebaHidrostaticaDate: '01-2025' }],
-  'ext-2': [{ id: 'ext-2', type: 'Dióxido de Carbono (CO2)', capacity: '5 kg', location_description: 'Sala de servidores, pared norte', model: 'Kidde K05', pressure_indicator: 'N/A (CO2)', charge_status: 'Cargado (11/2023)', fabricacionDate: '05-2019', ultimoServicioDate: '11-2023', pruebaHidrostaticaDate: '11-2028' }],
-  'ext-3': [{ id: 'ext-3', type: 'Agua Pulverizada', capacity: '2.5 gal', location_description: 'Pasillo ala oeste, cerca de la escalera', model: 'Badger WP-2.5', pressure_indicator: 'En Verde', charge_status: 'Cargado (03/2024)', fabricacionDate: '02-2021', ultimoServicioDate: '03-2024', pruebaHidrostaticaDate: '03-2026' }],
-  'ext-4': [{ id: 'ext-4', type: 'Polvo Químico Seco (PQS)', capacity: '20 lbs', location_description: 'Almacén Gamma - Punto Central', model: 'Amerex B500', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga', fabricacionDate: '07-2018', ultimoServicioDate: '08-2023', pruebaHidrostaticaDate: '08-2024'}], // Example: Vence pronto this year
-  'ext-5': [{ id: 'ext-5', type: 'Espuma AFFF', capacity: '6 lts', location_description: 'Almacén Gamma - Zona Líquidos', model: 'Buckeye AFFF-6L', pressure_indicator: 'En Verde', charge_status: 'Cargado (05/2024)', fabricacionDate: '03-2022', ultimoServicioDate: '05-2024', pruebaHidrostaticaDate: '05-2027'}],
-};
+import { mockPlanExtinguishers } from "@/mocks/extinguisherMocks";
+import ProcessHeader from "@/components/custom/process-header"
 
 
 interface AuditExtinguisherPageProps {
@@ -56,38 +24,65 @@ interface AuditExtinguisherPageProps {
 export default function AuditExtinguisherPage({ params: paramsPromise }: AuditExtinguisherPageProps) {
   const router = useRouter();
   const { planId, extinguisherId } = use(paramsPromise);
-  const { toast } = useToast(); 
+ // const { toast } = useToast(); 
 
-  const [initialExtinguisherData, setInitialExtinguisherData] = React.useState<Partial<ExtinguisherAuditFormData> | null>(null);
+  // --- Separate State for Different Components ---
+  // State for the data to display in the Info Block
+  const [infoBlockData, setInfoBlockData] = React.useState<any>(null); 
+  // State for the initial values for the Audit Form
+  const [auditFormInitialData, setAuditFormInitialData] = React.useState<Partial<ExtinguisherAuditFormData> | null>(null);
+
+  const [currentStep, setCurrentStep] = React.useState(1);
+  const totalSteps = 4;
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    // Simulate API call for existing extinguisher
     setTimeout(() => {
-      // Try finding by planId first, then by extinguisherId if planId doesn't yield results (e.g. if itemId was extinguisherId)
-      const planExtinguishers = mockPlanExtinguishers[planId] || mockPlanExtinguishers[extinguisherId];
+      console.log("useEffect running with planId:", planId, "and extinguisherId:", extinguisherId);
+      console.log("mockPlanExtinguishers:", mockPlanExtinguishers);
+      // Ensure mock data exists for the given planId
+      const planExtinguishers = mockPlanExtinguishers[planId] || [];
+
+      // Add a mock extinguisher with id 'ext-4' to the 'current-day-5' plan's mock data
+      // This is a temporary fix based on the user's error scenario.
+      if (planId === 'current-day-5' && !planExtinguishers.find(ext => ext.id === 'ext-4')) {
+        planExtinguishers.push({
+          id: 'ext-4',
+          cliente: 'Cliente del Día 5',
+          edificio: 'Edificio Principal',
+          ubicacion: 'Almacén Gamma - Punto Central', // Example location
+          agenteExtintor: 'Polvo Químico Seco (PQS)', capacidadLibras: '20 lbs', modelo: 'Amerex B500', fabricacionDate: '01-2020', ultimoServicioDate: '08-2023', pruebaHidrostaticaDate: '08-2028', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga'
+        });
+      }
       const extinguisher = planExtinguishers?.find(ext => ext.id === extinguisherId);
+      console.log("Found extinguisher:", extinguisher);
 
       if (extinguisher) {
-        setInitialExtinguisherData({
-          ubicacion: extinguisher.location_description,
-          capacidadLibras: extinguisher.capacity,
-          agenteExtintor: extinguisher.type, // This will be used to prefill 'agenteExtintor' in the form
-          modelo: extinguisher.model || "Modelo Desconocido",
-          fabricacionDate: extinguisher.fabricacionDate || "",
-          ultimoServicioDate: extinguisher.ultimoServicioDate || "",
-          pruebaHidrostaticaDate: extinguisher.pruebaHidrostaticaDate || "",
-          // Audit specific fields (already in schema)
-          cargaExtintores: extinguisher.charge_status || "",
-          // Default checklist items to "P" (Pendiente) if not present in mock for audit specific questions
-          // Radio button questions from step 1:
-          ubicacionDesignado: undefined, // Default values for audit questions
+        // Set data for the Info Block
+        setInfoBlockData({
+          id: extinguisher.id,
+          cliente: extinguisher.cliente,
+          edificio: extinguisher.edificio,
+          // Mapeo correcto de los nombres de tu mock data
+          ubicacion: extinguisher.ubicacion,
+          agenteExtintor: extinguisher.agenteExtintor,
+          capacidadLibras: extinguisher.capacidadLibras,
+          modelo: extinguisher.modelo || "N/A",
+          fabricacionDate: extinguisher.fabricacionDate || "N/A",
+          ultimoServicioDate: extinguisher.ultimoServicioDate || "N/A",
+          pruebaHidrostaticaDate: extinguisher.pruebaHidrostaticaDate || "N/A",
+          pressure_indicator: extinguisher.pressure_indicator || "N/A",
+          charge_status: extinguisher.charge_status || "N/A",
+          
+        });
+        // Set initial data for the Audit Form
+        setAuditFormInitialData({
+          ubicacionDesignado: undefined,
           visibleSinObstrucciones: undefined,
           manometroZonaVerde: undefined,
           pasadorSelloIntactos: undefined,
           danosFisicos: undefined,
-          // Select checklist items from step 2:
           instrucciones: undefined,
           calcomaniasPlacas: undefined,
           selloSeguridad: undefined,
@@ -96,84 +91,87 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
           cilindroMangueraBoquillas: undefined,
           alturaAdecuada: undefined,
           accesoLibre: undefined,
-          photoEvidenceDataUrls: [], 
+          articulosReemplazados: {
+ sello: false,
+ pasador: false,
+ etiqueta: false,
+ correaManguera: false,
+ manguera: false,
+ manometro: false,
+ soporte: false,
+ recargaAgente: false,
+ extintorCompleto: false,
+          },
+          articulosReemplazadosNotas: "",
+          observacionesGenerales: "",
+          photoEvidenceDataUrls: [],
         });
       } else {
         setError(`Extinguidor con ID ${extinguisherId} no encontrado en el plano ${planId}.`);
-        toast({
+        // La llamada a toast ha sido comentada como solicitaste
+        /* toast({
             variant: "destructive",
             title: "Error",
-            description: `Extinguidor con ID ${extinguisherId} no encontrado.`,
-        });
+            description: "No se pudo encontrar el extinguidor.",
+        }); */
       }
       setLoading(false);
     }, 500);
-  }, [planId, extinguisherId, toast]);
+  }, [planId, extinguisherId]);
 
+  
   const handleSubmitSuccess = (data: ExtinguisherAuditFormData) => {
-    console.log("Datos de la auditoría del extinguidor guardados (simulado):", data);
-    toast({
-        title: "Auditoría Registrada",
-        description: `La auditoría para el extinguidor ${extinguisherId} ha sido guardada.`,
-        variant: "default"
-    });
+    console.log("Auditoría guardada:", data);
+    //toast({ title: "Auditoría Registrada" });
     router.back(); 
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
-        Cargando datos del extinguidor para auditoría...
-      </div>
-    );
-  }
+  const handleStepChange = (step: number) => {
+    setCurrentStep(step);
+  };
 
-  if (error || !initialExtinguisherData) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-destructive p-4">
-        <p>{error || "No se pudieron cargar los datos del extinguidor para la auditoría."}</p>
-        <Button onClick={() => router.back()} className="mt-4">
-          Volver
-        </Button>
-      </div>
-    );
-  }
+
+  if (loading || !infoBlockData || !auditFormInitialData) { return <div className="flex justify-center items-center h-screen">Cargando...</div>; }
+  if (error || !infoBlockData) { return <div className="flex flex-col justify-center items-center h-screen"><p className="text-destructive">{error}</p><Button onClick={() => router.back()} className="mt-4">Volver</Button></div>; }
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12">
-      <div className="w-full max-w-2xl">
-        <div className="mb-6 relative flex items-center justify-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Volver"
-            onClick={() => router.back()}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-           <h1 className="text-xl font-semibold text-primary text-center px-12 truncate" title={`Auditar Extinguidor ${extinguisherId}`}>
-             Auditar Extinguidor
-          </h1>
+  <div className="flex flex-col items-center justify-start min-h-screen bg-background px-4">
+  {/* MODIFICATION START: Removed max-w-2xl from the main container */}
+  <div className="w-full">
+  {/* MODIFICATION START: Removed max-w-2xl from the div containing ProcessHeader */}
+  <div className="mb-6 relative flex items-center justify-center w-full">
+  <Button
+  variant="ghost"
+  size="icon"
+  aria-label="Volver"
+  onClick={() => router.back()}
+  className="absolute left-0 top-1/2 transform -translate-y-1/2"
+  >
+  <ArrowLeft className="h-5 w-5" />
+  </Button>
+  <ProcessHeader
+  title="Auditar Extinguidor" // Using the static title here
+  currentStep={currentStep}
+  totalSteps={totalSteps}
+ />
+ </div> {/* MODIFICATION END */}
+ {currentStep === 1 && (
+  <ExtinguisherInfoBlock
+ data={infoBlockData}
+ showVencePronto={infoBlockData.pruebaHidrostaticaDate === '08-2024'} />)}
+        
+        {/* The ExtinguisherAuditForm should always be rendered as it contains the multi-step logic */}
+        <div className="mt-6">
+          <ExtinguisherAuditForm
+              initialData={auditFormInitialData}
+              onSubmitSuccess={handleSubmitSuccess}
+              extinguisherId={extinguisherId}
+              onStepChange={handleStepChange}
+          />
         </div>
-        {/* Render the ExtinguisherInfoBlock component */}
-        <ExtinguisherInfoBlock
-          extinguisherId={extinguisherId}
-          data={{
-            ubicacion: initialExtinguisherData.ubicacion,
-            agenteExtintor: initialExtinguisherData.agenteExtintor,
-            capacidadLibras: initialExtinguisherData.capacidadLibras,
-            modelo: initialExtinguisherData.modelo,
-          }}
-          showVencePronto={initialExtinguisherData.pruebaHidrostaticaDate === '08-2024'}
-        />
-        <ExtinguisherAuditForm
-            initialData={initialExtinguisherData}
-            onSubmitSuccess={handleSubmitSuccess}
-            extinguisherId={extinguisherId}
-        />
-      </div>
-      <Toaster />
-    </div>
+  
+</div>
+<Toaster />
+</div>
   );
 }

@@ -281,8 +281,8 @@ export function ImageUploadDialog({
         
         <DialogFooter className="sm:justify-end pt-4 border-t">
           <DialogClose asChild>
-            <Button type="button" variant="outline" data-ai-hint="close button">
-              Cerrar
+            <Button type="button" variant="outline" data-ai-hint="save button">
+              Guardar
             </Button>
           </DialogClose>
         </DialogFooter>
@@ -290,5 +290,7 @@ export function ImageUploadDialog({
     </Dialog>
   );
 }
+
+    
 
     

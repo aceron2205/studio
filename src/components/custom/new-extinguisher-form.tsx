@@ -34,7 +34,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useToast } from "@/components/ui/toast";
+// import { useToast } from "@/components/ui/toast";
 
 // Zod Schema for validation
 const NewExtinguisherSchema = z.object({
@@ -63,13 +63,12 @@ export function NewExtinguisherForm() {
   });
 
   function onSubmit(data: NewExtinguisherFormData) {
-    const { toast } = useToast()
     // Here you would handle the form submission to your backend
     console.log("New Extinguisher Data:", data);
-    useToast({
+    /*useToast({
       title: "Extintor Guardado",
       description: `El extintor con ID: ${data.equipoId} ha sido registrado exitosamente.`,
-    });
+    });*/
   }
 
   const renderDateField = (name: keyof NewExtinguisherFormData, label: string) => (

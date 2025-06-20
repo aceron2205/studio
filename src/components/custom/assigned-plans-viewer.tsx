@@ -32,7 +32,8 @@ export function AssignedPlansViewer() {
 
   const handleViewOrEditPlan = (planId: string, planName: string) => {
     console.log(`Viendo/Editando plano: ${planId}`);
-    router.push(`/edit-plan/${planId}?name=${encodeURIComponent(planName)}`);
+    // Redirect to the audit-scan component with the planId
+    router.push(`/audit-scan/${planId}`);
   };
 
   return (
@@ -89,3 +90,4 @@ export function AssignedPlansViewer() {
  </div>
   );
 }
+// 1703180815830

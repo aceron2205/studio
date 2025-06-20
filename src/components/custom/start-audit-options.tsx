@@ -240,7 +240,7 @@ export function StartAuditOptions() {
  <Separator />
  <div className="py-4"> {/* Added padding here */}
           <h3 className="text-xl font-semibold mb-4 text-card-foreground">
-            O Iniciar una Auditoría Nueva (No Programada)
+            Iniciar una Auditoría Nueva 
           </h3>
           <Button
             onClick={handleStartNewAudit}

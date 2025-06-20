@@ -260,6 +260,7 @@ export function PlanEditor({ planId, planName: initialPlanName }: PlanEditorProp
                       extinguisherId={ext.id}
                       extinguisherType={`${ext.type} (${ext.capacity})`}
                       onDelete={handleDeleteExtinguisher}
+                      onAudit={handleAuditExtinguisher}
                     />
                   </div>
                 </AccordionContent>
