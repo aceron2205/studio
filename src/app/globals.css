@@ -14,7 +14,7 @@
     --popover-foreground: 20 10% 15%; /* Dark warm gray */
 
     --primary: 0 80% 50%; /* Vibrant Red */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary-foreground: 0 0% 98%; /* White */
 
     --secondary: 180 50% 45%; /* Teal */
     --secondary-foreground: 0 0% 100%; /* White for contrast on Teal */
@@ -60,7 +60,7 @@
     --popover: 20 10% 15%; /* Darker warm gray */
     --popover-foreground: 20 60% 90%; /* Light warm gray */
 
-    --primary: 0 75% 60%; /* Lighter, still vibrant Red for dark mode */
+    --primary: 240 5% 30%; /* Slightly lighter greyish black for dark mode */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 180 60% 65%; /* Lighter Teal for dark mode */

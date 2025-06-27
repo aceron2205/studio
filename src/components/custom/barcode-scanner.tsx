@@ -21,19 +21,12 @@ import ProcessHeader from "./process-header"; // Import ProcessHeader
 import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock"; // Import ExtinguisherInfoBlock
 
 // NEW IMPORTS: Using centralized data types and mocks
-import { mockPlanExtinguishers } from "@/mocks/extinguisherMocks"; // Import the main mock data
+import { mockClients } from "@/mocks/extinguisherMocks"; // Import the main mock data
 import { ExtinguisherData } from "@/types/extinguisher"; // Import ExtinguisherData - this is the core type for extinguisher properties
 
-
 // Helper to flatten mockPlanExtinguishers for easy lookup by ID
-const allExtinguishersFlat: Record<string, ExtinguisherData> = Object.values(mockPlanExtinguishers).flat().reduce((acc, ext) => {
-    // Cast 'ext' to ExtinguisherData if mockPlanExtinguishers contains slightly different types
-    acc[ext.id] = ext as ExtinguisherData; 
-    return acc;
-}, {} as Record<string, ExtinguisherData>);
+const allExtinguishersFlat: Record<string, ExtinguisherData> = mockClients.reduce((acc, client) => {if (client['extinguisher-plan']) {client['extinguisher-plan'].forEach(ext => {acc[ext.id] = ext;});}return acc;}, {} as Record<string, ExtinguisherData>);
 
-
-// REMOVED: ExtinguisherDataForAccordion interface, it's no longer needed
 
 
 interface BarcodeScannerProps {
@@ -49,6 +42,13 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
   const [openAccordionItem, setOpenAccordionItem] = React.useState<string | undefined>();
   const [auditedExtinguisherIds, setAuditedExtinguisherIds] = React.useState<Set<string>>(new Set());
 
+  // Handler for Accordion value changes to prevent unnecessary updates
+  const handleAccordionValueChange = (value: string | undefined) => {
+    // Only update state if the new value is different from the current one
+    if (value !== openAccordionItem) {
+      setOpenAccordionItem(value);
+    }
+  };
 
   // REMOVED: detailedMockExtinguishers and mockExtinguisherDataFor123 are no longer used here.
   // The logic below has been updated to use allExtinguishersFlat directly.
@@ -63,11 +63,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
     if (!foundExtinguisher) {
       foundExtinguisher = allExtinguishersFlat[code.toLowerCase()];
     }
-
-    // REMOVED: The special mock codes for scanning (123 and sim-cam-) are removed from here.
-    // If you need to add new mock extinguishers via scanning in the future,
-    // they should be consistently added to the mockPlanExtinguishers directly in
-    // src/mocks/extinguisherMocks.ts or handled through a proper backend integration.
 
     if (foundExtinguisher) {
       toast({ title: "Código Procesado", description: `Extinguidor: ${foundExtinguisher.id}. Detalles en la lista de abajo.` });
@@ -123,7 +118,7 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
         {extinguishersForPlan && extinguishersForPlan.length > 0 && (
           <>
             <Separator />
-            <div className="space-y-4">
+            <div className="space-y-4" id="extinguisher-accordion-list">
               <Accordion type="single" collapsible className="w-full space-y-2" value={openAccordionItem} onValueChange={setOpenAccordionItem}>
                 {extinguishersForPlan.map((ext: ExtinguisherData) => { // Explicitly typed 'ext'
                   const isAudited = auditedExtinguisherIds.has(ext.id);

@@ -23,7 +23,7 @@ export default function InventoryPage() {
   };
 
  return (
-    <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4 pt-8 md:pt-12 pb-20">
+    <div className="flex flex-col items-center justify-start min-h-screen bg-background">
       <div className="w-full max-w-4xl">
         <div className="flex items-center mb-6">
  <Link

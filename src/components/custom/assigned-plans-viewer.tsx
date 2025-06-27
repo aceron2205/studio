@@ -63,41 +63,6 @@ export function AssignedPlansViewer() {
 
   return (
     <div className="w-full">
-      <div className="relative py-6 border-b px-4 sm:px-6 lg:px-8">
-        <Link href="/" passHref>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Volver al Inicio"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold text-foreground text-center">
-          Planos Asignados
-        </h1>
-      </div>
-
-      <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-4">
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Buscar por nombre, cliente, ubicación..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full text-base md:text-sm"
-              aria-label="Buscar planos"
-            />
-          </div>
-          <Button variant="outline" onClick={handleFilterClick} className="shrink-0">
-            <ListFilter className="mr-2 h-4 w-4" />
-            Filtros
-          </Button>
-        </div>
-      </div>
 
       <div className="px-4 sm:px-6 lg:px-8 pb-8">
         {allPlans.length === 0 ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/toaster";
 // Importaciones unificadas
 import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/components/custom/extinguisher-audit-form";
 import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock";
-import { mockPlanExtinguishers } from "@/mocks/extinguisherMocks";
+import { mockClients } from "@/mocks/extinguisherMocks";
 import ProcessHeader from "@/components/custom/process-header"
 
 
@@ -38,33 +38,19 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setTimeout(() => {
+    // ONLY ONE setTimeout HERE.
+    // 'timer' references this one setTimeout.
+    const timer = setTimeout(() => {
       console.log("useEffect running with planId:", planId, "and extinguisherId:", extinguisherId);
-      console.log("mockPlanExtinguishers:", mockPlanExtinguishers);
-      // Ensure mock data exists for the given planId
-      const planExtinguishers = mockPlanExtinguishers[planId] || [];
-
-      // Add a mock extinguisher with id 'ext-4' to the 'current-day-5' plan's mock data
-      // This is a temporary fix based on the user's error scenario.
-      if (planId === 'current-day-5' && !planExtinguishers.find(ext => ext.id === 'ext-4')) {
-        planExtinguishers.push({
-          id: 'ext-4',
-          cliente: 'Cliente del Día 5',
-          edificio: 'Edificio Principal',
-          ubicacion: 'Almacén Gamma - Punto Central', // Example location
-          agenteExtintor: 'Polvo Químico Seco (PQS)', capacidadLibras: '20 lbs', modelo: 'Amerex B500', fabricacionDate: '01-2020', ultimoServicioDate: '08-2023', pruebaHidrostaticaDate: '08-2028', pressure_indicator: 'En Verde', charge_status: 'Pendiente Recarga'
-        });
-      }
-      const extinguisher = planExtinguishers?.find(ext => ext.id === extinguisherId);
-      console.log("Found extinguisher:", extinguisher);
+      
+      const client = mockClients.find(c => c.id === planId);
+      const extinguisher = client?.['extinguisher-plan']?.find(ext => ext.id === extinguisherId);
 
       if (extinguisher) {
-        // Set data for the Info Block
         setInfoBlockData({
           id: extinguisher.id,
           cliente: extinguisher.cliente,
           edificio: extinguisher.edificio,
-          // Mapeo correcto de los nombres de tu mock data
           ubicacion: extinguisher.ubicacion,
           agenteExtintor: extinguisher.agenteExtintor,
           capacidadLibras: extinguisher.capacidadLibras,
@@ -74,9 +60,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
           pruebaHidrostaticaDate: extinguisher.pruebaHidrostaticaDate || "N/A",
           pressure_indicator: extinguisher.pressure_indicator || "N/A",
           charge_status: extinguisher.charge_status || "N/A",
-          
         });
-        // Set initial data for the Audit Form
         setAuditFormInitialData({
           ubicacionDesignado: undefined,
           visibleSinObstrucciones: undefined,
@@ -92,32 +76,24 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
           alturaAdecuada: undefined,
           accesoLibre: undefined,
           articulosReemplazados: {
- sello: false,
- pasador: false,
- etiqueta: false,
- correaManguera: false,
- manguera: false,
- manometro: false,
- soporte: false,
- recargaAgente: false,
- extintorCompleto: false,
+            sello: false, pasador: false, etiqueta: false,
+            correaManguera: false, manguera: false, manometro: false,
+            soporte: false, recargaAgente: false, extintorCompleto: false,
           },
           articulosReemplazadosNotas: "",
           observacionesGenerales: "",
           photoEvidenceDataUrls: [],
         });
+        setError(null);
       } else {
-        setError(`Extinguidor con ID ${extinguisherId} no encontrado en el plano ${planId}.`);
-        // La llamada a toast ha sido comentada como solicitaste
-        /* toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudo encontrar el extinguidor.",
-        }); */
+        setError(`Extinguidor con ID ${extinguisherId} no encontrado en el plano/cliente con ID ${planId}.`);
       }
       setLoading(false);
-    }, 500);
-  }, [planId, extinguisherId]);
+    }, 0); // The delay for THIS (the only) setTimeout
+
+    // This cleanup function refers to the 'timer' declared above.
+    return () => clearTimeout(timer);
+  }, [planId, extinguisherId]); 
 
   
   const handleSubmitSuccess = (data: ExtinguisherAuditFormData) => {
@@ -130,12 +106,14 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
     setCurrentStep(step);
   };
 
+  if (loading ) { return <div className="flex justify-center items-center h-screen">Cargando...</div>; }
+  if (error || !infoBlockData || !auditFormInitialData) { return <div className="flex flex-col justify-center items-center h-screen"><p className="text-destructive">{error}</p><Button onClick={() => router.back()} className="mt-4">Volver</Button></div>; }
 
-  if (loading || !infoBlockData || !auditFormInitialData) { return <div className="flex justify-center items-center h-screen">Cargando...</div>; }
-  if (error || !infoBlockData) { return <div className="flex flex-col justify-center items-center h-screen"><p className="text-destructive">{error}</p><Button onClick={() => router.back()} className="mt-4">Volver</Button></div>; }
 
+
+  
   return (
-  <div className="flex flex-col items-center justify-start min-h-screen bg-background px-4">
+  <div className="flex flex-col items-center justify-start min-h-screen bg-background">
   {/* MODIFICATION START: Removed max-w-2xl from the main container */}
   <div className="w-full">
   {/* MODIFICATION START: Removed max-w-2xl from the div containing ProcessHeader */}

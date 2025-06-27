@@ -1,127 +1,83 @@
 
-"use client";
+'use client';
 
-import * as React from 'react'; // Added this line
 import Link from 'next/link';
-import { UserCircle, Plus, CheckCircle2, RefreshCw, Clock, MapPin, Archive, FilePlus2, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-interface RecentAudit {
-  id: string;
-  companyName: string;
-  date: string;
-  status: 'Completada' | 'En Progreso' | 'Pendiente';
-  href: string;
-}
+import { useRouter } from 'next/navigation';
 
-interface MoreLink {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  href: string;
-}
 
-const recentAuditsData: RecentAudit[] = [
-  { id: 'audit-1', companyName: 'Constructora Delta', date: '15 de Julio, 2024', status: 'Completada', href: '/reports/delta' },
-  { id: 'audit-2', companyName: 'Oficinas Epsilon', date: '20 de Julio, 2024', status: 'En Progreso', href: '/reports/epsilon' },
-  { id: 'audit-3', companyName: 'Almacén Zeta', date: '28 de Julio, 2024', status: 'Pendiente', href: '/reports/zeta' },
-];
+const HomePage = () => {
+  const router = useRouter();
 
-const moreLinksData: MoreLink[] = [
-  { id: 'link-1', label: 'Planos Asignados', icon: MapPin, href: '/view-plans' },
-  { id: 'link-2', label: 'Inventario', icon: Archive, href: '/inventory' },
-  { id: 'link-3', label: 'Crear Nuevo Plan', icon: FilePlus2, href: '/create-plan' },
-];
+ return (
+ <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4">
+ <div className="w-full max-w-md space-y-6">
+        {/* Welcome Section */}
+ <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+ <h2 className="text-xl font-semibold">Bienvenido, Usuario</h2>
+ <p className="text-sm text-muted-foreground mt-1">Aquí están tus tareas recientes.</p>
+ <Button className="mt-4 w-full"
+        onClick={() => router.push('/scheduled-audits')} // Navigate to the new page
+        >Iniciar Auditoria</Button>
+ </div>
+      
 
-const statusStyles = {
-  Completada: 'text-green-600',
-  'En Progreso': 'text-orange-500',
-  Pendiente: 'text-blue-500',
-};
-
-const statusIcons = {
-  Completada: CheckCircle2,
-  'En Progreso': RefreshCw,
-  Pendiente: Clock,
-};
-
-export default function HomePage() {
-  const userName = "Usuario";
-
-  return (
-    <div className="flex flex-col min-h-screen bg-background font-sans">
-      <header className="p-4 md:p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
-              Bienvenido, {userName}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Listo para tu próxima auditoría.
-            </p>
+        {/* Recent Audits Section */}
+        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold">Auditorías Recientes</h2>
+          <div className="mt-4 space-y-4">
+            {/* Placeholder for Recent Audits */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-semibold">Constructora Delta</h4>
+                <p className="text-sm text-muted-foreground">15 de Julio, 2024</p>
+              </div>
+              <span className="text-sm text-green-600">Completado</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-semibold">Oficinas Epsilon</h4>
+                <p className="text-sm text-muted-foreground">20 de Julio, 2024</p>
+              </div>
+              <span className="text-sm text-yellow-600">En Progreso</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-semibold">Almacén Zeta</h4>
+                <p className="text-sm text-muted-foreground">25 de Julio, 2024</p>
+              </div>
+              <span className="text-sm text-blue-600">Pendiente</span>
+            </div>
           </div>
-          <UserCircle className="h-10 w-10 text-muted-foreground" />
         </div>
-      </header>
 
-      <main className="flex-grow p-4 md:p-6 space-y-6">
-        <Link href="/start-audit" passHref>
-          <Button size="lg" className="w-full text-lg py-6 bg-primary hover:bg-primary/90">
-            <Plus className="mr-2 h-6 w-6" />
-            Iniciar Auditoría
-          </Button>
-        </Link>
-
-        <section>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Auditorías Recientes</h2>
-          <div className="space-y-3">
-            {recentAuditsData.map((audit, index) => (
-              <React.Fragment key={audit.id}>
-                <Link href={audit.href} className="block rounded-lg p-4 bg-card hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-card-foreground">{audit.companyName}</p>
-                      <p className="text-xs text-muted-foreground">{audit.date}</p>
-                    </div>
-                    <div className={cn("flex items-center text-xs font-medium", statusStyles[audit.status])}>
-                      {React.createElement(statusIcons[audit.status], { className: "mr-1.5 h-4 w-4" })}
-                      {audit.status}
-                    </div>
-                  </div>
-                </Link>
-                {index < recentAuditsData.length - 1 && <Separator />}
-              </React.Fragment>
-            ))}
-            {recentAuditsData.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">No hay auditorías recientes.</p>
-            )}
+        {/* More Options Section */}
+        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold">Más</h2>
+          <div className="mt-4 space-y-4">
+            <Link href="/view-plans" className="flex justify-between items-center text-muted-foreground hover:text-foreground">
+              <span>Planes Asignados</span>
+              <span>&gt;</span>
+            </Link>
+            <Separator />
+            <Link href="/inventory" className="flex justify-between items-center text-muted-foreground hover:text-foreground">
+              <span>Inventario</span>
+              <span>&gt;</span>
+            </Link>
+            <Separator />
+            <Link href="/create-plan" className="flex justify-between items-center text-muted-foreground hover:text-foreground">
+              <span>Crear Nuevo Plan</span>
+              <span>&gt;</span>
+            </Link>
           </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Más</h2>
-          <div className="space-y-0.5">
-            {moreLinksData.map((link, index) => (
-               <React.Fragment key={link.id}>
-                <Link
-                  href={link.href}
-                  className="flex items-center justify-between p-4 bg-card hover:bg-muted/50 transition-colors rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <div className="flex items-center">
-                    <link.icon className="mr-3 h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium text-card-foreground">{link.label}</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </Link>
-                {index < moreLinksData.length - 1 && <Separator />}
-              </React.Fragment>
-            ))}
           </div>
-        </section>
-      </main>
-      {/* MobileNav is in RootLayout and will be displayed */}
+      </div>
     </div>
   );
-}
+};
+
+export default HomePage;
