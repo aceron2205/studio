@@ -17,8 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
-import { toast } from "@/hooks/use-toast";
 
+import { ScheduleAuditForm } from "@/components/custom/schedule-form";
 import { useRouter } from 'next/navigation';
 // NEW IMPORT: Import mockClients and Client type from extinguisherMocks
 import { mockClients, Client } from "@/mocks/extinguisherMocks"; 
@@ -46,6 +46,7 @@ export default function StartAuditOptions() {
   const [downloadingAuditIds, setDownloadingAuditIds] = React.useState<Set<string>>(new Set());
   const [downloadedAuditIds, setDownloadedAuditIds] = React.useState<Set<string>>(new Set());
 
+  const [isScheduleFormOpen, setIsScheduleFormOpen] = React.useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = React.useState(false);
 
   // MODIFIED: Derive mockPendingAudits dynamically from mockClients
@@ -108,10 +109,10 @@ export default function StartAuditOptions() {
       return newSet;
     });
 
-    toast({
+   /* toast({
       title: "Descarga Iniciada",
       description: `La descarga de la auditoría "${auditName}" ha comenzado.`,
-    });
+    })*/;
 
     setTimeout(() => {
       setDownloadingAuditIds(prev => {
@@ -120,10 +121,10 @@ export default function StartAuditOptions() {
         return newSet;
       });
       setDownloadedAuditIds(prev => new Set(prev).add(auditId));
-      toast({
+      /*toast({
         title: "Auditoría Descargada",
         description: `La auditoría "${auditName}" ha sido descargada. (Simulado)`,
-      });
+      })*/;
     }, 2000);
   };
 
@@ -135,14 +136,8 @@ export default function StartAuditOptions() {
   };
 
   const handleScheduleAudit = () => {
-    console.log("Navigating to schedule new audit page (placeholder)");
     setIsFabMenuOpen(false); // Close menu after selection
-    toast({
-      title: "Función no implementada",
-      description: "La función para agendar una nueva auditoría aún no está disponible.",
-      variant: "default",
-    });
-    // router.push('/schedule-audit'); // Placeholder for a future scheduling page
+    setIsScheduleFormOpen(true);
   };
 
   const displayedAudits = mockPendingAudits.slice(0, visibleAuditsCount);
@@ -316,8 +311,7 @@ export default function StartAuditOptions() {
               variant="outline"
               size="lg"
               className="rounded-full shadow-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-all duration-300 ease-in-out"
-              onClick={() => router.push('/view-plans')} // Assuming this is the route for agendar auditoría
-              style={{ transform: 'translateY(-96px)' }}
+              onClick={handleScheduleAudit}
             >
               Agendar Auditoría
             </Button>
@@ -326,9 +320,9 @@ export default function StartAuditOptions() {
               size="lg"
               className="rounded-full shadow-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-all duration-300 ease-in-out"
               onClick={handleStartNewAudit}
-              style={{ transform: 'translateY(-166px)' }}
+              style={{ transform: 'translateY(-160px)' }}
             >
-              Iniciar Auditoría
+              Nueva Auditoria
             </Button>
           </>
         )}
@@ -343,6 +337,11 @@ export default function StartAuditOptions() {
           <FilePlus2 className="h-7 w-7" />
         </Button>
       </div>
+      <ScheduleAuditForm
+        isOpen={isScheduleFormOpen}
+        onSchedule={handleScheduleAudit} 
+        onOpenChange={setIsScheduleFormOpen}
+      />
     </div>
   );
 }

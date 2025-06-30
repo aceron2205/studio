@@ -3,7 +3,7 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { format, type Locale } from "date-fns";
+import { format, type Locale, parseISO } from "date-fns";
 import { MapPin, Play, Download, ChevronDown, Loader2, Check, CalendarClock, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ScheduleAuditForm } from "./schedule-form";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -45,6 +46,7 @@ interface ScheduledAuditListItemProps {
   isDownloaded?: boolean;
 }
 
+
 export function ScheduledAuditListItem({
   audit,
   locale,
@@ -55,15 +57,18 @@ export function ScheduledAuditListItem({
 }: ScheduledAuditListItemProps) {
   const [formattedFullDate, setFormattedFullDate] = useState<string | null>(null);
 
+  const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
+
   useEffect(() => {
-    const dateParts = audit.date.split('-').map(Number);
-    const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    const localDate = parseISO(audit.date);
     setFormattedFullDate(`${format(localDate, "PPP", { locale })} a las ${audit.time}`);
   }, [audit.date, audit.time, locale]);
 
+
   const handleReschedule = () => {
-    toast({
+     toast({
       title: "Funcionalidad Pendiente",
+
       description: "La opción de reagendar auditoría aún no está implementada.",
     });
     console.log(`Intento de reagendar auditoría: ${audit.id} - ${audit.clientName}`);
@@ -163,10 +168,12 @@ export function ScheduledAuditListItem({
                   ? 'Descargado'
                   : 'Descargar'}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleReschedule}>
+              <DropdownMenuItem onClick={() => setIsScheduleFormOpen(true)}>
                 <CalendarClock className="mr-2 h-4 w-4" />
-                Reagendar auditoria
+                Agendar auditoria
               </DropdownMenuItem>
+
+
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem 
                   onSelect={(e) => e.preventDefault()} 
@@ -200,6 +207,15 @@ export function ScheduledAuditListItem({
         <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
         <span>{audit.location}</span>
       </div>
+
+      <ScheduleAuditForm
+        isOpen={isScheduleFormOpen}
+        onOpenChange={setIsScheduleFormOpen}
+        onSchedule={(data, buildingName) => {
+          console.log("Audit scheduled with data:", data);
+          console.log("For building:", buildingName);
+        }}
+      />
     </div>
   );
 }

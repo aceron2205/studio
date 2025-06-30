@@ -1,74 +1,61 @@
-
 "use client";
-import { useEffect, useState } from "react";
+
+// REMOVED: useEffect, useState as they are not used in this component's logic
+// REMOVED: format, es as date formatting is not handled here
+// REMOVED: Link, ArrowLeft, Card, CardContent, CardHeader, CardTitle as they are not used in this component
+
 import * as React from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale/es"; // Import Spanish locale using default import
-import { SearchIcon, ListFilter, ArrowLeft } from "lucide-react"; 
-import Link from "next/link"; // Import Link
-
+import { SearchIcon, ListFilter } from "lucide-react"; // Ensure ListFilter is imported
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; // Removed DropdownMenuItem as it's not used here
 
-import { mockClients, Client } from "@/mocks/extinguisherMocks";
+// REMOVED: mockClients, Client imports as they are not used for filtering directly here
 
 interface AuditSearchFilterProps {
   onSearchChange: (value: string) => void;
 }
 
 export function AuditSearchFilter({ onSearchChange }: AuditSearchFilterProps) {
-  const [clients, setClients] = useState<Client[]>(mockClients);
-  const [formattedClients, setFormattedClients] = useState<(Client & { formattedScheduledAudit: string })[]>([]);
-
-
-  // Search logic would be handled here, e.g., with state and useEffect
-  // For now, the input is just a UI element.
+  // REMOVED: Unused state
+  // const [clients, setClients] = useState<Client[]>(mockClients);
+  // const [formattedClients, setFormattedClients] = useState<(Client & { formattedScheduledAudit: string })[]>([]);
 
   return (
     <div className="container mx-auto sm:px-6 lg:px-8 py-4 relative">
-      <div className="flex flex-row items-center gap-3 mb-6">
-        <Link href="/" passHref>
-          <Button variant="ghost" size="icon" aria-label="Volver al Inicio" className="shrink-0">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-          Búsqueda
-        </h1>
-      </div>
 
-      <div className="mb-4 flex items-center gap-2">
-        <Input
+      {/* THIS IS THE CRUCIAL CHANGE: A single flex container wrapping both elements */}
+      <div className="flex items-center gap-2"> {/* Added flex, items-center, gap-2, and mb-4 for spacing */}
+ 
+        {/* Search Input with Icon (now a direct sibling within the new flex container) */}
+        <div className="relative flex items-center flex-grow"> {/* flex-grow allows it to take remaining space */}
+          <div className="absolute left-0 h-full flex items-center pl-3 pr-2 pointer-events-none z-10">
+            <SearchIcon className="w-4 h-4 text-gray-500" />
+          </div>
+          <Input
             id="generalSearchInput"
+            type="text"
             placeholder="Nombre de cliente, fecha, ubicación..."
-            className="flex-grow" // Allow input to grow
+            // Ensure pl-10 matches the icon's positioning and h-10 matches the button's height
+            className="flex-grow pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-10"
             onChange={(e) => onSearchChange(e.target.value)}
-        />
-        {/* Filter Button */}
-        <DropdownMenu>
+          />
+        </div>
+
+                {/* Filter Button (kept within its DropdownMenu structure) */}
+                <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" aria-label="Filter options">
               <ListFilter className="h-4 w-4" />
             </Button>
            </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {/* Filter options will be added here later */}
             <div className="p-2">
-              {/* Placeholder for filtering options */}
               <p className="text-sm text-gray-500">Filtering options coming soon...</p>
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
-      
- {/* The rest of the component content */}
-      
-
-      <div className="mt-4"> {/* Adjusted margin slightly */}
-        <h2 className="px-3 text-xl font-semibold mb-1 text-primary">Clientes Registrados</h2>
-      </div>
+      </div> {/* END of the new shared flex container */}
     </div>
   );
 }

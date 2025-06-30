@@ -3,8 +3,6 @@
 import * as React from "react";
 import { use } from 'react'; // `useState`, `useEffect`, `useMemo` are not used in this specific component's logic, so removed for clarity
 import Link from "next/link"; // Link is imported but not used in the provided JSX. Keep if used elsewhere or remove if truly unused.
-import { ArrowLeft } from "lucide-react"; // ArrowLeft is imported but not used in the provided JSX. Keep if used elsewhere or remove if truly unused.
-import { Button } from "@/components/ui/button"; // Button is imported but not used in the provided JSX. Keep if used elsewhere or remove if truly unused.
 import { BarcodeScanner } from "@/components/custom/barcode-scanner";
 import ProcessHeader from "@/components/custom/process-header"; // ProcessHeader is imported but not used in the provided JSX. Keep if used elsewhere or remove if truly unused.
 import { Toaster } from "@/components/ui/toaster";

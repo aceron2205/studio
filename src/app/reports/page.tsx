@@ -1,20 +1,13 @@
 
 import AuditReportDisplay from '@/components/custom/audit-report-display';
 import { Toaster } from "@/components/ui/toaster";
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import ProcessHeader from '@/components/custom/process-header';
 
 export default function ReportPage() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-background">
-      <div className="w-full max-w-5xl mb-6">
-        <Link href="/" passHref>
-          <Button variant="outline" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver al Inicio
-          </Button>
-        </Link>
+      <ProcessHeader title="Reportes" />
+      <div className="w-full max-w-5xl p-4 sm:p-6">
         <AuditReportDisplay />
       </div>
       <Toaster />

@@ -68,3 +68,4 @@ export interface ExtinguisherAuditFormData {
   observacionesGenerales?: string;
   photoEvidenceDataUrls?: string[];
 }
+
