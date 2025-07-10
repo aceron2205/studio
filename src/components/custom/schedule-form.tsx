@@ -49,7 +49,7 @@ import { mockClients, Client } from "@/mocks/extinguisherMocks"; // Import mockC
 // 1. Define the Zod Schema for form validation
 const formSchema = z.object({
   clientId: z.string().min(1, "El cliente es requerido."), // NEW: Client ID dropdown
-  buildingId: z.string().min(1, "El edificio es requerido."), // NEW: Building ID dropdown
+  edifId: z.string().min(1, "El edificio es requerido."), // NEW: Edificio ID dropdown
   auditDate: z.date({
     required_error: "La fecha de auditoría es requerida.",
   }),
@@ -83,7 +83,7 @@ export const ScheduleAuditForm: React.FC<ScheduleAuditFormProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientId: "", // Initialize new fields
-      buildingId: "", // Initialize new fields
+      edifId: "", // Initialize new fields
       auditDate: undefined,
       auditTime: "",
       assignedTechnician: "",
@@ -95,7 +95,7 @@ export const ScheduleAuditForm: React.FC<ScheduleAuditFormProps> = ({
 
   // Watch selected client to dynamically populate buildings
   const selectedClientId = form.watch("clientId");
-
+  
   // Dynamically get building options based on selected client
   const buildingOptions = React.useMemo(() => {
     if (!selectedClientId) return [];
@@ -124,7 +124,7 @@ export const ScheduleAuditForm: React.FC<ScheduleAuditFormProps> = ({
 
     toast({
       title: "Auditoría Agendada",
-      description: `Auditoría programada para ${data.clientId} - ${data.buildingId} el ${format(data.auditDate, "PPP", { locale: es })} a las ${data.auditTime}.`,
+      description: `Auditoría programada para ${data.clientId} - ${data.edifId} el ${format(data.auditDate, "PPP", { locale: es })} a las ${data.auditTime}.`,
     });
 
     form.reset();
@@ -158,7 +158,7 @@ export const ScheduleAuditForm: React.FC<ScheduleAuditFormProps> = ({
                     onValueChange={(value) => {
                       field.onChange(value);
                       // Reset buildingId when client changes to avoid invalid selection
-                      form.setValue("buildingId", ""); 
+                      form.setValue("edifId", "");
                     }}
                     value={field.value}
                   >
@@ -184,7 +184,7 @@ export const ScheduleAuditForm: React.FC<ScheduleAuditFormProps> = ({
             {/* Building Dropdown */}
             <FormField
               control={form.control}
-              name="buildingId"
+              name="edifId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Edificio</FormLabel>
@@ -192,7 +192,7 @@ export const ScheduleAuditForm: React.FC<ScheduleAuditFormProps> = ({
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={!selectedClientId || buildingOptions.length === 0} // Disable if no client selected or no buildings
-                  >
+                    >
                     <FormControl>
                       <SelectTrigger>
                         <BuildingIcon className="mr-2 h-4 w-4 text-gray-500" />

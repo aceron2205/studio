@@ -31,10 +31,11 @@ const allExtinguishersFlat: Record<string, ExtinguisherData> = mockClients.reduc
 
 interface BarcodeScannerProps {
   itemId: string;
-  // UPDATED: extinguishersForPlan now expects ExtinguisherData
   extinguishersForPlan?: ExtinguisherData[];
   overrideTitle?: string;
   overrideBackButton?: React.ReactNode; 
+  onExtinguisherScanned?: (extinguisher: ExtinguisherData) => void;
+
 }
 
 export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitle, overrideBackButton }: BarcodeScannerProps) {

@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+ 
 } from "@/components/ui/dropdown-menu";
 
 interface ActionDropdownMenuProps {
@@ -30,6 +31,7 @@ interface ActionDropdownMenuProps {
   onScheduleAudit?: (id: string) => void;
   onCancelAudit?: (id: string) => void;
   onClientApproval?: (id: string) => void;
+  edifId?: string; // Add edifId prop
 }
 
 /**
@@ -44,6 +46,7 @@ export const ActionDropdownMenu: React.FC<ActionDropdownMenuProps> = ({
   onScheduleAudit,
   onCancelAudit,
   onClientApproval,
+  edifId, // Destructure edifId
 }) => {
   const hasPrimaryActions = onClientApproval || onView || onAudit || onDownload || onScheduleAudit;
 
@@ -73,7 +76,16 @@ export const ActionDropdownMenu: React.FC<ActionDropdownMenuProps> = ({
         )}
         {onAudit && (
           <DropdownMenuItem onClick={() => onAudit(itemId)}>
-            <Play className="mr-2 h-4 w-4" />
+            {/* Use Link for navigation */}
+            {edifId ? (
+              <a href={`/view-plans/${edifId}`} className="flex items-center w-full">
+                <Play className="mr-2 h-4 w-4" />
+                Auditar
+              </a>
+            ) : (
+              <>
+              <Play className="mr-2 h-4 w-4" />
+              </>)}
             Auditar
           </DropdownMenuItem>
         )}

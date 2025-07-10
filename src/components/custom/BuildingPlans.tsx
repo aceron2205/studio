@@ -1,26 +1,33 @@
 import React, { useMemo } from 'react';
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, FireExtinguisher, Tag, MapPin, Gauge, BatteryCharging, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {
+  FireExtinguisher,
+  Tag,
+  MapPin,
+  Gauge,
+  BatteryCharging,
+  Calendar,
+  CheckCircle2,
+  Clock3,
+  XCircle
+} from 'lucide-react';
 
-// Import your new ActionDropdownMenu component
 import { ActionDropdownMenu } from '@/components/custom/action-dropdown-menu';
+import { Client } from '@/mocks/extinguisherMocks';
 import { ExtinguisherData } from '@/types/extinguisher';
-import { Client } from '@/mocks/extinguisherMocks'; // Import Client interface
-
 
 interface BuildingPlansProps {
-  clientExtinguisherPlan: ExtinguisherData[];
+  selectedClient: Client;
   onBack: () => void;
-  selectedClient?: Client; // NEW: Receive the selected client object
-  // Renamed to be more generic as it receives a location string (building or client address)
   onScheduleAuditClick: (location: string) => void;
 }
 
-const BuildingPlans: React.FC<BuildingPlansProps> = ({ clientExtinguisherPlan, onBack, selectedClient, onScheduleAuditClick }) => {
+const BuildingPlans: React.FC<BuildingPlansProps> = ({ selectedClient, onBack, onScheduleAuditClick }) => {
   const router = useRouter();
 
-  // Group extinguishers by building
+  const clientExtinguisherPlan = selectedClient?.['extinguisher-plan'] || [];
+  const audits = selectedClient.relatedAudits || {};
+
   const extinguishersByBuilding = useMemo(() => {
     const grouped: { [key: string]: ExtinguisherData[] } = {};
     clientExtinguisherPlan.forEach(ext => {
@@ -33,43 +40,72 @@ const BuildingPlans: React.FC<BuildingPlansProps> = ({ clientExtinguisherPlan, o
     return grouped;
   }, [clientExtinguisherPlan]);
 
-  // Get and sort building names for display order
+  const auditStatusByBuilding: Record<string, string> = useMemo(() => {
+    const result: Record<string, string> = {};
+    Object.values(audits).forEach(audit => {
+      if (audit.edifi_id && audit.status) {
+        result[audit.edifi_id] = audit.status;
+      }
+    });
+    return result;
+  }, [audits]);
+
+
+  const getAuditStatusIcon = (status: string | undefined) => {
+  if (status === 'Programada') {
+    return (
+      <span title="Programada">
+        <CheckCircle2 className="h-4 w-4 text-green-500" />
+      </span>
+    );
+  }
+  if (status === 'Pendiente') {
+    return (
+      <span title="Pendiente">
+        <Clock3 className="h-4 w-4 text-yellow-500" />
+      </span>
+    );
+  }
+  if (status === 'Completada') {
+    return (
+      <span title="Completada">
+        <XCircle className="h-4 w-4 text-gray-500" />
+      </span>
+    );
+  }
+  return null;
+};
+
   const sortedBuildingNames = useMemo(() => {
     return Object.keys(extinguishersByBuilding).sort();
   }, [extinguishersByBuilding]);
 
-
   const handleAuditBuilding = (buildingName: string) => {
-    console.log(`Auditar edificio: ${buildingName}`);
-    router.push(`/audit-scan/${selectedClient?.id || 'new-unscheduled'}`); // Assuming audit-scan needs client ID or a new/unscheduled identifier
+    router.push(`/audit-scan/${selectedClient.id || 'new-audit'}`);
   };
 
   const handleDownloadBuildingPlan = (buildingName: string) => {
     console.log(`Descargar plano para edificio: ${buildingName}`);
-    // Implement PDF generation/download logic here
   };
 
   const handleRescheduleBuildingAudit = (buildingName: string) => {
-    console.log(`Reagendar auditoría para edificio: ${buildingName}`);
-    // MODIFIED: Pass the client's main address (direccion) if available, otherwise the building name
-    const locationForScheduling = selectedClient?.direccion || buildingName;
+    const locationForScheduling = selectedClient.direccion || buildingName;
     onScheduleAuditClick(locationForScheduling);
   };
 
   const handleCancelBuildingAudit = (buildingName: string) => {
     console.log(`Cancelar auditoría para edificio: ${buildingName}`);
-    // Implement logic to cancel an audit
   };
 
-
-  // Helper component to render Extinguisher Details
   const ExtinguisherDetailItem: React.FC<{ extinguisher: ExtinguisherData }> = ({ extinguisher }) => (
     <div
       key={extinguisher.id}
       className="p-4 border border-gray-200 rounded-md bg-white hover:bg-gray-50 transition-colors mb-2"
     >
       <h3 className="font-semibold text-base text-gray-800 flex items-center gap-2">
-        <Tag className="h-4 w-4 text-gray-500" />
+      <span title="Programada">
+  <Tag className="h-4 w-4 text-gray-500" />
+</span>
         {extinguisher.agenteExtintor} ({extinguisher.capacidadLibras})
       </h3>
       <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
@@ -99,28 +135,22 @@ const BuildingPlans: React.FC<BuildingPlansProps> = ({ clientExtinguisherPlan, o
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
                   <FireExtinguisher className="h-6 w-6 text-orange-500" />
-                  {buildingName || 'Edificio No Asignado'} ({extinguishersByBuilding[buildingName].length})
+                  {buildingName} ({extinguishersByBuilding[buildingName].length})
+                  {getAuditStatusIcon(auditStatusByBuilding[selectedClient.edifi_id || ''])}
                 </h2>
-                <div className="flex flex-col gap-2">
-                  <ActionDropdownMenu
-                    itemId={buildingName}
-                    itemName={buildingName}
-                    onAudit={handleAuditBuilding}
-                    onDownload={handleDownloadBuildingPlan}
-                    onScheduleAudit={handleRescheduleBuildingAudit}
-                    onCancelAudit={handleCancelBuildingAudit}
-                  />
-                </div>
+                <ActionDropdownMenu
+                  itemId={buildingName}
+                  itemName={buildingName}
+                  onAudit={handleAuditBuilding}
+                  onDownload={handleDownloadBuildingPlan}
+                  onScheduleAudit={handleRescheduleBuildingAudit}
+                  onCancelAudit={handleCancelBuildingAudit}
+                />
               </div>
-
               <div className="space-y-3">
-                {extinguishersByBuilding[buildingName].length > 0 ? (
-                  extinguishersByBuilding[buildingName].map(extinguisher => (
-                    <ExtinguisherDetailItem key={extinguisher.id} extinguisher={extinguisher} />
-                  ))
-                ) : (
-                  <p className="text-center text-muted-foreground py-4">No se encontraron extintores para este edificio.</p>
-                )}
+                {extinguishersByBuilding[buildingName].map(ext => (
+                  <ExtinguisherDetailItem key={ext.id} extinguisher={ext} />
+                ))}
               </div>
             </section>
           ))

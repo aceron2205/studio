@@ -73,18 +73,6 @@ export default function StartAuditOptions() {
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
     
-    // NOTE: These are hardcoded exceptions for specific audit IDs as they were in your
-    // original local mockPendingAudits. In a real app, these would come from a backend
-    // or a more sophisticated client-to-audit mapping.
-    audits.push(
-      { id: 'current-day-5', clientName: 'Industrias Alfa', date: new Date(currentYear, currentMonth, 5).toISOString().split('T')[0], time: '09:00 AM', location: 'Locación A - Mes Actual', status: 'Programada' },
-      { id: 'current-day-15', clientName: 'Servicios Beta EIRL', date: new Date(currentYear, currentMonth, 15).toISOString().split('T')[0], time: '11:00 AM', location: 'Locación B - Mes Actual', status: 'Pendiente' },
-      { id: 'current-day-25', clientName: 'Comercial Gamma SAC', date: new Date(currentYear, currentMonth, 25).toISOString().split('T')[0], time: '01:00 PM', location: 'Locación C - Mes Actual', status: 'Programada' },
-      { id: 'current-today', clientName: 'Cliente Omega (Hoy)', date: today.toISOString().split('T')[0], time: '03:00 PM', location: 'Locación Hoy - Mes Actual', status: 'Programada'},
-      { id: 'sep-audit-1', clientName: 'Empresa Constructora Sol', date: '2024-09-10', time: '10:00 AM', location: 'Obra Central, Av. Principal 123', status: 'Programada' },
-      { id: 'sep-audit-2', clientName: 'Restaurante Delicias Marinas', date: '2024-09-12', time: '02:30 PM', location: 'Sucursal Puerto, Calle del Mar 45', status: 'Programada' },
-    );
-
     // Filter out duplicates if a client.id matches one of the hardcoded audit IDs
     const uniqueAudits = Array.from(new Map(audits.map(audit => [audit.id, audit])).values());
     return uniqueAudits;
@@ -132,7 +120,7 @@ export default function StartAuditOptions() {
     console.log("Starting new unscheduled audit - navigating to barcode scanner");
     setIsFabMenuOpen(false); // Close menu after selection
     // Routes to a generic /audit-scan for a new, unscheduled scan
-    router.push('/audit-scan/new-unscheduled'); // Using a clear ID for a new, unscheduled audit
+    router.push('/audit-scan/new-audit'); // Using a clear ID for a new, unscheduled audit
   };
 
   const handleScheduleAudit = () => {
