@@ -1,17 +1,35 @@
+// src/app/audit-review-sign/page.tsx
 "use client";
 
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { format } from "date-fns"; // <--- NEW: Import format for dates
+import { Calendar as CalendarIcon, Loader2, ArrowLeft } from "lucide-react";
 
 
 import { Client } from '@/mocks/extinguisherMocks';
-import { SignaturePad } from '@/components/custom/signature-pad';
+// SignaturePad is imported but used dynamically. Keep the component import for type hinting.
+import { SignaturePad as SignaturePadComponent } from '@/components/custom/signature-pad'; // Renamed to avoid conflict with dynamic import variable
 import ReviewTableSign from '@/components/custom/review-table';
 import { useAudit } from '@/context/audit-context';
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button"
-import ProcessHeader from "@/components/custom/process-header" // Assuming ProcessHeader is used for the top bar
+import ProcessHeader from "@/components/custom/process-header"
+import dynamic from 'next/dynamic'
 
+// Dynamic import for SignaturePad to ensure it's client-side only
+const SignaturePad = dynamic(
+  () => import('@/components/custom/signature-pad').then((mod) => mod.SignaturePad),
+  { ssr: false }
+);
+
+import { Calendar } from "@/components/ui/calendar"; // <--- NEW: Calendar component
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"; // <--- NEW: Popover components
+import { cn } from "@/lib/utils";
 
 // Interface for AuditResult (can be defined here or in a shared types file)
 export interface AuditResult {
@@ -25,30 +43,36 @@ export interface AuditResult {
 
 const title = "Resultados de Auditoria"
 
-// FIX: Corrected the structure of the default export function
 export default function AuditReviewAndSign() {
   const router = useRouter();
-  // Retrieve state from useAudit context inside the component
   const {
     client,
     buildingName,
     auditedExtinguishers,
-    clientSignature, 
-    setClientSignature, 
+    clientSignature,
+    setClientSignature,
     clearAuditState
   } = useAudit();
 
+  // FIX: Initial state for signature pad visibility is now FALSE
+  const [isSignaturePadVisible, setIsSignaturePadVisible] = useState(false); // <--- CHANGE TO FALSE
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // <--- NEW STATE
+  
   useEffect(() => {
     if (!client || !buildingName || !auditedExtinguishers) {
-      // Only redirect if this check fails
       router.replace('/scheduled-audits');
     }
-  }, [client, buildingName, auditedExtinguishers, router]); // Dependencies: re-run if these change
+    // If there's an existing signature when the page loads, hide the pad initially
+    // This provides a consistent UX where if a signature is already present, the pad isn't immediately shown.
+    if (clientSignature) {
+        setIsSignaturePadVisible(false);
+    }
+  }, [client, buildingName, auditedExtinguishers, router, clientSignature]);
 
    if (!client || !buildingName || !auditedExtinguishers) {
-    return null; // Return null to prevent rendering the rest of the component
+    return null;
   }
-  // Derived state for mapped audit results
   const mappedAuditResults: AuditResult[] = useMemo(() => {
     if (!client || !buildingName || !auditedExtinguishers) return [];
 
@@ -62,9 +86,8 @@ export default function AuditReviewAndSign() {
     }));
   }, [auditedExtinguishers, client, buildingName]);
 
-  // Handlers
   const handleConfirm = () => {
-    if (!clientSignature) { // Use clientSignature from context
+    if (!clientSignature) {
       toast({
         title: "Firma Requerida",
         description: "Por favor, proporcione una firma antes de continuar.",
@@ -72,15 +95,14 @@ export default function AuditReviewAndSign() {
       });
       return;
     }
-    console.log("Audit confirmed with signature:", clientSignature); // Use clientSignature from context
-    // Here, you would typically make an API call to save the audit data (client, building, extinguishers, signature)
-    // For now, it logs and clears.
+    // It's assumed the signature is already captured and the pad is hidden if finalized
+    console.log("Audit confirmed with signature:", clientSignature);
     toast({
       title: "Auditoría Confirmada",
       description: "La auditoría ha sido confirmada y los datos guardados.",
       variant: "default",
     });
-    clearAuditState(); // Clears all audit context state, including signature
+    clearAuditState();
     router.push('/scheduled-audits');
   };
 
@@ -93,7 +115,11 @@ export default function AuditReviewAndSign() {
     console.log(`Detalles del extintor ${extinguisherId}`);
   };
 
-  const handleSaveAudit = () => {
+  const handleSaveAudit = (signatureDataUrl?: string) => {
+    if (signatureDataUrl && signatureDataUrl !== clientSignature) {
+        setClientSignature(signatureDataUrl);
+        console.log("AuditReviewAndSign: clientSignature updated from Guardar button.");
+    }
     toast({
       title: "Guardado",
       description: "Auditoría guardada exitosamente. (Simulado)",
@@ -110,11 +136,46 @@ export default function AuditReviewAndSign() {
     return new Date().toLocaleDateString();
   };
 
+  // NEW HANDLER: To show the signature pad (when "Firmar" button is clicked)
+  const handleShowSignaturePad = () => {
+    setIsSignaturePadVisible(true);
+    // Optional: Auto-scroll to the signature section if it's far down the page
+    // window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
+  // NEW HANDLER: To hide the signature pad (when "Finalizar Firma" button is clicked)
+  const handleFinalizeSignature = () => {
+    if (!clientSignature) { // Ensure a signature exists before finalizing
+        toast({
+            title: "Firma Requerida",
+            description: "Por favor, firme antes de finalizar.",
+            variant: "destructive",
+        });
+        return;
+    }
+    setIsSignaturePadVisible(false); // Hide the signature pad
+    // toast({
+    //     title: "Firma Capturada", // Changed toast message for clarity
+    //     description: "La firma ha sido capturada y finalizada.",
+    //     variant: "success",
+    // });
+  };
+
+  // NEW HANDLER: To show the signature pad again for editing
+  const handleEditSignature = () => {
+    setIsSignaturePadVisible(true);
+    // toast({
+    //   title: "Editando Firma",
+    //   description: "Pad de firma visible para edición.",
+    //   variant: "info",
+    // });
+  };
+
 
   return (
-    <> 
+    <>
       <ProcessHeader title={title} goBack={() => router.back()} />
-      <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md"> 
+      <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
 
         <div className="mb-6 border-b pb-4">
           <p className="text-gray-700"><strong>Cliente:</strong> {client.name}</p>
@@ -142,27 +203,74 @@ export default function AuditReviewAndSign() {
             />
           </div>
           <div>
-            <h3 className="text-lg font-medium mb-2 text-card-foreground">Fecha</h3>
+          <h3 className="text-lg font-medium mb-2 text-card-foreground">Fecha</h3>
             {/* Replace with Calendar component later */}
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-            >
-              {/* You can add a calendar icon here later */}
-              Seleccionar Fecha
-            </Button>
+            {/* Calendar Integration */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : <span>Seleccionar Fecha</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
-        {/* Original Signature Pad section */}
+        {/* Signature Pad Section - Conditional Rendering */}
         <div className="mb-6 mt-8">
           <h3 className="text-lg font-medium mb-2 text-card-foreground">Firma del cliente</h3>
-          <SignaturePad
-           onSignatureEnd={(dataUrl: string) => setClientSignature(dataUrl)}
-           onClear={() => setClientSignature(null)}
-           initialSignature={clientSignature || undefined}
-          />
 
+          {isSignaturePadVisible ? (
+            // Render SignaturePad when visible
+            <div className="space-y-4"> {/* Added a div for consistent spacing/styling */}
+              <SignaturePad
+                onSignatureEnd={(dataUrl: string) => setClientSignature(dataUrl)}
+                onClear={() => setClientSignature(null)}
+                initialSignature={clientSignature || undefined}
+                onSaveClick={handleSaveAudit}
+              />
+              <div className="flex justify-end mt-2">
+                <Button onClick={handleFinalizeSignature} disabled={!clientSignature} className="ml-2">
+                  Finalizar Firma
+                </Button>
+              </div>
+            </div>
+          ) : (
+            // Show preview or "Firmar" button when pad is hidden
+            <div className="border border-gray-300 rounded-md bg-white p-4 flex flex-col items-center justify-center min-h-[150px]"> {/* min-h for consistent space */}
+              {clientSignature ? (
+                <>
+                  <img src={clientSignature} alt="Firma del Cliente" className="max-w-full h-auto" style={{ maxHeight: '150px' }} />
+                  <Button onClick={handleEditSignature} variant="outline" size="sm" className="mt-4"> {/* Increased mt for spacing */}
+                    Editar Firma
+                  </Button>
+                </>
+              ) : (
+                // If no signature captured yet, and pad is hidden, show "Firmar" button
+                <div className="text-muted-foreground py-8 text-center">
+                    <p className="mb-4">No hay firma capturada.</p>
+                    <Button onClick={handleShowSignaturePad} variant="default">
+                        Firmar
+                    </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between mt-6">

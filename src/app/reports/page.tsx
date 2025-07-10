@@ -39,11 +39,8 @@ export default function ReportPage() {
   return (
     <>
       <ProcessHeader title={title} goBack={() => history.back()} />
-
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-4">Reportes de Auditoría</h1>
-
-        {/* Render the AuditReportDisplay component */}
         <AuditReportDisplay />
       </div>
       <Toaster />

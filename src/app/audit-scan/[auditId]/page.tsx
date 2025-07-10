@@ -41,7 +41,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ExtinguisherData } from "@/types/extinguisher"; // Assuming this path and type exists
 import { mockClients, Client } from "@/mocks/extinguisherMocks"; // Import mockClients
 import { BarcodeScanner } from "@/components/custom/barcode-scanner";
-import { SignaturePad } from "@/components/custom/signature-pad";
+//import { SignaturePad } from "@/components/custom/signature-pad";
 
 const selectionSchema = z.object({
   selectedClientId: z.string().min(1, "Debe seleccionar un cliente."),
@@ -390,31 +390,6 @@ export default function AuditScanPage() {
         <div className="p-4">
           <h2 className="text-xl font-semibold mb-4">{AUDIT_RESULTS_TITLE}</h2>
 
-          {/* Table showing audit results for ALL extinguishers in the plan */}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Extinguisher ID</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date of Audit</TableHead>
-                <TableHead className="text-right">Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditResults.sort((a, b) => (b.auditStatus === "Audited" ? -1 : 1)).map((ext: ExtinguisherData) => (
-                <TableRow key={ext.id} className={getAuditStatus(ext.id) === "Not Audited" ? "bg-red-100" : ""}>
-                  <TableCell>{ext.id}</TableCell>
-                  <TableCell>{getAuditStatus(ext.id)}</TableCell>
-                  <TableCell>{getAuditDate(ext.id) || '-'}</TableCell>
-                  <TableCell className="text-right">
-                    {getAuditStatus(ext.id) === "Audited" && (
-                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(ext.id)}>View Details</Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
 
           {/* Table showing ALL extinguishers in the plan (moved here in previous steps) */}
           {currentAuditExtinguishers.length > 0 && (
@@ -444,16 +419,6 @@ export default function AuditScanPage() {
           <div className="flex justify-between gap-2 mt-4">
             <Button onClick={handleSaveAudit}>Guardar</Button>
             <Button onClick={handleProceedToSignature}>Proceder a Firma</Button>
-          </div>
-
-          {/* Signature Pad Section */}
-          <div className="mt-8 space-y-4">
-            <h3 className="text-lg font-semibold text-primary">Firma del Cliente</h3>
-            <SignaturePad
-              onSignatureEnd={setClientSignature}
-              onClear={() => setClientSignature(null)}
-              initialSignature={clientSignature || undefined}
-            />
           </div>
         </div>
       )}

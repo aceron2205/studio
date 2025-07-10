@@ -18,12 +18,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
 import { v4 as uuid } from "uuid";
+import dynamic from 'next/dynamic'
 
 
 import { ScheduleAuditForm } from "@/components/custom/schedule-form";
 import { useRouter } from 'next/navigation';
-import { mockClients, Client, createMockAudit } from "@/mocks/extinguisherMocks"; 
+import { mockClients, } from "@/mocks/extinguisherMocks"; 
 
+
+// Dynamically import SignaturePad, specifying the named export
+const SignaturePad = dynamic(
+  () => import('@/components/custom/signature-pad').then((mod) => mod.SignaturePad),
+  { ssr: false }
+);
 
 // NEW: Define ScheduledAudit interface locally as it's derived here from Client
 export interface ScheduledAudit {

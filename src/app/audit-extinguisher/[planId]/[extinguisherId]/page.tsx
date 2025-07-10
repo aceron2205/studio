@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
+import dynamic from 'next/dynamic';
+
 
 // Importaciones unificadas
 import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/components/custom/extinguisher-audit-form";
@@ -13,6 +15,11 @@ import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock
 import { mockClients } from "@/mocks/extinguisherMocks";
 import ProcessHeader from "@/components/custom/process-header"
 import { useAudit } from "@/context/audit-context";
+
+const SignaturePad = dynamic(
+  () => import('@/components/custom/signature-pad').then((mod) => mod.SignaturePad),
+  { ssr: false }
+);
 
 interface AuditExtinguisherPageProps {
   params: Promise<{
@@ -147,6 +154,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
   title="Auditar Extinguidor" // Using the static title here
   currentStep={currentStep}
   totalSteps={totalSteps}
+  goBack={() => router.back()}
  />
  </div> {/* MODIFICATION END */}
  {currentStep === 1 && (

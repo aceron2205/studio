@@ -2,181 +2,125 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback } from 'react';
-import SignaturePadLib from 'signature_pad'; // Aliased import
+import SignatureCanvas from 'react-signature-canvas';
 import { Button } from '@/components/ui/button';
 
 interface SignaturePadProps {
   initialSignature?: string | null;
-  onSignatureEnd: (dataUrl: string) => void;
+  onSignatureEnd: (dataUrl: string) => void; // This fires when a stroke ends
   onClear: () => void;
+  onSaveClick?: (dataUrl: string) => void; // <--- NEW PROP: Fires when Save button is clicked
 }
 
 export const SignaturePad: React.FC<SignaturePadProps> = ({
   initialSignature,
   onSignatureEnd,
   onClear,
+  onSaveClick, // <--- Destructure the new prop
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const signaturePadInstance = useRef<SignaturePadLib | null>(null);
+  const sigCanvasRef = useRef<SignatureCanvas | null>(null);
 
-  const testPointerDownListenerRef = useRef<((e: PointerEvent) => void) | null>(null);
-  const testPointerMoveListenerRef = useRef<((e: PointerEvent) => void) | null>(null);
-  const testPointerUpListenerRef = useRef<((e: PointerEvent) => void) | null>(null);
-
-
-  const initPad = useCallback(() => {
-    console.log("SignaturePad: initPad called.");
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      console.log("SignaturePad: Canvas ref is available.");
-      console.log("SignaturePad: canvas.offsetWidth:", canvas.offsetWidth, "canvas.offsetHeight:", canvas.offsetHeight);
-
-      if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
-        console.warn("SignaturePad: Canvas has zero dimensions. Check parent CSS or element visibility.");
-        return;
-      }
-
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext('2d')?.scale(ratio, ratio);
-      console.log("SignaturePad: Canvas internal resolution set to:", canvas.width, "x", canvas.height);
-
-      if (!signaturePadInstance.current) {
-        console.log("SignaturePad: Initializing new SignaturePadLib instance...");
-        try {
-          signaturePadInstance.current = new SignaturePadLib(canvas, {
-            // FIX: Ensure all options are explicitly passed again
-            minDistance: 0, // <--- This should be working
-            dotSize: 1,
-            minWidth: 0.5,
-            maxWidth: 2.5,
-            penColor: 'black',
-          });
-
-          // FIX: Add a direct check for minDistance on the instance after creation
-          // The library might not expose _options publicly, but the effective options should be applied.
-          console.log("SignaturePad: Actual minDistance on instance:", (signaturePadInstance.current as any).minDistance);
-
-
-          (signaturePadInstance.current as any).onBegin = () => {
-              console.log("SignaturePad: Drawing started (onBegin event from library).");
-          };
-
-          (signaturePadInstance.current as any).onEnd = () => {
-            if (signaturePadInstance.current && !signaturePadInstance.current.isEmpty()) {
-              onSignatureEnd(signaturePadInstance.current.toDataURL());
-            }
-          };
-          console.log("SignaturePad: SignaturePadLib instance created successfully and onBegin/onEnd assigned.");
-
-          (window as any).mySignaturePad = signaturePadInstance.current;
-          console.log("SignaturePad: Instance exposed as window.mySignaturePad for testing.");
-
-        } catch (error) {
-          console.error("SignaturePad: Error creating SignaturePadLib instance:", error);
-        }
-      } else {
-        console.log("SignaturePad: SignaturePadLib instance already exists.");
-      }
-
-      // --- Debugging Points: Raw Pointer Event Listeners ---
-      if (!testPointerDownListenerRef.current) {
-        const listenerDown = (e: PointerEvent) => { console.log("SignaturePad: Raw Pointer Down on Canvas Element!"); };
-        canvas.addEventListener('pointerdown', listenerDown);
-        testPointerDownListenerRef.current = listenerDown;
-
-        const listenerMove = (e: PointerEvent) => {
-          console.log("SignaturePad: Raw Pointer Move on Canvas Element! (Coords:", e.clientX, e.clientY, ")");
-        };
-        canvas.addEventListener('pointermove', listenerMove);
-        testPointerMoveListenerRef.current = listenerMove;
-
-        const listenerUp = (e: PointerEvent) => { console.log("SignaturePad: Raw Pointer Up on Canvas Element!"); };
-        canvas.addEventListener('pointerup', listenerUp);
-        testPointerUpListenerRef.current = listenerUp;
-
-        console.log("SignaturePad: Raw 'pointerdown/move/up' listeners attached to canvas.");
-      }
-      // --- End Debugging Points ---
-
-      // Ensure the pad is clear if initialSignature loading is skipped for now
-      if (signaturePadInstance.current && !initialSignature) {
-        signaturePadInstance.current.clear();
-      }
-
-    } else {
-      console.log("SignaturePad: Canvas ref is null, cannot initialize.");
-    }
-  }, [initialSignature, onSignatureEnd, onClear]);
+  const isCapturingRef = useRef(false);
 
   useEffect(() => {
-    initPad();
-    return () => {
-      // Cleanup
-      if (signaturePadInstance.current) {
-        signaturePadInstance.current.off();
-      }
-      if (canvasRef.current) {
-        if (testPointerDownListenerRef.current) {
-          canvasRef.current.removeEventListener('pointerdown', testPointerDownListenerRef.current);
-          testPointerDownListenerRef.current = null;
-        }
-        if (testPointerMoveListenerRef.current) {
-          canvasRef.current.removeEventListener('pointermove', testPointerMoveListenerRef.current);
-          testPointerMoveListenerRef.current = null;
-        }
-        if (testPointerUpListenerRef.current) {
-          canvasRef.current.removeEventListener('pointerup', testPointerUpListenerRef.current);
-          testPointerUpListenerRef.current = null;
-        }
-      }
-    };
-  }, [initPad]);
-
-  const handleClearClick = () => {
-    if (signaturePadInstance.current) {
-      signaturePadInstance.current.clear();
-      onClear();
+    if (!sigCanvasRef.current) {
+        console.log("SignaturePad: Canvas ref not ready for initial load effect.");
+        return;
     }
-  };
 
-  const handleTestDrawAndEnd = () => {
-    if (signaturePadInstance.current && canvasRef.current) {
-      console.log("SignaturePad: Attempting manual draw and end sequence...");
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.beginPath();
-        ctx.moveTo(50, 50);
-        ctx.lineTo(150, 50);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 5;
-        ctx.stroke();
-        console.log("SignaturePad: Manual red line drawn.");
+    if (isCapturingRef.current) {
+        isCapturingRef.current = false;
+        console.log("SignaturePad: Skipping initial load, signature was just captured.");
+        return;
+    }
 
-        (signaturePadInstance.current as any).onEnd();
-        console.log("SignaturePad: Manually triggered onEnd.");
-      } else {
-        console.error("SignaturePad: Could not get 2D canvas context for manual draw.");
+    if (initialSignature) {
+      try {
+        sigCanvasRef.current.fromDataURL(initialSignature);
+        console.log("SignaturePad: Initial signature loaded from data URL.");
+      } catch (error) {
+        console.error("SignaturePad: Error loading initial signature from DataURL (corrupted data?):", error);
+        sigCanvasRef.current.clear();
+        onClear();
       }
     } else {
-      console.warn("SignaturePad: SignaturePad instance or canvas ref not ready for manual test.");
+      sigCanvasRef.current.clear();
+      console.log("SignaturePad: Pad cleared (no initial signature).");
+    }
+  }, [initialSignature, onClear]);
+
+  const handleStrokeEnd = useCallback(() => {
+    if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+      isCapturingRef.current = true;
+      onSignatureEnd(sigCanvasRef.current.toDataURL());
+      console.log("SignaturePad: Stroke ended, signature captured.");
+    }
+  }, [onSignatureEnd]);
+
+  const handleClearClick = () => {
+    if (sigCanvasRef.current) {
+      sigCanvasRef.current.clear();
+      isCapturingRef.current = false;
+      onClear();
+      console.log("SignaturePad: Clear button clicked, pad cleared.");
     }
   };
 
+  // <--- NEW: Handler for the Guardar button click
+  const handleSaveClick = () => {
+    if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+      const dataUrl = sigCanvasRef.current.toDataURL();
+      console.log("SignaturePad: Guardar button clicked, capturing current signature.");
+      // Call the onSaveClick prop, passing the data URL
+      if (onSaveClick) {
+        onSaveClick(dataUrl);
+      } else {
+        // If no onSaveClick prop is provided, you might want to log or show a local toast
+        console.warn("SignaturePad: onSaveClick prop not provided to save signature.");
+        // Optional: show a toast here if you want local feedback even without parent handler
+        // toast({ title: "Firma Guardada", description: "Firma capturada y lista para ser procesada.", variant: "default" });
+      }
+      // Since onSaveClick might not immediately trigger parent's onSignatureEnd if it was empty,
+      // we might want to ensure the parent's signature state is updated.
+      // If onSaveClick exists, it should handle the update in the parent.
+      // If onSaveClick doesn't exist, we'll still call onSignatureEnd to ensure data is present in context.
+      // onSignatureEnd(dataUrl); // This might be redundant if onSaveClick also updates context.
+    } else {
+      console.log("SignaturePad: Guardar button clicked, but signature pad is empty.");
+    //   toast({
+    //     title: "Firma Vacía",
+    //     description: "El pad de firma está vacío. Por favor, firme antes de guardar.",
+    //     variant: "destructive",
+    //   });
+    }
+  };
+  // END NEW HANDLER
 
   return (
     <div className="border border-gray-300 rounded-md bg-white overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-[200px] bg-gray-50 touch-action-none"
-      ></canvas>
+      <SignatureCanvas
+        ref={sigCanvasRef}
+        onEnd={handleStrokeEnd}
+        canvasProps={{
+          width: 496,
+          height: 200,
+          className: 'w-full h-[200px] bg-gray-50',
+          style: {
+            touchAction: 'none',
+          },
+        }}
+        dotSize={1}
+        minWidth={0.5}
+        maxWidth={2.5}
+        penColor="black"
+      />
       <div className="flex justify-end p-2 bg-gray-100">
         <Button onClick={handleClearClick} variant="outline" size="sm">
           Clear
         </Button>
-        <Button onClick={handleTestDrawAndEnd} variant="outline" size="sm" className="ml-2">
-          Test Draw
+        {/* NEW: Guardar Button */}
+        <Button onClick={handleSaveClick} variant="outline" size="sm" className="ml-2">
+          Guardar
         </Button>
       </div>
     </div>
