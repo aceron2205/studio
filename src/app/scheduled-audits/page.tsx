@@ -17,17 +17,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
+import { v4 as uuid } from "uuid";
+
 
 import { ScheduleAuditForm } from "@/components/custom/schedule-form";
 import { useRouter } from 'next/navigation';
-// NEW IMPORT: Import mockClients and Client type from extinguisherMocks
-import { mockClients, Client } from "@/mocks/extinguisherMocks"; 
+import { mockClients, Client, createMockAudit } from "@/mocks/extinguisherMocks"; 
 
 
 // NEW: Define ScheduledAudit interface locally as it's derived here from Client
 export interface ScheduledAudit {
   id: string; // This will be the client.id
   clientName: string;
+  edifi_id?: string;
   date: string; // MM-DD-YYYY format
   time: string; // Default time for now, or derived if client has it
   location: string; // Client's address
@@ -113,14 +115,12 @@ export default function StartAuditOptions() {
         title: "Auditoría Descargada",
         description: `La auditoría "${auditName}" ha sido descargada. (Simulado)`,
       })*/;
-    }, 2000);
+    });
   };
 
-  const handleStartNewAudit = () => {
-    console.log("Starting new unscheduled audit - navigating to barcode scanner");
-    setIsFabMenuOpen(false); // Close menu after selection
-    // Routes to a generic /audit-scan for a new, unscheduled scan
-    router.push('/audit-scan/new-audit'); // Using a clear ID for a new, unscheduled audit
+  const handleStartNewAudit = async () => {
+    setIsFabMenuOpen(false); 
+    router.push('/audit-scan/new');
   };
 
   const handleScheduleAudit = () => {

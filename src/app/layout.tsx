@@ -1,9 +1,9 @@
-
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { MobileNav } from '@/components/custom/mobile-nav';
+import { AuditProvider } from '@/context/audit-context'; 
 
 export const metadata: Metadata = {
   title: 'Firebase Studio App',
@@ -18,10 +18,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning={true}>
       <body className="font-sans antialiased" suppressHydrationWarning={true}>
-        <div className="min-h-screen pb-16 md:pb-0"> {/* Add padding-bottom for mobile to avoid overlap with MobileNav */}
-          {children}
-        </div>
-        <MobileNav />
+        <AuditProvider> {/* ✅ Wrap children with context */}
+          <div className="min-h-screen pb-16 md:pb-0">
+            {children}
+          </div>
+          <MobileNav />
+        </AuditProvider>
       </body>
     </html>
   );

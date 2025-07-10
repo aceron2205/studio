@@ -17,7 +17,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ExtinguisherActionsDropdown } from "./extinguisher-actions-dropdown";
-import ProcessHeader from "./process-header"; // Import ProcessHeader
 import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock"; // Import ExtinguisherInfoBlock
 
 // NEW IMPORTS: Using centralized data types and mocks
@@ -34,6 +33,8 @@ interface BarcodeScannerProps {
   extinguishersForPlan?: ExtinguisherData[];
   overrideTitle?: string;
   overrideBackButton?: React.ReactNode; 
+  showSearchBar?: boolean;
+  showCamera?: boolean; 
   onExtinguisherScanned?: (extinguisher: ExtinguisherData) => void;
 
 }
@@ -96,9 +97,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
 
   return (
     <div className="w-full">
-      {overrideTitle ? (
-        <ProcessHeader title={overrideTitle} />
-      ) : (
         <div className={cn("relative pb-4 px-4 text-center")}>
           <div className="flex flex-col items-center justify-center gap-2">
             <h1 className="text-xl text-primary flex items-center gap-2">
@@ -111,7 +109,6 @@ export function BarcodeScanner({ itemId, extinguishersForPlan = [], overrideTitl
             </p>
           </div>
         </div>
-      )}
 
       <div className="space-y-6 p-4 sm:p-6">
         <ScannerInterface onCodeScanned={handleCodeProcessed} />

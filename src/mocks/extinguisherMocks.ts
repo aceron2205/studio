@@ -217,6 +217,28 @@ export const mockClients: Client[] = [
   },
 ];
 
+export const createMockAudit = (
+  id: string,
+  clientId: string,
+  clientName: string,
+  date: string,
+  time: string,
+  location: string,
+  status: 'Programada' | 'Pendiente' | 'Completada',
+  edifi_id?: string,
+  extinguishers: ExtinguisherData[] = []
+): ScheduledAudit => ({
+  id,
+  auditClientId: clientId,
+  clientName,
+  date,
+  time,
+  location,
+  status,
+  extinguishersForAudit: extinguishers,
+  ...(edifi_id ? { edifi_id } : {}), // optional fallback
+});
+
 export const getClientsWithExistingExtinguisherPlans = (): Client[] => {
   return mockClients.filter(client => client['extinguisher-plan']?.length);
 };
@@ -233,6 +255,9 @@ export interface ScheduledAudit {
   date: string;
   time: string;
   location: string;
+  edifi_id?: string;
+
+
   status: 'Programada' | 'Pendiente' | 'Completada';
   extinguishersForAudit?: ExtinguisherData[];
 }

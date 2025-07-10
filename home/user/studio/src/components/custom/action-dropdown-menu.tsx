@@ -1,30 +1,55 @@
-typescriptreact
-import * as React from "react";
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import { Table } from "@tanstack/react-table";
-import { Column } from "@tanstack/react-table"; // Import Column type
-import { useNavigate } from "react-router-dom";
+"use client";
 
+import * as React from "react";
+import {
+  MoreHorizontal,
+  Play,       // For Auditar
+  Download,   // For Descargar
+  CalendarClock, // For Reagendar auditoria (Calendar with clock)
+  Ban,        // For Cancelar Auditoría (Stop/Cancel icon)
+  ThumbsUp,   // For Client Approval
+  Eye,        // For View
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 
-interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>;
-  edifId?: string; // Add buildingId prop
+interface ActionDropdownMenuProps {
+  itemId: string;
+  itemName: string;
+  onAudit?: (id: string) => void;
+  onView?: (id: string) => void;
+  onDownload?: (id: string) => void;
+  onScheduleAudit?: (id: string) => void;
+  onCancelAudit?: (id: string) => void;
+  onClientApproval?: (id: string) => void;
+  // edifId is no longer needed here as routing is handled by parent
+  // edifId?: string; 
 }
 
-export function DataTableViewOptions<TData>({
-  table,
-  edifId, // Destructure buildingId
-}: DataTableViewOptionsProps<TData>) {
-  const navigate = useNavigate(); // Initialize useNavigate
+/**
+ * A reusable dropdown menu component for common actions on an item.
+ * Provides options like "Auditar", "Descargar", "Reagendar auditoria", and "Cancelar Auditoría".
+ * Actions are triggered via optional callback props.
+ */
+export const ActionDropdownMenu: React.FC<ActionDropdownMenuProps> = ({
+  itemId,
+  itemName,
+  onAudit,
+  onView,
+  onDownload,
+  onScheduleAudit,
+  onCancelAudit,
+  onClientApproval,
+  // edifId, // Removed edifId from destructuring
+}) => {
+  const hasPrimaryActions = onClientApproval || onView || onAudit || onDownload || onScheduleAudit;
 
   return (
     <DropdownMenu>
@@ -32,49 +57,54 @@ export function DataTableViewOptions<TData>({
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto hidden h-8 lg:flex"
+          aria-label={`Opciones para ${itemName}`}
         >
-          <MixerHorizontalIcon className="mr-2 h-4 w-4" />
-          View
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[150px]">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {table
-          .getAllColumns()
-          .filter(
-            (column: Column<TData, unknown>) => // Add type annotation
-              typeof column.accessorFn !== "undefined" && column.getCanHide()
-          )
-          .map((column: Column<TData, unknown>) => { // Add type annotation
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className="capitalize"
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-              >
-                {column.id}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
-        <DropdownMenuSeparator />
-        {/* Add the "Auditar" option */}
-        <DropdownMenuCheckboxItem
-          className="capitalize"
-          onClick={() => {
-            if (edifId) {
-              navigate(`/view-plans/${edifId}`); // Navigate to view-plans with buildingId
-            } else {
-              // Handle case where buildingId is not available (optional)
-              console.warn("Building ID is not available for navigation.");
-            }
-          }}
-        >
-          Auditar
-        </DropdownMenuCheckboxItem>
+      <DropdownMenuContent align="end">
+        {onClientApproval && (
+          <DropdownMenuItem onClick={() => onClientApproval(itemId)}>
+            <ThumbsUp className="mr-2 h-4 w-4" />
+            Aprobación Cliente
+          </DropdownMenuItem>
+        )}
+        {onView && (
+          <DropdownMenuItem onClick={() => onView(itemId)}>
+            <Eye className="mr-2 h-4 w-4" />
+            Ver Auditoría
+          </DropdownMenuItem>
+        )}
+        {onAudit && (
+          <DropdownMenuItem onClick={() => onAudit(itemId)}>
+            {/* FIX: Removed direct routing logic. onAudit prop will handle routing in parent. */}
+            <Play className="mr-2 h-4 w-4" />
+            Auditar
+          </DropdownMenuItem>
+        )}
+        {onDownload && (
+          <DropdownMenuItem onClick={() => onDownload(itemId)}>
+            <Download className="mr-2 h-4 w-4" />
+            Descargar
+          </DropdownMenuItem>
+        )}
+        {onScheduleAudit && (
+          <DropdownMenuItem onClick={() => onScheduleAudit(itemId)}>
+            <CalendarClock className="mr-2 h-4 w-4" />
+            Agendar auditoria
+          </DropdownMenuItem>
+        )}
+        {hasPrimaryActions && onCancelAudit && <DropdownMenuSeparator />}
+        {onCancelAudit && (
+          <DropdownMenuItem
+            onClick={() => onCancelAudit(itemId)}
+            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+          >
+            <Ban className="mr-2 h-4 w-4" />
+            Cancelar Auditoría
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

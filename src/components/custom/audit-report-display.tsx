@@ -15,10 +15,10 @@ import { ActionDropdownMenu } from "@/components/custom/action-dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 const mockReports = [
-  { auditId: "AUD-2024-001", clientName: "Cliente Innovador SA", date: "2024-07-28" },
-  { auditId: "AUD-2024-002", clientName: "Soluciones Globales Ltda.", date: "2024-07-25" },
-  { auditId: "AUD-2024-003", clientName: "Manufacturas Alfa", date: "2024-07-22" },
-  { auditId: "AUD-2024-004", clientName: "Consultores Asociados", date: "2024-07-20" },
+ { clientId: "CLIENT-001", clientName: "Cliente Innovador SA", date: "2024-07-28", status: "Completado" },
+  { clientId: "CLIENT-002", clientName: "Soluciones Globales Ltda.", date: "2024-07-25", status: "En proceso" },
+  { clientId: "CLIENT-003", clientName: "Manufacturas Alfa", date: "2024-07-22", status: "Pendiente" },
+  { clientId: "CLIENT-004", clientName: "Consultores Asociados", date: "2024-07-20", status: "Completado" },
 ];
 
 export default function AuditReportDisplay() {
@@ -26,18 +26,18 @@ export default function AuditReportDisplay() {
   const { toast } = useToast();
 
   const handleViewAudit = (auditId: string) => {
-    toast({ title: "Ver Auditoría", description: `Funcionalidad para ver detalles de la auditoría ${auditId} no implementada.` });
+    toast({ title: "Ver Auditoría", description: `Funcionalidad para ver detalles de la auditoría ${auditId} no implementada.` }); // Keep toast message generic or update if needed
     // In a real app, you would navigate to a detailed report page:
     // router.push(`/reports/${auditId}`);
   };
 
   const handleScheduleAudit = (auditId: string) => {
-    toast({ title: "Agendar Auditoría", description: `Funcionalidad para agendar nueva auditoría no implementada.` });
+    toast({ title: "Agendar Auditoría", description: `Funcionalidad para agendar nueva auditoría no implementada.` }); // Keep toast message generic or update if needed
      // In a real app, you might open a scheduling modal/form
   };
 
   const handleClientApproval = (auditId: string) => {
-    toast({ title: "Aprobación Cliente", description: `Funcionalidad de aprobación para ${auditId} no implementada.` });
+    toast({ title: "Aprobación Cliente", description: `Funcionalidad de aprobación para ${auditId} no implementada.` }); // Keep toast message generic or update if needed
   };
 
   return (
@@ -46,25 +46,27 @@ export default function AuditReportDisplay() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID Auditoría</TableHead>
+              <TableHead>Client ID</TableHead> {/* Changed header */}
               <TableHead>Cliente</TableHead>
               <TableHead>Fecha</TableHead>
+              <TableHead>Estado</TableHead> {/* Added Status header */}
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {mockReports.map((report) => (
-              <TableRow key={report.auditId}>
-                <TableCell className="font-medium">{report.auditId}</TableCell>
+              <TableRow key={report.clientId}> {/* Changed key to clientId */}
+                <TableCell className="font-medium">{report.clientId}</TableCell> {/* Display clientId */}
                 <TableCell>{report.clientName}</TableCell>
                 <TableCell>{report.date}</TableCell>
+                <TableCell>{report.status}</TableCell> {/* Display status */}
                 <TableCell className="text-right">
                   <ActionDropdownMenu
-                    itemId={report.auditId}
-                    itemName={`reporte ${report.auditId}`}
-                    onView={handleViewAudit}
-                    onScheduleAudit={handleScheduleAudit}
-                    onClientApproval={handleClientApproval}
+                    itemId={report.clientId} // Pass clientId
+                    itemName={`reporte cliente ${report.clientId}`} // Update item name
+                    onView={() => handleViewAudit(report.clientId)} // Pass clientId to handler
+                    onScheduleAudit={() => handleScheduleAudit(report.clientId)} // Pass clientId to handler
+                    onClientApproval={() => handleClientApproval(report.clientId)} // Pass clientId to handler
                   />
                 </TableCell>
               </TableRow>

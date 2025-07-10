@@ -16,6 +16,7 @@ export interface ExtinguisherData {
   pruebaHidrostaticaDate?: string;
   pressure_indicator?: string;
   charge_status?: string;
+  edifi_id?: string;
 }
 
 export interface ArticulosReemplazados {

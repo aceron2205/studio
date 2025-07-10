@@ -1,15 +1,14 @@
-
 "use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useRouter } from 'next/navigation';
 import { z } from "zod";
 import { Save, Camera, FileCheck, Trash2, Check, ArrowLeft, ArrowRight, Info, Wrench, FileImage, ListChecks, XCircle, PlusCircle, Building, Calendar, ShieldAlert } from "lucide-react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -28,6 +27,10 @@ import { ImageUploadDialog } from "./image-upload-dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { useAudit } from '@/context/audit-context';
+
+
+import { ExtinguisherData } from '@/types/extinguisher'
 
 
 const mmYYYYFormat = /^(0[1-9]|1[0-2])-\d{4}$/;
@@ -112,6 +115,7 @@ interface ExtinguisherAuditFormProps {
   initialData: Partial<ExtinguisherAuditFormData>;
   onSubmitSuccess: (data: ExtinguisherAuditFormData) => void;
   extinguisherId: string;
+  planId: string; // Add this line
   onStepChange?: (currentStep: number, totalSteps: number) => void;
 }
 
@@ -123,7 +127,9 @@ export const getInitialRadioValue = (value: string | undefined) => {
 };
 
 
-export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguisherId, onStepChange }: ExtinguisherAuditFormProps) {
+export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguisherId, planId, onStepChange }: ExtinguisherAuditFormProps) {
+  const { auditedExtinguishers, setAuditedExtinguishers } = useAudit(); 
+  const router = useRouter();
   const [currentStep, setCurrentStep] = React.useState(1);
   const totalSteps = 4;
   const [isImageUploadDialogOpen, setIsImageUploadDialogOpen] = React.useState(false);
@@ -187,6 +193,11 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     4: ["photoEvidenceDataUrls", "observacionesGenerales"], // Note: observacionesGenerales can be in step 1 and 4.
   };
 
+  const handleAuditComplete = (extinguisher: ExtinguisherData) => {
+    setAuditedExtinguishers(prev => [...prev, extinguisher]);
+    router.push(`/audit-scan/${planId}`);
+  };
+
   const handleNext = async () => {
     const fieldsToValidate = stepFields[currentStep];
     let isValid = true;
@@ -221,14 +232,18 @@ export function ExtinguisherAuditForm({ initialData, onSubmitSuccess, extinguish
     }
   };
 
+
+
   function onSubmit(data: ExtinguisherAuditFormData) {
-    console.log(`Extinguisher audit data (ID: ${extinguisherId}):`, data);
+    const auditedExtinguisherData = { ...data, id: extinguisherId };
+    console.log("ExtinguisherAuditForm: Submitting data for extinguisher ID:", auditedExtinguisherData.id);
+    console.log("ExtinguisherAuditForm: Data being added:", auditedExtinguisherData);
     toast({
       title: "Auditoría Guardada",
       description: `Los datos de la auditoría para el extinguidor ID: ${extinguisherId} han sido guardados.`,
       variant: "default",
     });
-    onSubmitSuccess(data);
+    handleAuditComplete({ ...data, id: extinguisherId });
   }
 
   const confirmDarDeBaja = () => {

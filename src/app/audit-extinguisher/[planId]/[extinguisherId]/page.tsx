@@ -12,7 +12,7 @@ import { ExtinguisherAuditForm, type ExtinguisherAuditFormData } from "@/compone
 import { ExtinguisherInfoBlock } from "@/components/custom/ExtinguisherInfoBlock";
 import { mockClients } from "@/mocks/extinguisherMocks";
 import ProcessHeader from "@/components/custom/process-header"
-
+import { useAudit } from "@/context/audit-context";
 
 interface AuditExtinguisherPageProps {
   params: Promise<{
@@ -96,10 +96,26 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
   }, [planId, extinguisherId]); 
 
   
+  const { setAuditedExtinguishers, setClient, setBuildingName } = useAudit();
+
   const handleSubmitSuccess = (data: ExtinguisherAuditFormData) => {
-    console.log("Auditoría guardada:", data);
-    //toast({ title: "Auditoría Registrada" });
-    router.back(); 
+    const auditedExtinguisher = {
+      ...infoBlockData, // includes id, agenteExtintor, capacidadLibras, ubicacion
+      ...data, // form audit data
+    };
+  
+    setAuditedExtinguishers(prev => {
+      const exists = prev.some(e => e.id === extinguisherId);
+      if (exists) return prev;
+      return [...prev, { ...data, id: extinguisherId }];
+    });
+
+    setClient(mockClients.find(c => c.id === planId)!);
+    setBuildingName(infoBlockData.edificio);
+    console.log("Audit form submitted successfully:", data);
+
+  
+    router.push('/audit-scan');
   };
 
   const handleStepChange = (step: number) => {
@@ -145,6 +161,7 @@ export default function AuditExtinguisherPage({ params: paramsPromise }: AuditEx
               onSubmitSuccess={handleSubmitSuccess}
               extinguisherId={extinguisherId}
               onStepChange={handleStepChange}
+              planId={planId}
           />
         </div>
   

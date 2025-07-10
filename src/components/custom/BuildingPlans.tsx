@@ -51,30 +51,6 @@ const BuildingPlans: React.FC<BuildingPlansProps> = ({ selectedClient, onBack, o
   }, [audits]);
 
 
-  const getAuditStatusIcon = (status: string | undefined) => {
-  if (status === 'Programada') {
-    return (
-      <span title="Programada">
-        <CheckCircle2 className="h-4 w-4 text-green-500" />
-      </span>
-    );
-  }
-  if (status === 'Pendiente') {
-    return (
-      <span title="Pendiente">
-        <Clock3 className="h-4 w-4 text-yellow-500" />
-      </span>
-    );
-  }
-  if (status === 'Completada') {
-    return (
-      <span title="Completada">
-        <XCircle className="h-4 w-4 text-gray-500" />
-      </span>
-    );
-  }
-  return null;
-};
 
   const sortedBuildingNames = useMemo(() => {
     return Object.keys(extinguishersByBuilding).sort();
@@ -103,9 +79,7 @@ const BuildingPlans: React.FC<BuildingPlansProps> = ({ selectedClient, onBack, o
       className="p-4 border border-gray-200 rounded-md bg-white hover:bg-gray-50 transition-colors mb-2"
     >
       <h3 className="font-semibold text-base text-gray-800 flex items-center gap-2">
-      <span title="Programada">
-  <Tag className="h-4 w-4 text-gray-500" />
-</span>
+        <Tag className="h-4 w-4 text-gray-500" />
         {extinguisher.agenteExtintor} ({extinguisher.capacidadLibras})
       </h3>
       <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
@@ -136,7 +110,6 @@ const BuildingPlans: React.FC<BuildingPlansProps> = ({ selectedClient, onBack, o
                 <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
                   <FireExtinguisher className="h-6 w-6 text-orange-500" />
                   {buildingName} ({extinguishersByBuilding[buildingName].length})
-                  {getAuditStatusIcon(auditStatusByBuilding[selectedClient.edifi_id || ''])}
                 </h2>
                 <ActionDropdownMenu
                   itemId={buildingName}
