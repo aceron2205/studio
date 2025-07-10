@@ -86,7 +86,7 @@ export default function AuditReviewAndSign() {
     }));
   }, [auditedExtinguishers, client, buildingName]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => { // <--- MAKE ASYNC
     if (!clientSignature) {
       toast({
         title: "Firma Requerida",
@@ -95,15 +95,73 @@ export default function AuditReviewAndSign() {
       });
       return;
     }
-    // It's assumed the signature is already captured and the pad is hidden if finalized
-    console.log("Audit confirmed with signature:", clientSignature);
+
     toast({
-      title: "Auditoría Confirmada",
-      description: "La auditoría ha sido confirmada y los datos guardados.",
-      variant: "default",
+        title: "Generando PDF...",
+        description: "Por favor, espere. El reporte está siendo creado.",
+        variant: "default",
+        duration: 9000, // Keep toast longer
     });
-    clearAuditState();
-    router.push('/scheduled-audits');
+
+    try {
+        const auditDataToSend = {
+            client: client,
+            buildingName: buildingName,
+            auditedExtinguishers: auditedExtinguishers,
+            clientSignature: clientSignature,
+            selectedDate: selectedDate?.toISOString(), // Send date as ISO string
+            // Add other frontend data needed for PDF here (e.g., client name input field if you add one)
+        };
+        console.log("AuditReviewAndSign: Data being sent to API:", JSON.stringify(auditDataToSend, null, 2)); // Add this log
+
+
+        const response = await fetch('/api/generate-audit-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(auditDataToSend),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to generate PDF');
+        }
+
+        // Get the PDF blob and create a URL to download it
+        const pdfBlob = await response.blob();
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+
+        // Open the PDF in a new tab or trigger download
+        window.open(pdfUrl, '_blank'); // Opens in new tab
+        // Or to force download:
+        // const a = document.createElement('a');
+        // a.href = pdfUrl;
+        // a.download = 'reporte-auditoria.pdf';
+        // document.body.appendChild(a);
+        // a.click();
+        // document.body.removeChild(a);
+        // URL.revokeObjectURL(pdfUrl); // Clean up the URL object
+
+        // toast({
+        //   title: "PDF Generado",
+        //   description: "El reporte de auditoría ha sido generado exitosamente.",
+        //   variant: "success", // Ensure 'success' variant is allowed in your toast types
+        // });
+
+        // After successful PDF generation and potential saving, clear state and navigate
+        // (You might want to save to backend database here if not done in API route)
+        clearAuditState();
+        router.push('/scheduled-audits');
+
+    } catch (error: any) {
+        console.error('Error in PDF generation:', error);
+        toast({
+          title: "Error al Generar PDF",
+          description: error.message || "Hubo un problema al crear el reporte.",
+          variant: "destructive",
+        });
+    }
   };
 
   const handleCancel = () => {

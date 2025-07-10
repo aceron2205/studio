@@ -61,9 +61,6 @@ const ReviewTableSign: React.FC<ReviewTableProps> = ({
           ))}
         </TableBody>
       </Table>
-      <div className="mt-4">
-        <Button onClick={handleSaveAudit}>Guardar</Button>
-      </div>
     </div>
   );
 };
