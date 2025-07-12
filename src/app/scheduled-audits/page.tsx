@@ -28,7 +28,7 @@ import { mockClients, } from "@/mocks/extinguisherMocks";
 
 // Dynamically import SignaturePad, specifying the named export
 const SignaturePad = dynamic(
-  () => import('@/components/custom/signature-pad').then((mod) => mod.SignaturePad),
+  () => import('@/components/custom/signature-pad').then((mod) => mod.default),
   { ssr: false }
 );
 

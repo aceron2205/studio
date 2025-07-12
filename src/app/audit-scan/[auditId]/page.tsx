@@ -1,9 +1,10 @@
+// src/app/audit-scan/page.tsx
 "use client";
 
 import * as React from "react";
 import { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Search, Building as BuildingIcon, User as UserIcon } from "lucide-react";
+import { ArrowRight, Search, Building as BuildingIcon, User as UserIcon, ShieldCheck, ShieldAlert } from "lucide-react"; // Import ShieldCheck, ShieldAlert
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import {
@@ -41,7 +42,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ExtinguisherData } from "@/types/extinguisher"; // Assuming this path and type exists
 import { mockClients, Client } from "@/mocks/extinguisherMocks"; // Import mockClients
 import { BarcodeScanner } from "@/components/custom/barcode-scanner";
-//import { SignaturePad } from "@/components/custom/signature-pad";
 
 const selectionSchema = z.object({
   selectedClientId: z.string().min(1, "Debe seleccionar un cliente."),
@@ -168,7 +168,7 @@ export default function AuditScanPage() {
           ext.edificio === data.selectedBuildingId
       ) || [];
       setCurrentAuditExtinguishers(extinguishers);
-      setAuditedExtinguishers([]); 
+      setAuditedExtinguishers([]);
       setAuditStage('scanning');
       toast({
         title: "Error de Selección",
@@ -193,7 +193,7 @@ export default function AuditScanPage() {
       });
       return;
     }
-    router.push("/audit-review-sign"); 
+    router.push("/audit-review-sign");
   };
 
   const handleSaveAudit = () => {
@@ -382,7 +382,40 @@ export default function AuditScanPage() {
               onClick={handleViewResults}
               disabled={auditedExtinguishers.length === 0}>Ver Resultados</Button>
           </div>
-          {/* Removed "Extintores en el Plan" table from here, as per previous discussion */}
+          {/* Display Extinguishers in Plan for scanning stage */}
+          {currentAuditExtinguishers.length > 0 && (
+            <div className="p-4">
+              <h3 className="text-lg font-semibold mb-2">Extintores en el Plan</h3>
+              {/* This is the list of extinguishers in the client's plan for the selected building */}
+              {currentAuditExtinguishers.map((extinguisher) => {
+                const isAudited = auditedExtinguishers.some((auditedExt) => auditedExt.id === extinguisher.id);
+                const shieldColorClass = isAudited ? 'text-green-500' : 'text-gray-400'; // Green if audited, gray if not
+                const countText = isAudited ? '1/1' : '0/1';
+
+                return (
+                  <div key={extinguisher.id} className="border-b py-3 flex items-center justify-between">
+                    <div className="flex items-center">
+                      {isAudited ? (
+                        <ShieldCheck className={`h-5 w-5 mr-2 ${shieldColorClass}`} />
+                      ) : (
+                        <ShieldAlert className={`h-5 w-5 mr-2 ${shieldColorClass}`} />
+                      )}
+                      <div>
+                        <p className="font-semibold">{extinguisher.agenteExtintor} ({extinguisher.capacidadLibras})</p>
+                        <p className="text-sm text-gray-500">{extinguisher.ubicacion}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 mr-2">{countText}</span>
+                      <Button variant="ghost" size="icon" onClick={() => handleViewDetails(extinguisher.id)}>
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
 

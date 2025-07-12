@@ -17,7 +17,7 @@ import ProcessHeader from "@/components/custom/process-header"
 import { useAudit } from "@/context/audit-context";
 
 const SignaturePad = dynamic(
-  () => import('@/components/custom/signature-pad').then((mod) => mod.SignaturePad),
+  () => import('@/components/custom/signature-pad').then((mod) => mod.default),
   { ssr: false }
 );
 

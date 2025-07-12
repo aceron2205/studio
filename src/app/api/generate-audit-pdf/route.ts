@@ -1,18 +1,11 @@
 // src/app/api/generate-audit-pdf/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 
-// Helper function to build HTML from audit data
+// Helper function to build HTML from audit data (unchanged)
 function buildPdfHtml(auditData: any): string {
-  // Destructure auditData for easier access
   const { client, buildingName, auditedExtinguishers, clientSignature, selectedDate } = auditData;
-
-  // Basic styling for the PDF. You can make this much more sophisticated with inline CSS or linked CSS.
-  // For images (like signature), ensure they are correctly base64 encoded.
   const signatureImageHtml = clientSignature ? `<img src="${clientSignature}" style="max-width: 200px; max-height: 100px; border: 1px solid #ccc; margin-top: 10px;" alt="Client Signature"/>` : '<p>No signature provided.</p>';
-
   const dateString = selectedDate ? new Date(selectedDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : 'No especificada';
-
   const extinguishersTableHtml = auditedExtinguishers && auditedExtinguishers.length > 0 ? `
     <h3>Extintores Auditados:</h3>
     <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
@@ -39,8 +32,6 @@ function buildPdfHtml(auditData: any): string {
     </table>
   ` : '<p>No se auditaron extintores.</p>';
 
-
-  // Construct the full HTML page content for Puppeteer
   return `
     <!DOCTYPE html>
     <html>
@@ -84,50 +75,122 @@ function buildPdfHtml(auditData: any): string {
 }
 
 export async function POST(req: NextRequest) {
+  let browser;
   try {
     const auditData = await req.json();
+    console.log("API Route: Received auditData (first 200 chars):", JSON.stringify(auditData).substring(0, 200));
 
-    // Basic validation (add more robust validation as needed)
     if (!auditData.client || !auditData.auditedExtinguishers || !auditData.clientSignature) {
+      console.log("API Route: Validation failed - Missing required audit data.");
       return new NextResponse(JSON.stringify({ error: 'Missing required audit data' }), { status: 400 });
     }
 
-    const browser = await puppeteer.launch({
-      headless: true, // Use new headless mode (more modern)
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Recommended for production environments (e.g., Vercel, Docker)
+    console.log("API Route: Validation passed. Attempting Puppeteer launch...");
+
+    // FIX: More robust Puppeteer launch for cloud environments
+    // Combine essential args, and try to find executable path if chrome-aws-lambda.executablePath fails
+    const defaultArgs = [
+      '--no-sandbox', // Always needed in constrained environments
+      '--disable-setuid-sandbox', // Always needed in constrained environments
+      '--disable-dev-shm-usage', // Recommended for memory-constrained environments
+      '--disable-gpu',           // Recommended for some environments
+      '--no-first-run',          // Skips first-run setup
+      '--no-zygote',             // Can reduce memory
+      '--single-process'         // Can help in some container environments
+    ];
+
+    let executablePath = await chromium.executablePath; // Path from chrome-aws-lambda
+
+    // Try common system paths for Chromium/Chrome if chrome-aws-lambda's path doesn't work
+    if (!executablePath) {
+      console.warn("API Route: chrome-aws-lambda executablePath not found, trying common system paths.");
+      const commonPaths = [
+        '/usr/bin/chromium-browser', // Common Linux default
+        '/usr/bin/google-chrome',    // Common Linux default
+        '/usr/local/bin/chrome',
+        // Add more paths if specific to Cloud Workstations documentation
+      ];
+      for (const path of commonPaths) {
+        // Use Node.js 'fs' to check if the file exists and is executable
+        try {
+          const fs = await import('fs/promises'); // Dynamic import for fs
+          await fs.access(path, fs.constants.X_OK); // Check if file exists and is executable
+          executablePath = path;
+          console.log(`API Route: Found executable at: ${path}`);
+          break;
+        } catch (e) {
+          // Path not found or not executable
+        }
+      }
+    }
+
+    if (!executablePath) {
+      console.error("API Route: No Chromium executable found at any path. Puppeteer cannot launch.");
+      throw new Error("No Chromium executable found for PDF generation. Contact support.");
+    }
+
+    console.log("API Route: Launching browser with executablePath:", executablePath, "and args:", defaultArgs);
+    
+    browser = await puppeteer.launch({
+      args: defaultArgs,
+      executablePath: executablePath,
+      headless: chromium.headless, // Use headless option from chrome-aws-lambda
+      timeout: 60000, // Increase launch timeout
     });
+    console.log("API Route: Puppeteer browser launched successfully.");
+
     const page = await browser.newPage();
+    console.log("API Route: New page created.");
 
-    // Set the HTML content for the PDF
+    await page.setViewport({ width: 1080, height: 1024 });
+
     const htmlContent = buildPdfHtml(auditData);
+    console.log("API Route: HTML content built (first 500 chars):", htmlContent.substring(0, 500));
     await page.setContent(htmlContent, {
-      waitUntil: 'networkidle0', // Wait until network activity is minimal
+      waitUntil: 'networkidle0',
+      timeout: 60000
     });
+    console.log("API Route: Page content set.");
 
-    // Generate the PDF
+    console.log("API Route: Generating PDF...");
     const pdfBuffer = await page.pdf({
       format: 'A4',
-      printBackground: true, // Ensure background colors/images are printed
+      printBackground: true,
       margin: {
         top: '20mm',
         right: '20mm',
         bottom: '20mm',
         left: '20mm',
       },
+      timeout: 60000
     });
+    console.log("API Route: PDF generated successfully.");
 
-    await browser.close();
+    if (browser) {
+      await browser.close();
+      console.log("API Route: Browser closed.");
+    }
 
-    // Return the PDF buffer as a response
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="auditoria-extintores.pdf"', // Forces download
+        'Content-Disposition': 'attachment; filename="auditoria-extintores.pdf"',
       },
     });
 
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    return new NextResponse(JSON.stringify({ error: 'Failed to generate PDF' }), { status: 500 });
+  } catch (error: any) {
+    console.error('API Route: Error generating PDF (detailed):', error.message || error);
+    if (error.stack) {
+        console.error('API Route: Error Stack:', error.stack);
+    }
+    if (browser) {
+      try {
+        await browser.close();
+        console.log("API Route: Browser closed due to error.");
+      } catch (closeError) {
+        console.error("API Route: Error closing browser after generation failure:", closeError);
+      }
+    }
+    return new NextResponse(JSON.stringify({ error: 'Failed to generate PDF', details: error.message || 'Unknown error' }), { status: 500 });
   }
 }

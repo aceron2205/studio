@@ -3,13 +3,11 @@
 
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { format } from "date-fns"; // <--- NEW: Import format for dates
+import { format } from "date-fns";
 import { Calendar as CalendarIcon, Loader2, ArrowLeft } from "lucide-react";
 
 
 import { Client } from '@/mocks/extinguisherMocks';
-// SignaturePad is imported but used dynamically. Keep the component import for type hinting.
-import { SignaturePad as SignaturePadComponent } from '@/components/custom/signature-pad'; // Renamed to avoid conflict with dynamic import variable
 import ReviewTableSign from '@/components/custom/review-table';
 import { useAudit } from '@/context/audit-context';
 import { toast } from "@/hooks/use-toast";
@@ -19,19 +17,22 @@ import dynamic from 'next/dynamic'
 
 // Dynamic import for SignaturePad to ensure it's client-side only
 const SignaturePad = dynamic(
-  () => import('@/components/custom/signature-pad').then((mod) => mod.SignaturePad),
-  { ssr: false }
+  () => import('@/components/custom/signature-pad').then((mod) => mod.default), // Correctly imports default export
+  {
+    ssr: false, // Crucial: This ensures it's only rendered on the client
+    loading: () => <p>Cargando pad de firma...</p>, // Optional: show a loading message
+  }
 );
 
-import { Calendar } from "@/components/ui/calendar"; // <--- NEW: Calendar component
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"; // <--- NEW: Popover components
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-// Interface for AuditResult (can be defined here or in a shared types file)
+// Interface for AuditResult
 export interface AuditResult {
   extinguisherId: string;
   agent: string;
@@ -54,26 +55,26 @@ export default function AuditReviewAndSign() {
     clearAuditState
   } = useAudit();
 
-  // FIX: Initial state for signature pad visibility is now FALSE
-  const [isSignaturePadVisible, setIsSignaturePadVisible] = useState(false); // <--- CHANGE TO FALSE
+  // Initialize signature pad visibility state
+  // It starts hidden, controlled by button clicks.
+  const [isSignaturePadVisible, setIsSignaturePadVisible] = useState(false);
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // <--- NEW STATE
-  
+  // Initialize selected date state
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
+  // Effect for initial data validation and redirection
   useEffect(() => {
+    // If essential data for the review page is missing, redirect the user
     if (!client || !buildingName || !auditedExtinguishers) {
       router.replace('/scheduled-audits');
+      return; // Exit early to prevent further rendering errors
     }
-    // If there's an existing signature when the page loads, hide the pad initially
-    // This provides a consistent UX where if a signature is already present, the pad isn't immediately shown.
-    if (clientSignature) {
-        setIsSignaturePadVisible(false);
-    }
-  }, [client, buildingName, auditedExtinguishers, router, clientSignature]);
+  }, [client, buildingName, auditedExtinguishers, router]); // Dependencies for this effect
 
-   if (!client || !buildingName || !auditedExtinguishers) {
-    return null;
-  }
+
+  // Memoized audit results for performance
   const mappedAuditResults: AuditResult[] = useMemo(() => {
+    // Return empty array if essential data is missing (handled by useEffect redirect as well)
     if (!client || !buildingName || !auditedExtinguishers) return [];
 
     return auditedExtinguishers.map(ext => ({
@@ -81,12 +82,13 @@ export default function AuditReviewAndSign() {
       agent: ext.agenteExtintor || 'N/A',
       capacity: ext.capacidadLibras || 'N/A',
       location: ext.ubicacion || 'N/A',
-      auditStatus: 'Auditado',
-      auditDate: new Date().toLocaleDateString(),
+      auditStatus: 'Auditado', // Assuming all audited extinguishers on this page are 'Auditado'
+      auditDate: new Date().toLocaleDateString(), // This date reflects current date when processed
     }));
   }, [auditedExtinguishers, client, buildingName]);
 
-  const handleConfirm = async () => { // <--- MAKE ASYNC
+  // Handler for confirming the audit and generating PDF
+  const handleConfirm = async () => {
     if (!clientSignature) {
       toast({
         title: "Firma Requerida",
@@ -100,21 +102,22 @@ export default function AuditReviewAndSign() {
         title: "Generando PDF...",
         description: "Por favor, espere. El reporte está siendo creado.",
         variant: "default",
-        duration: 9000, // Keep toast longer
+        duration: 9000, // Keep toast longer for generation time
     });
 
     try {
+        // Prepare audit data to send to the API route for PDF generation
         const auditDataToSend = {
-            client: client,
-            buildingName: buildingName,
-            auditedExtinguishers: auditedExtinguishers,
-            clientSignature: clientSignature,
-            selectedDate: selectedDate?.toISOString(), // Send date as ISO string
-            // Add other frontend data needed for PDF here (e.g., client name input field if you add one)
+            client: client, // Client object from context
+            buildingName: buildingName, // Building name from context
+            auditedExtinguishers: auditedExtinguishers, // Audited extinguishers array from context
+            clientSignature: clientSignature, // Signature DataURL from context
+            selectedDate: selectedDate?.toISOString(), // Selected date from Calendar
         };
-        console.log("AuditReviewAndSign: Data being sent to API:", JSON.stringify(auditDataToSend, null, 2)); // Add this log
+        console.log("AuditReviewAndSign: Data being sent to API:", JSON.stringify(auditDataToSend, null, 2));
 
 
+        // Make POST request to the server-side API route
         const response = await fetch('/api/generate-audit-pdf', {
             method: 'POST',
             headers: {
@@ -123,34 +126,47 @@ export default function AuditReviewAndSign() {
             body: JSON.stringify(auditDataToSend),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to generate PDF');
+        // FIX: Handle response based on status and content type
+        const contentType = response.headers.get('content-type');
+
+        if (response.ok) {
+            // SUCCESS: Expecting PDF blob if status is OK
+            if (contentType && contentType.includes('application/pdf')) {
+                const pdfBlob = await response.blob();
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                window.open(pdfUrl, '_blank'); // Opens in new tab for user to view/download
+
+                // toast({
+                //   title: "PDF Generado",
+                //   description: "El reporte de auditoría ha sido generado exitosamente.",
+                //   variant: "success",
+                // });
+            } else {
+                // Unexpected successful response type (e.g., 200 OK but not PDF)
+                const text = await response.text();
+                console.error("API Route: Unexpected successful response type, expected PDF:", text);
+                throw new Error("Respuesta inesperada del servidor al generar PDF.");
+            }
+        } else {
+            // ERROR: Response is not OK (e.g., 400, 500)
+            let errorMessage = "Error desconocido al generar PDF.";
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } else if (contentType && contentType.includes('text/html')) {
+                // If it's an HTML error page (common for server crashes outside explicit API route handling)
+                const htmlError = await response.text();
+                console.error("API Route: Received HTML error page:", htmlError.substring(0, 500) + "..."); // Log first 500 chars
+                errorMessage = "El servidor devolvió una página de error HTML inesperada. Contacte soporte.";
+            } else {
+                // Other non-JSON, non-HTML errors
+                const text = await response.text();
+                errorMessage = text || errorMessage;
+            }
+            throw new Error(errorMessage);
         }
 
-        // Get the PDF blob and create a URL to download it
-        const pdfBlob = await response.blob();
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-
-        // Open the PDF in a new tab or trigger download
-        window.open(pdfUrl, '_blank'); // Opens in new tab
-        // Or to force download:
-        // const a = document.createElement('a');
-        // a.href = pdfUrl;
-        // a.download = 'reporte-auditoria.pdf';
-        // document.body.appendChild(a);
-        // a.click();
-        // document.body.removeChild(a);
-        // URL.revokeObjectURL(pdfUrl); // Clean up the URL object
-
-        // toast({
-        //   title: "PDF Generado",
-        //   description: "El reporte de auditoría ha sido generado exitosamente.",
-        //   variant: "success", // Ensure 'success' variant is allowed in your toast types
-        // });
-
         // After successful PDF generation and potential saving, clear state and navigate
-        // (You might want to save to backend database here if not done in API route)
         clearAuditState();
         router.push('/scheduled-audits');
 
@@ -164,16 +180,20 @@ export default function AuditReviewAndSign() {
     }
   };
 
+  // Handler for cancelling the audit review
   const handleCancel = () => {
     clearAuditState();
     router.push('/scheduled-audits');
   };
 
+  // Handler for viewing extinguisher details (currently logs to console)
   const handleViewDetails = (extinguisherId: string) => {
     console.log(`Detalles del extintor ${extinguisherId}`);
   };
 
+  // Handler for saving audit data (simulated, would send to backend)
   const handleSaveAudit = (signatureDataUrl?: string) => {
+    // If signatureDataUrl is provided (from the SignaturePad's Guardar button), update context
     if (signatureDataUrl && signatureDataUrl !== clientSignature) {
         setClientSignature(signatureDataUrl);
         console.log("AuditReviewAndSign: clientSignature updated from Guardar button.");
@@ -186,41 +206,44 @@ export default function AuditReviewAndSign() {
     console.log('Auditoría guardada exitosamente.');
   };
 
+  // Helper to get audit status (always 'Auditado' for this page)
   const getAuditStatus = (extinguisherId: string) => {
     return 'Auditado';
   };
 
+  // Helper to get audit date (always current date for this page)
   const getAuditDate = (extinguisherId: string) => {
     return new Date().toLocaleDateString();
   };
 
-  // NEW HANDLER: To show the signature pad (when "Firmar" button is clicked)
+  // Handler to show the signature pad (triggered by "Firmar" button)
   const handleShowSignaturePad = () => {
+    console.log("AuditReviewAndSign: 'Firmar' button clicked. Setting isSignaturePadVisible to true.");
     setIsSignaturePadVisible(true);
-    // Optional: Auto-scroll to the signature section if it's far down the page
-    // window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
-  // NEW HANDLER: To hide the signature pad (when "Finalizar Firma" button is clicked)
+  // Handler to hide the signature pad (triggered by "Finalizar Firma" button)
   const handleFinalizeSignature = () => {
+    console.log("AuditReviewAndSign: 'Finalizar Firma' button clicked.");
     if (!clientSignature) { // Ensure a signature exists before finalizing
         toast({
             title: "Firma Requerida",
-            description: "Por favor, firme antes de finalizar.",
+            description: "Por favor, proporcione una firma antes de finalizar.",
             variant: "destructive",
         });
         return;
     }
     setIsSignaturePadVisible(false); // Hide the signature pad
     // toast({
-    //     title: "Firma Capturada", // Changed toast message for clarity
+    //     title: "Firma Capturada",
     //     description: "La firma ha sido capturada y finalizada.",
     //     variant: "success",
     // });
   };
 
-  // NEW HANDLER: To show the signature pad again for editing
+  // Handler to show the signature pad again for editing (triggered by "Editar Firma" button)
   const handleEditSignature = () => {
+    console.log("AuditReviewAndSign: 'Editar Firma' button clicked. Setting isSignaturePadVisible to true.");
     setIsSignaturePadVisible(true);
     // toast({
     //   title: "Editando Firma",
@@ -229,18 +252,27 @@ export default function AuditReviewAndSign() {
     // });
   };
 
+  // If essential data is missing, redirect the user
+  if (!client || !buildingName || !auditedExtinguishers) {
+    return null; // Return null to prevent rendering errors while redirecting
+  }
 
   return (
     <>
+      {/* Process Header */}
       <ProcessHeader title={title} goBack={() => router.back()} />
+
+      {/* Main Content Container */}
       <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
 
+        {/* Client and Building Information */}
         <div className="mb-6 border-b pb-4">
-          <p className="text-gray-700"><strong>Cliente:</strong> {client.name}</p>
-          <p className="text-gray-700"><strong>Dirección:</strong> {client.direccion}</p>
+          <p className="text-gray-700"><strong>Cliente:</strong> {client?.name}</p> {/* Use optional chaining */}
+          <p className="text-gray-700"><strong>Dirección:</strong> {client?.direccion}</p> {/* Use optional chaining */}
           <p className="text-700"><strong>Edificio:</strong> {buildingName}</p>
         </div>
 
+        {/* Audited Extinguishers Table */}
         <h3 className="text-xl font-semibold mb-3 text-card-foreground">Extintores auditados ({mappedAuditResults.length})</h3>
         <ReviewTableSign
           auditResults={mappedAuditResults}
@@ -250,7 +282,7 @@ export default function AuditReviewAndSign() {
           getAuditDate={getAuditDate}
         />
 
-        {/* New section for Nombre del Cliente and Fecha */}
+        {/* Section for Client Name Input and Date Picker */}
         <div className="mb-6 mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-lg font-medium mb-2 text-card-foreground">Nombre del Cliente</h3>
@@ -261,9 +293,7 @@ export default function AuditReviewAndSign() {
             />
           </div>
           <div>
-          <h3 className="text-lg font-medium mb-2 text-card-foreground">Fecha</h3>
-            {/* Replace with Calendar component later */}
-            {/* Calendar Integration */}
+            <h3 className="text-lg font-medium mb-2 text-card-foreground">Fecha</h3>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -295,7 +325,7 @@ export default function AuditReviewAndSign() {
 
           {isSignaturePadVisible ? (
             // Render SignaturePad when visible
-            <div className="space-y-4"> {/* Added a div for consistent spacing/styling */}
+            <div className="space-y-4">
               <SignaturePad
                 onSignatureEnd={(dataUrl: string) => setClientSignature(dataUrl)}
                 onClear={() => setClientSignature(null)}
@@ -310,11 +340,11 @@ export default function AuditReviewAndSign() {
             </div>
           ) : (
             // Show preview or "Firmar" button when pad is hidden
-            <div className="border border-gray-300 rounded-md bg-white p-4 flex flex-col items-center justify-center min-h-[150px]"> {/* min-h for consistent space */}
+            <div className="border border-gray-300 rounded-md bg-white p-4 flex flex-col items-center justify-center min-h-[150px]">
               {clientSignature ? (
                 <>
                   <img src={clientSignature} alt="Firma del Cliente" className="max-w-full h-auto" style={{ maxHeight: '150px' }} />
-                  <Button onClick={handleEditSignature} variant="outline" size="sm" className="mt-4"> {/* Increased mt for spacing */}
+                  <Button onClick={handleEditSignature} variant="outline" size="sm" className="mt-4">
                     Editar Firma
                   </Button>
                 </>
@@ -331,6 +361,7 @@ export default function AuditReviewAndSign() {
           )}
         </div>
 
+        {/* Confirmation and Cancellation Buttons */}
         <div className="flex justify-between mt-6">
           <Button
             variant="outline"
