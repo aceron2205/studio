@@ -1,64 +1,83 @@
 
-import { WelcomeHeader } from '@/components/custom/welcome-header';
-import { MenuCard } from '@/components/custom/menu-card';
-import { Search, Archive, RefreshCw, Download, Edit3, FilePlus2, Map, CalendarDays } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+'use client';
+
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
-export default function HomePage() {
-  const userName = "Usuario"; // Placeholder, replace with actual user data logic
+import { useRouter } from 'next/navigation';
 
-  const menuItems = [
-    { title: 'Buscador', icon: Search, href: '/search', description: 'Filtrar auditorías' },
-    { title: 'Inventario', icon: Archive, href: '#', description: 'Consultar stock' },
-    { title: 'Sincronizar', icon: RefreshCw, href: '#', description: 'Actualizar datos' },
-    { title: 'Inicia auditoría', icon: FilePlus2, href: '/start-audit', description: 'Comenzar una nueva auditoría' },
-    { title: 'Crear plano', icon: Map, href: '/create-plan', description: 'Diseñar la ubicación de extintores' },
-  ];
 
-  return (
-    <div className="flex flex-col items-center justify-start min-h-screen bg-background font-sans">
-      <div className="w-full max-w-md p-5"> {/* Changed padding to p-5 for slightly less padding */}
-        <WelcomeHeader userName={userName} />
-        
-        <main className="mt-4">
-          <div className="grid grid-cols-2 gap-5"> {/* Changed gap to gap-5 */}
-            {menuItems.map((item, index) => (
-              <MenuCard
-                key={item.title + index} // Added index to key for safety if titles aren't unique
-                title={item.title}
-                icon={item.icon}
-                href={item.href}
-                description={item.description}
-              />
-            ))}
+const HomePage = () => {
+  const router = useRouter();
+
+ return (
+ <div className="flex flex-col items-center justify-start min-h-screen bg-background p-4">
+ <div className="w-full max-w-md space-y-6">
+        {/* Welcome Section */}
+ <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+ <h2 className="text-xl font-semibold">Bienvenido, Usuario</h2>
+ <p className="text-sm text-muted-foreground mt-1">Aquí están tus tareas recientes.</p>
+ <Button className="mt-4 w-full"
+        onClick={() => router.push('/scheduled-audits')} // Navigate to the new page
+        >Iniciar Auditoria</Button>
+ </div>
+      
+
+        {/* Recent Audits Section */}
+        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold">Auditorías Recientes</h2>
+          <div className="mt-4 space-y-4">
+            {/* Placeholder for Recent Audits */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-semibold">Constructora Delta</h4>
+                <p className="text-sm text-muted-foreground">15 de Julio, 2024</p>
+              </div>
+              <span className="text-sm text-green-600">Completado</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-semibold">Oficinas Epsilon</h4>
+                <p className="text-sm text-muted-foreground">20 de Julio, 2024</p>
+              </div>
+              <span className="text-sm text-yellow-600">En Progreso</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-semibold">Almacén Zeta</h4>
+                <p className="text-sm text-muted-foreground">25 de Julio, 2024</p>
+              </div>
+              <span className="text-sm text-blue-600">Pendiente</span>
+            </div>
           </div>
-        </main>
+        </div>
 
-        <section aria-labelledby="quick-actions-title" className="mt-10">
-          <h2 id="quick-actions-title" className="text-xl font-semibold text-center mb-4 text-primary">Acciones Rápidas</h2>
-          <div className="space-y-3">
-            <Button variant="outline" className="w-full justify-between" asChild>
-              <Link href="#">
-                Descargar Auditorías
-                <Download className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-between" asChild>
-              <Link href="#">
-                Editar auditoría
-                <Edit3 className="w-4 h-4" />
-              </Link>
-            </Button>
+        {/* More Options Section */}
+        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold">Más</h2>
+          <div className="mt-4 space-y-4">
+            <Link href="/view-plans" className="flex justify-between items-center text-muted-foreground hover:text-foreground">
+              <span>Planes Asignados</span>
+              <span>&gt;</span>
+            </Link>
+            <Separator />
+            <Link href="/inventory" className="flex justify-between items-center text-muted-foreground hover:text-foreground">
+              <span>Inventario</span>
+              <span>&gt;</span>
+            </Link>
+            <Separator />
+            <Link href="/create-plan" className="flex justify-between items-center text-muted-foreground hover:text-foreground">
+              <span>Crear Nuevo Plan</span>
+              <span>&gt;</span>
+            </Link>
           </div>
-        </section>
-        
-        <footer className="text-center py-10 mt-6">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} MobileFlow. Todos los derechos reservados.
-          </p>
-        </footer>
+          </div>
       </div>
     </div>
   );
-}
+};
+
+export default HomePage;

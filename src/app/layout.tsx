@@ -1,16 +1,9 @@
-import type {Metadata} from 'next';
-import {Geist, Geist_Mono} from 'next/font/google';
+import type { Metadata } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+import { MobileNav } from '@/components/custom/mobile-nav';
+import { AuditProvider } from '@/context/audit-context'; 
 
 export const metadata: Metadata = {
   title: 'Firebase Studio App',
@@ -23,9 +16,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning={true}>
+      <body className="font-sans antialiased" suppressHydrationWarning={true}>
+        <AuditProvider> {/* ✅ Wrap children with context */}
+          <div className="min-h-screen pb-16 md:pb-0">
+            {children}
+          </div>
+          <MobileNav />
+        </AuditProvider>
       </body>
     </html>
   );
