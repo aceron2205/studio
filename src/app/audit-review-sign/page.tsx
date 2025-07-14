@@ -19,9 +19,12 @@ import dynamic from 'next/dynamic'
 const SignaturePad = dynamic(
   () => import('@/components/custom/signature-pad').then((mod) => mod.default), // Correctly imports default export
   {
-    ssr: false, // Crucial: This ensures it's only rendered on the client
-    loading: () => <p>Cargando pad de firma...</p>, // Optional: show a loading message
-  }
+    ssr: false,
+    loading: () => {
+      console.log("AuditReviewAndSign: SignaturePad is loading dynamically...");
+      return <p>Cargando pad de firma...</p>;
+    },
+    }
 );
 
 import { Calendar } from "@/components/ui/calendar";

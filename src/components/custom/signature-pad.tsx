@@ -1,17 +1,16 @@
-// src/components/custom/signature-pad.tsx
 "use client";
 
-import React, { useRef, useEffect, useCallback } from 'react';
-import SignatureCanvas from 'react-signature-canvas'; // <--- CORRECT LIBRARY IMPORT
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+import SignatureCanvas from 'react-signature-canvas';
 import { Button } from '@/components/ui/button';
-import { toast } from "@/hooks/use-toast"; // Assuming toast is available for local messages
+import { toast } from "@/hooks/use-toast";
 
 
 interface SignaturePadProps {
   initialSignature?: string | null;
   onSignatureEnd: (dataUrl: string) => void;
   onClear: () => void;
-  onSaveClick?: (dataUrl: string) => void; // For the Guardar button
+  onSaveClick?: (dataUrl: string) => void;
 }
 
 export const SignaturePad: React.FC<SignaturePadProps> = ({
@@ -20,77 +19,90 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
   onClear,
   onSaveClick,
 }) => {
-  // Ref for the SignatureCanvas component instance (NOT raw canvas)
   const sigCanvasRef = useRef<SignatureCanvas | null>(null);
-
-  // Ref to track if the signature was just captured by this component's onEnd
-  // This helps prevent re-loading the same signature we just drew, avoiding visual glitches.
   const isCapturingRef = useRef(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Effect to load initial signature or clear on mount/initialSignature change
-  // This runs when initialSignature (from parent context) changes.
+  // Log to see every render attempt for debugging
+  console.log("SignaturePad Component: Render cycle initiated. Mounted state:", mounted);
+
+  // Effect to set mounted to true (runs once on client mount)
   useEffect(() => {
-    // Only attempt to load if sigCanvasRef.current exists (component is mounted)
-    if (!sigCanvasRef.current) {
-        console.log("SignaturePad: Canvas ref not ready for initial load effect.");
+    console.log("SignaturePad Component: Primary mounting useEffect triggered.");
+    setMounted(true); // <-- This should make the component render in the next cycle
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  // Effect to load initial signature or clear on initialSignature change
+  useEffect(() => {
+    if (!mounted) {
+        console.log("SignaturePad Component: Skipping initial signature load, component not yet mounted.");
         return;
     }
 
-    // Prevent re-loading the signature if it was just captured by our onEnd handler.
-    // This stops the duplication we saw previously.
+    if (!sigCanvasRef.current) {
+        console.log("SignaturePad Component: Canvas ref not ready for initial signature load (inside second useEffect).");
+        return;
+    }
+
     if (isCapturingRef.current) {
-        isCapturingRef.current = false; // Reset the flag after checking
-        console.log("SignaturePad: Skipping initial load, signature was just captured by current component.");
+        isCapturingRef.current = false;
+        console.log("SignaturePad Component: Skipping initial load, signature was just captured locally.");
         return;
     }
 
     if (initialSignature) {
-      try {
-        sigCanvasRef.current.fromDataURL(initialSignature);
-        console.log("SignaturePad: Initial signature loaded from data URL.");
-      } catch (error) {
-        console.error("SignaturePad: Error loading initial signature from DataURL (corrupted data?):", error);
-        sigCanvasRef.current.clear(); // Clear visually on error
-        onClear(); // Clear parent state on error
-      }
-    } else {
-      sigCanvasRef.current.clear(); // Clear the pad if no initial signature
-      console.log("SignaturePad: Pad cleared (no initial signature).");
-    }
-  }, [initialSignature, onClear]); // Depend on initialSignature and onClear
+      const loadTimeout = setTimeout(() => {
+        if (sigCanvasRef.current && sigCanvasRef.current.isEmpty()) {
+          try {
+            sigCanvasRef.current.fromDataURL(initialSignature);
+            console.log("SignaturePad Component: Initial signature loaded from data URL.");
+          } catch (error) {
+            console.error("SignaturePad Component: Error loading initial signature (corrupted data?):", error);
+            sigCanvasRef.current.clear();
+            onClear();
+          }
+        } else {
+            console.log("SignaturePad Component: Skipping initial load, canvas is not empty or ref is null.");
+        }
+      }, 0);
 
-  // Callback for when a stroke ends on the signature canvas (triggered by react-signature-canvas)
+      return () => clearTimeout(loadTimeout);
+    } else {
+      sigCanvasRef.current.clear();
+      console.log("SignaturePad Component: Pad cleared (no initial signature provided).");
+    }
+  }, [mounted, initialSignature, onClear]);
+
+  // Callback for when a stroke ends
   const handleStrokeEnd = useCallback(() => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
-      isCapturingRef.current = true; // Set flag: we are about to capture the signature
+      isCapturingRef.current = true;
       onSignatureEnd(sigCanvasRef.current.toDataURL());
-      console.log("SignaturePad: Stroke ended, signature captured.");
+      console.log("SignaturePad Component: Stroke ended, signature captured.");
     }
   }, [onSignatureEnd]);
 
   // Handler for the Clear button
   const handleClearClick = () => {
     if (sigCanvasRef.current) {
-      sigCanvasRef.current.clear(); // Clear the pad visually
-      isCapturingRef.current = false; // Reset capture flag on clear
-      onClear(); // Inform parent component to clear the signature data
-      console.log("SignaturePad: Clear button clicked, pad cleared.");
+      sigCanvasRef.current.clear();
+      isCapturingRef.current = false;
+      onClear();
+      console.log("SignaturePad Component: Clear button clicked, pad cleared.");
     }
   };
 
   // Handler for the "Guardar" button click
   const handleSaveClick = () => {
-    if (sigCanvasRef.current) { // Always attempt to capture if pad instance exists
+    if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       const dataUrl = sigCanvasRef.current.toDataURL();
-      console.log("SignaturePad: Guardar button clicked, capturing current signature.");
+      console.log("SignaturePad Component: Guardar button clicked, capturing current signature.");
       if (onSaveClick) {
-        onSaveClick(dataUrl); // Call the onSaveClick prop, passing the data URL
-        // Optionally, reset capture flag if saving means it's finalized
-        // isCapturingRef.current = false;
+        onSaveClick(dataUrl);
       }
     } else {
-      console.log("SignaturePad: Guardar button clicked, but signature pad is not initialized or empty.");
-      toast({ // Use the toast available via import
+      console.log("SignaturePad Component: Guardar button clicked, but signature pad is empty.");
+      toast({
         title: "Firma Vacía",
         description: "El pad de firma está vacío. Por favor, firme antes de guardar.",
         variant: "destructive",
@@ -98,37 +110,32 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
     }
   };
 
-  // The 'Test Draw' button is generally not needed with react-signature-canvas
-  // as its onEnd/onBegin should work directly. But keeping a simplified version
-  // if you still need to visually test direct drawing capabilities.
   const handleTestDrawAndEnd = () => {
-      if (sigCanvasRef.current) {
-          // This library doesn't have a direct 'drawPoint' method.
-          // The best way to test drawing is via user input or by setting initialSignature.
-          console.log("SignaturePad: To test drawing, please use mouse/finger. Manual draw via API is complex for this library.");
-        //   toast({
-        //     title: "Test de Dibujo",
-        //     description: "Por favor, dibuje directamente en el pad.",
-        //     variant: "info",
-        //   });
-      }
+      console.log("SignaturePad Component: To test drawing, please use mouse/finger.");
   };
 
+  // Crucial: Only render SignatureCanvas and its logic if mounted on the client
+  if (!mounted) {
+    console.log("SignaturePad Component: Returning null because not yet mounted on client.");
+    return null;
+  }
+
+  // Moved console.log statement outside of JSX
+  console.log("SignaturePad Component: Rendering SignatureCanvas JSX (mounted is true).");
 
   return (
     <div className="border border-gray-300 rounded-md bg-white overflow-hidden">
       <SignatureCanvas
-        ref={sigCanvasRef} // Attach ref to the SignatureCanvas component
-        onEnd={handleStrokeEnd} // Fires when a stroke is completed by user
-        canvasProps={{ // Props passed directly to the underlying <canvas> element
-          width: 496, // Match your desired width
-          height: 200, // Match your desired height
-          className: 'w-full h-[200px] bg-gray-50', // Tailwind classes for visual styling
+        ref={sigCanvasRef}
+        onEnd={handleStrokeEnd}
+        canvasProps={{
+          width: 496,
+          height: 200,
+          className: 'w-full h-[200px] bg-gray-50',
           style: {
-            touchAction: 'none', // CRITICAL for preventing scrolling on touch devices
+            touchAction: 'none',
           },
         }}
-        // Other options passed directly as props to SignatureCanvas
         dotSize={1}
         minWidth={0.5}
         maxWidth={2.5}
@@ -149,5 +156,4 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
   );
 };
 
-// Export as default
 export default SignaturePad;
