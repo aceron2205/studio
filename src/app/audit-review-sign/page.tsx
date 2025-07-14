@@ -126,7 +126,7 @@ export default function AuditReviewAndSign() {
             body: JSON.stringify(auditDataToSend),
         });
 
-        // FIX: Handle response based on status and content type
+        // Handle response based on status and content type
         const contentType = response.headers.get('content-type');
 
         if (response.ok) {
