@@ -4,27 +4,29 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
 
 
 import { Client } from '@/mocks/extinguisherMocks';
 import ReviewTableSign from '@/components/custom/review-table';
 import { useAudit } from '@/context/audit-context';
-import { toast } from "@/hooks/use-toast";
+// Removed 'toast' import as per previous decision if you removed the toast system
+// If you still have a toast system, re-add `import { toast } from "@/hooks/use-toast";`
+// and ensure its variant types are correct ("default" or "destructive")
+// import { toast } from "@/hooks/use-toast"; // Uncomment if you still use toasts
+
 import { Button } from "@/components/ui/button"
 import ProcessHeader from "@/components/custom/process-header"
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic' // Keep dynamic for SignaturePad
 
-// Dynamic import for SignaturePad to ensure it's client-side only
+
+// Dynamic import for SignaturePad (remains the same)
 const SignaturePad = dynamic(
-  () => import('@/components/custom/signature-pad').then((mod) => mod.default), // Correctly imports default export
+  () => import('@/components/custom/signature-pad').then((mod) => mod.default),
   {
     ssr: false,
-    loading: () => {
-      console.log("AuditReviewAndSign: SignaturePad is loading dynamically...");
-      return <p>Cargando pad de firma...</p>;
-    },
-    }
+    loading: () => <p>Cargando pad de firma...</p>,
+  }
 );
 
 import { Calendar } from "@/components/ui/calendar";
@@ -58,26 +60,48 @@ export default function AuditReviewAndSign() {
     clearAuditState
   } = useAudit();
 
+  // State to hold the html2pdf function once it's loaded on the client
+  const [html2pdfLoaded, setHtml2pdfLoaded] = useState<any | null>(null); // State to hold the loaded html2pdf function
+
+  // Effect to dynamically import html2pdf.js only on the client side after mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('html2pdf.js')
+        .then(mod => {
+          // Fix: Store the actual function, not the module. Wrap in an arrow function.
+          setHtml2pdfLoaded(() => mod.default || mod); // <--- FIX IS HERE
+          console.log("html2pdf.js loaded successfully on client.");
+        })
+        .catch(error => {
+          console.error("Failed to load html2pdf.js on client:", error);
+          // You might want to show a toast or error message here
+          // toast({ title: "Error", description: "Fallo la carga del generador de PDF.", variant: "destructive" });
+        });
+    }
+  }, []); // Empty dependency array ensures this runs once on client mount
+
+
   // Initialize signature pad visibility state
-  // It starts hidden, controlled by button clicks.
   const [isSignaturePadVisible, setIsSignaturePadVisible] = useState(false);
 
   // Initialize selected date state
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
+  // State to hold the client name from the input field
+  const [clientNameInput, setClientNameInput] = useState<string>(client?.name || '');
+
+
   // Effect for initial data validation and redirection
   useEffect(() => {
-    // If essential data for the review page is missing, redirect the user
     if (!client || !buildingName || !auditedExtinguishers) {
       router.replace('/scheduled-audits');
-      return; // Exit early to prevent further rendering errors
+      return;
     }
-  }, [client, buildingName, auditedExtinguishers, router]); // Dependencies for this effect
+  }, [client, buildingName, auditedExtinguishers, router]);
 
 
   // Memoized audit results for performance
   const mappedAuditResults: AuditResult[] = useMemo(() => {
-    // Return empty array if essential data is missing (handled by useEffect redirect as well)
     if (!client || !buildingName || !auditedExtinguishers) return [];
 
     return auditedExtinguishers.map(ext => ({
@@ -85,101 +109,65 @@ export default function AuditReviewAndSign() {
       agent: ext.agenteExtintor || 'N/A',
       capacity: ext.capacidadLibras || 'N/A',
       location: ext.ubicacion || 'N/A',
-      auditStatus: 'Auditado', // Assuming all audited extinguishers on this page are 'Auditado'
-      auditDate: new Date().toLocaleDateString(), // This date reflects current date when processed
+      auditStatus: 'Auditado',
+      auditDate: new Date().toLocaleDateString(),
     }));
   }, [auditedExtinguishers, client, buildingName]);
 
-  // Handler for confirming the audit and generating PDF
+  // Handler for confirming the audit and generating PDF (NOW CLIENT-SIDE)
   const handleConfirm = async () => {
     if (!clientSignature) {
-      toast({
-        title: "Firma Requerida",
-        description: "Por favor, proporcione una firma antes de continuar.",
-        variant: "destructive",
-      });
+      // toast({ ... }); // Re-add if you have toast system
+      console.log("Firma Requerida: Por favor, proporcione una firma antes de continuar.");
       return;
     }
 
-    toast({
-        title: "Generando PDF...",
-        description: "Por favor, espere. El reporte está siendo creado.",
-        variant: "default",
-        duration: 9000, // Keep toast longer for generation time
-    });
+    // Check if html2pdf is loaded via the state
+    if (!html2pdfLoaded) {
+      // toast({ ... }); // Re-add if you have toast system
+      console.log("Error de Carga: El generador de PDF aún no está listo. Intente de nuevo.");
+      return;
+    }
+
+    // toast({ ... }); // Re-add if you have toast system
+    console.log("Generando PDF... Por favor, espere. El reporte está siendo creado en su navegador.");
+
 
     try {
-        // Prepare audit data to send to the API route for PDF generation
-        const auditDataToSend = {
-            client: client, // Client object from context
-            buildingName: buildingName, // Building name from context
-            auditedExtinguishers: auditedExtinguishers, // Audited extinguishers array from context
-            clientSignature: clientSignature, // Signature DataURL from context
-            selectedDate: selectedDate?.toISOString(), // Selected date from Calendar
-        };
-        console.log("AuditReviewAndSign: Data being sent to API:", JSON.stringify(auditDataToSend, null, 2));
+      const element = document.getElementById('report-content');
+      if (!element) {
+        throw new Error("Contenido del reporte no encontrado para generar PDF.");
+      }
+
+      const options = {
+        margin: [10, 10, 10, 10], // top, left, bottom, right in mm
+        filename: `Reporte_Auditoria_${client?.name || 'cliente'}_${format(selectedDate || new Date(), 'yyyyMMdd')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Use the loaded html2pdf function from state
+      // It's already stored as a function, so call it directly.
+      await html2pdfLoaded().set(options).from(element).save(); // <--- FIX IS HERE
+
+      // Optional: If you need to send the PDF to Supabase Storage, you'd output it as a Blob
+      // const pdfBlob = await html2pdfLoaded().set(options).from(element).outputPdf('blob');
+      // console.log('PDF generated as blob (can be uploaded to Supabase Storage):', pdfBlob);
+      // const { data, error } = await supabase.storage.from('audit-pdfs').upload(`report_${Date.now()}.pdf`, pdfBlob, { contentType: 'application/pdf' });
+      // if (error) console.error('Supabase upload error:', error);
 
 
-        // Make POST request to the server-side API route
-        const response = await fetch('/api/generate-audit-pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(auditDataToSend),
-        });
+      // toast({ ... }); // Re-add if you have toast system
+      console.log("PDF Generado: El reporte de auditoría ha sido generado exitosamente y descargado.");
 
-        // Handle response based on status and content type
-        const contentType = response.headers.get('content-type');
-
-        if (response.ok) {
-            // SUCCESS: Expecting PDF blob if status is OK
-            if (contentType && contentType.includes('application/pdf')) {
-                const pdfBlob = await response.blob();
-                const pdfUrl = URL.createObjectURL(pdfBlob);
-                window.open(pdfUrl, '_blank'); // Opens in new tab for user to view/download
-
-                // toast({
-                //   title: "PDF Generado",
-                //   description: "El reporte de auditoría ha sido generado exitosamente.",
-                //   variant: "success",
-                // });
-            } else {
-                // Unexpected successful response type (e.g., 200 OK but not PDF)
-                const text = await response.text();
-                console.error("API Route: Unexpected successful response type, expected PDF:", text);
-                throw new Error("Respuesta inesperada del servidor al generar PDF.");
-            }
-        } else {
-            // ERROR: Response is not OK (e.g., 400, 500)
-            let errorMessage = "Error desconocido al generar PDF.";
-            if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
-            } else if (contentType && contentType.includes('text/html')) {
-                // If it's an HTML error page (common for server crashes outside explicit API route handling)
-                const htmlError = await response.text();
-                console.error("API Route: Received HTML error page:", htmlError.substring(0, 500) + "..."); // Log first 500 chars
-                errorMessage = "El servidor devolvió una página de error HTML inesperada. Contacte soporte.";
-            } else {
-                // Other non-JSON, non-HTML errors
-                const text = await response.text();
-                errorMessage = text || errorMessage;
-            }
-            throw new Error(errorMessage);
-        }
-
-        // After successful PDF generation and potential saving, clear state and navigate
-        clearAuditState();
-        router.push('/scheduled-audits');
+      clearAuditState();
+      router.push('/scheduled-audits');
 
     } catch (error: any) {
-        console.error('Error in PDF generation:', error);
-        toast({
-          title: "Error al Generar PDF",
-          description: error.message || "Hubo un problema al crear el reporte.",
-          variant: "destructive",
-        });
+      console.error('Error in PDF generation (client-side):', error);
+      // toast({ ... }); // Re-add if you have toast system
+      console.log("Error al Generar PDF: Hubo un problema al crear el reporte en el navegador.");
     }
   };
 
@@ -189,75 +177,58 @@ export default function AuditReviewAndSign() {
     router.push('/scheduled-audits');
   };
 
-  // Handler for viewing extinguisher details (currently logs to console)
+  // Handler for viewing extinguisher details
   const handleViewDetails = (extinguisherId: string) => {
     console.log(`Detalles del extintor ${extinguisherId}`);
   };
 
-  // Handler for saving audit data (simulated, would send to backend)
+  // Handler for saving audit data (simulated)
   const handleSaveAudit = (signatureDataUrl?: string) => {
-    // If signatureDataUrl is provided (from the SignaturePad's Guardar button), update context
     if (signatureDataUrl && signatureDataUrl !== clientSignature) {
-        setClientSignature(signatureDataUrl);
-        console.log("AuditReviewAndSign: clientSignature updated from Guardar button.");
+      setClientSignature(signatureDataUrl);
+      console.log("AuditReviewAndSign: clientSignature updated from Guardar button.");
     }
-    toast({
-      title: "Guardado",
-      description: "Auditoría guardada exitosamente. (Simulado)",
-      variant: "default",
-    });
+    // toast({ ... }); // Re-add if you have toast system
     console.log('Auditoría guardada exitosamente.');
+    // Here you would also send all audit data to your Supabase backend
   };
 
-  // Helper to get audit status (always 'Auditado' for this page)
+  // Helper to get audit status
   const getAuditStatus = (extinguisherId: string) => {
     return 'Auditado';
   };
 
-  // Helper to get audit date (always current date for this page)
+  // Helper to get audit date
   const getAuditDate = (extinguisherId: string) => {
     return new Date().toLocaleDateString();
   };
 
-  // Handler to show the signature pad (triggered by "Firmar" button)
+  // Handler to show the signature pad
   const handleShowSignaturePad = () => {
     console.log("AuditReviewAndSign: 'Firmar' button clicked. Setting isSignaturePadVisible to true.");
     setIsSignaturePadVisible(true);
   };
 
-  // Handler to hide the signature pad (triggered by "Finalizar Firma" button)
+  // Handler to hide the signature pad
   const handleFinalizeSignature = () => {
     console.log("AuditReviewAndSign: 'Finalizar Firma' button clicked.");
-    if (!clientSignature) { // Ensure a signature exists before finalizing
-        toast({
-            title: "Firma Requerida",
-            description: "Por favor, proporcione una firma antes de finalizar.",
-            variant: "destructive",
-        });
-        return;
+    if (!clientSignature) {
+      // toast({ ... }); // Re-add if you have toast system
+      console.log("Firma Requerida: Por favor, proporcione una firma antes de finalizar.");
+      return;
     }
-    setIsSignaturePadVisible(false); // Hide the signature pad
-    // toast({
-    //     title: "Firma Capturada",
-    //     description: "La firma ha sido capturada y finalizada.",
-    //     variant: "success",
-    // });
+    setIsSignaturePadVisible(false);
   };
 
-  // Handler to show the signature pad again for editing (triggered by "Editar Firma" button)
+  // Handler to show the signature pad again for editing
   const handleEditSignature = () => {
     console.log("AuditReviewAndSign: 'Editar Firma' button clicked. Setting isSignaturePadVisible to true.");
     setIsSignaturePadVisible(true);
-    // toast({
-    //   title: "Editando Firma",
-    //   description: "Pad de firma visible para edición.",
-    //   variant: "info",
-    // });
   };
 
   // If essential data is missing, redirect the user
   if (!client || !buildingName || !auditedExtinguishers) {
-    return null; // Return null to prevent rendering errors while redirecting
+    return null;
   }
 
   return (
@@ -265,25 +236,27 @@ export default function AuditReviewAndSign() {
       {/* Process Header */}
       <ProcessHeader title={title} goBack={() => router.back()} />
 
-      {/* Main Content Container */}
-      <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
+      {/* Main Content Container - WRAPPED FOR PDF GENERATION */}
+      <div id="report-content" className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
 
         {/* Client and Building Information */}
         <div className="mb-6 border-b pb-4">
-          <p className="text-gray-700"><strong>Cliente:</strong> {client?.name}</p> {/* Use optional chaining */}
-          <p className="text-gray-700"><strong>Dirección:</strong> {client?.direccion}</p> {/* Use optional chaining */}
+          <p className="text-gray-700"><strong>Cliente:</strong> {client?.name}</p>
+          <p className="text-gray-700"><strong>Dirección:</strong> {client?.direccion}</p>
           <p className="text-700"><strong>Edificio:</strong> {buildingName}</p>
         </div>
 
         {/* Audited Extinguishers Table */}
         <h3 className="text-xl font-semibold mb-3 text-card-foreground">Extintores auditados ({mappedAuditResults.length})</h3>
-        <ReviewTableSign
-          auditResults={mappedAuditResults}
-          handleViewDetails={handleViewDetails}
-          handleSaveAudit={handleSaveAudit}
-          getAuditStatus={getAuditStatus}
-          getAuditDate={getAuditDate}
-        />
+        <div id="audit-results-table-pdf">
+          <ReviewTableSign
+            auditResults={mappedAuditResults}
+            handleViewDetails={handleViewDetails}
+            handleSaveAudit={handleSaveAudit}
+            getAuditStatus={getAuditStatus}
+            getAuditDate={getAuditDate}
+          />
+        </div>
 
         {/* Section for Client Name Input and Date Picker */}
         <div className="mb-6 mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,6 +266,8 @@ export default function AuditReviewAndSign() {
               type="text"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="Ingrese el nombre del cliente"
+              value={clientNameInput}
+              onChange={(e) => setClientNameInput(e.target.value)}
             />
           </div>
           <div>
@@ -354,33 +329,33 @@ export default function AuditReviewAndSign() {
               ) : (
                 // If no signature captured yet, and pad is hidden, show "Firmar" button
                 <div className="text-muted-foreground py-8 text-center">
-                    <p className="mb-4">No hay firma capturada.</p>
-                    <Button onClick={handleShowSignaturePad} variant="default">
-                        Firmar
-                    </Button>
+                  <p className="mb-4">No hay firma capturada.</p>
+                  <Button onClick={handleShowSignaturePad} variant="default">
+                    Firmar
+                  </Button>
                 </div>
               )}
             </div>
           )}
         </div>
+      </div> {/* END OF #report-content div */}
 
-        {/* Confirmation and Cancellation Buttons */}
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            className="px-4 py-2"
-            onClick={handleCancel}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="default"
-            className="px-4 py-2"
-            onClick={handleConfirm}
-          >
-            Confirmar y generar PDF
-          </Button>
-        </div>
+      {/* Confirmation and Cancellation Buttons */}
+      <div className="flex justify-between mt-6 max-w-3xl mx-auto p-6">
+        <Button
+          variant="outline"
+          className="px-4 py-2"
+          onClick={handleCancel}
+        >
+          Cancelar
+        </Button>
+        <Button
+          variant="default"
+          className="px-4 py-2"
+          onClick={handleConfirm}
+        >
+          Generar Reporte
+        </Button>
       </div>
     </>
   );
